@@ -1,0 +1,297 @@
+messages:
+  dashboard.home:
+    purpose: "Pinned dashboard home screen."
+    location: "Pinned dashboard message."
+    trigger: "Shown on /start and after most successful actions."
+    auto_delete: false
+    emojis_required: true
+    max_length_hint: 700
+    interpolation_fields:
+      - active_count
+      - soon_count
+      - expired_count
+    buttons:
+      - dashboard:list
+      - dashboard:soon
+      - dashboard:stats
+      - dashboard:settings
+  ingest.processing:
+    purpose: "Short confirmation that a background ingestion job was accepted."
+    location: "Transient bot message."
+    trigger: "Immediately after supported incoming user content is accepted."
+    auto_delete: true
+    emojis_required: true
+    max_length_hint: 160
+    interpolation_fields: []
+    buttons: []
+  ingest.unsupported:
+    purpose: "Unsupported message type feedback."
+    location: "Transient bot message."
+    trigger: "User sent an unsupported Telegram message type."
+    auto_delete: true
+    emojis_required: true
+    max_length_hint: 180
+    interpolation_fields: []
+    buttons: []
+  draft.card:
+    purpose: "Transient product draft confirmation card."
+    location: "Separate transient draft message."
+    trigger: "Shown when a draft session is ready."
+    auto_delete: true
+    emojis_required: true
+    max_length_hint: 500
+    interpolation_fields:
+      - name
+      - expires_on
+      - missing_fields
+      - source_kind
+    buttons:
+      - draft:confirm
+      - draft:edit_name
+      - draft:edit_date
+      - draft:delete
+      - draft:cancel
+  draft.confirmed:
+    purpose: "Confirmation after a draft becomes a saved product."
+    location: "Transient bot message."
+    trigger: "Draft was confirmed successfully."
+    auto_delete: true
+    emojis_required: true
+    max_length_hint: 180
+    interpolation_fields:
+      - name
+      - expires_on
+    buttons: []
+  draft.canceled:
+    purpose: "Confirmation after a draft is canceled."
+    location: "Transient bot message."
+    trigger: "Draft was canceled by the user."
+    auto_delete: true
+    emojis_required: true
+    max_length_hint: 140
+    interpolation_fields: []
+    buttons: []
+  ingest.failed:
+    purpose: "Background pipeline failed to produce a draft."
+    location: "Transient bot message."
+    trigger: "OCR, ASR, parsing, or other ingest stage failed."
+    auto_delete: true
+    emojis_required: true
+    max_length_hint: 180
+    interpolation_fields: []
+    buttons: []
+  draft.edit_name_prompt:
+    purpose: "Prompt for editing the product name of a ready draft."
+    location: "Transient bot message."
+    trigger: "User tapped draft edit-name action."
+    auto_delete: true
+    emojis_required: true
+    max_length_hint: 160
+    interpolation_fields: []
+    buttons: []
+  draft.edit_date_prompt:
+    purpose: "Prompt for editing the expiration date of a ready draft."
+    location: "Transient bot message."
+    trigger: "User tapped draft edit-date action."
+    auto_delete: true
+    emojis_required: true
+    max_length_hint: 180
+    interpolation_fields: []
+    buttons: []
+  draft.edit_date_invalid:
+    purpose: "Feedback when the user sent text that still does not look like a date while editing draft expiry."
+    location: "Transient bot message."
+    trigger: "User sent an invalid date phrase during draft date editing."
+    auto_delete: true
+    emojis_required: true
+    max_length_hint: 220
+    interpolation_fields: []
+    buttons: []
+  draft.incomplete:
+    purpose: "Feedback when a draft cannot be confirmed yet."
+    location: "Callback answer or transient bot message."
+    trigger: "User taps confirm with missing name or date."
+    auto_delete: true
+    emojis_required: true
+    max_length_hint: 120
+    interpolation_fields: []
+    buttons: []
+  callback.dashboard_stale:
+    purpose: "Transient feedback for an outdated dashboard message."
+    location: "Transient bot message."
+    trigger: "User tapped a button in an old dashboard message."
+    auto_delete: true
+    emojis_required: true
+    max_length_hint: 160
+    interpolation_fields: []
+    buttons: []
+  callback.draft_already_processed:
+    purpose: "Transient feedback for an already finished draft."
+    location: "Transient bot message."
+    trigger: "User tapped a button on a draft that was already completed or closed."
+    auto_delete: true
+    emojis_required: true
+    max_length_hint: 160
+    interpolation_fields: []
+    buttons: []
+  dashboard.list_empty:
+    purpose: "Empty-state text for dashboard product lists."
+    location: "Pinned dashboard sub-screen."
+    trigger: "User opens a list view with no matching products."
+    auto_delete: false
+    emojis_required: true
+    max_length_hint: 200
+    interpolation_fields: []
+    buttons:
+      - dashboard:home
+  dashboard.list.title.active:
+    purpose: "Title for active products list."
+    location: "Pinned dashboard sub-screen."
+    trigger: "User opens the active products list."
+    auto_delete: false
+    emojis_required: false
+    max_length_hint: 80
+    interpolation_fields: []
+    buttons: []
+  dashboard.list.title.soon:
+    purpose: "Title for soon-to-expire products list."
+    location: "Pinned dashboard sub-screen."
+    trigger: "User opens the soon products list."
+    auto_delete: false
+    emojis_required: false
+    max_length_hint: 80
+    interpolation_fields: []
+    buttons: []
+  dashboard.list.header:
+    purpose: "Header for dashboard list screens."
+    location: "Pinned dashboard sub-screen."
+    trigger: "Rendered above dashboard list items."
+    auto_delete: false
+    emojis_required: true
+    max_length_hint: 120
+    interpolation_fields:
+      - title
+    buttons: []
+  dashboard.list.item:
+    purpose: "Line for a single product inside a dashboard list."
+    location: "Pinned dashboard sub-screen."
+    trigger: "Rendered once per product in dashboard list."
+    auto_delete: false
+    emojis_required: false
+    max_length_hint: 120
+    interpolation_fields:
+      - name
+      - expires_on
+    buttons: []
+  dashboard.stats:
+    purpose: "Statistics screen text."
+    location: "Pinned dashboard sub-screen."
+    trigger: "User opens stats."
+    auto_delete: false
+    emojis_required: true
+    max_length_hint: 400
+    interpolation_fields:
+      - active_count
+      - soon_count
+      - expired_count
+      - consumed_count
+      - discarded_count
+      - deleted_count
+    buttons:
+      - dashboard:home
+  dashboard.settings:
+    purpose: "Settings screen text."
+    location: "Pinned dashboard sub-screen."
+    trigger: "User opens settings."
+    auto_delete: false
+    emojis_required: true
+    max_length_hint: 240
+    interpolation_fields:
+      - timezone
+      - digest_time
+    buttons:
+      - dashboard:home
+  product.card:
+    purpose: "Product details card inside dashboard navigation."
+    location: "Pinned dashboard sub-screen."
+    trigger: "User opens a specific product from a list."
+    auto_delete: false
+    emojis_required: true
+    max_length_hint: 240
+    interpolation_fields:
+      - name
+      - expires_on
+      - status
+    buttons:
+      - product:set:consumed
+      - product:set:discarded
+      - product:set:deleted
+      - dashboard:list
+  draft.missing.none:
+    purpose: "Shown when draft has no missing fields."
+    location: "Transient draft card."
+    trigger: "Draft is complete."
+    auto_delete: true
+    emojis_required: false
+    max_length_hint: 80
+    interpolation_fields: []
+    buttons: []
+  draft.missing.name:
+    purpose: "Shown when draft misses only the product name."
+    location: "Transient draft card."
+    trigger: "Draft is missing product name."
+    auto_delete: true
+    emojis_required: false
+    max_length_hint: 80
+    interpolation_fields: []
+    buttons: []
+  draft.missing.date:
+    purpose: "Shown when draft misses only the expiration date."
+    location: "Transient draft card."
+    trigger: "Draft is missing expiration date."
+    auto_delete: true
+    emojis_required: false
+    max_length_hint: 80
+    interpolation_fields: []
+    buttons: []
+  draft.missing.both:
+    purpose: "Shown when draft misses both the product name and expiration date."
+    location: "Transient draft card."
+    trigger: "Draft is missing both required fields."
+    auto_delete: true
+    emojis_required: false
+    max_length_hint: 120
+    interpolation_fields: []
+    buttons: []
+  digest.morning:
+    purpose: "Morning digest for active soon/expired products."
+    location: "Separate digest message."
+    trigger: "Scheduled morning digest."
+    auto_delete: false
+    emojis_required: true
+    max_length_hint: 900
+    interpolation_fields:
+      - digest_lines
+    buttons: []
+  digest.line.expired:
+    purpose: "Single expired product line inside digest."
+    location: "Separate digest message."
+    trigger: "Rendered once per expired product."
+    auto_delete: false
+    emojis_required: true
+    max_length_hint: 120
+    interpolation_fields:
+      - name
+      - expires_on
+    buttons: []
+  digest.line.soon:
+    purpose: "Single soon-expiring product line inside digest."
+    location: "Separate digest message."
+    trigger: "Rendered once per soon-expiring product."
+    auto_delete: false
+    emojis_required: true
+    max_length_hint: 120
+    interpolation_fields:
+      - name
+      - expires_on
+    buttons: []

@@ -1,0 +1,80 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: shelfy
+      POSTGRES_PASSWORD: shelfy
+      POSTGRES_DB: shelfy
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - shelfy-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shelfy -d shelfy"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrate:
+    build: .
+    env_file:
+      - ${SHELFY_ENV_FILE:-.env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["migrate"]
+    restart: "no"
+
+  telegram-api:
+    build: .
+    env_file:
+      - ${SHELFY_ENV_FILE:-.env}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: ["telegram-api"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./copy:/app/copy:ro
+      - ./docs:/app/docs:ro
+      - ./migrations:/app/migrations:ro
+      - ./tmp:/tmp/shelfy
+
+  pipeline-worker:
+    build: .
+    env_file:
+      - ${SHELFY_ENV_FILE:-.env}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: ["pipeline-worker"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./copy:/app/copy:ro
+      - ./docs:/app/docs:ro
+      - ./migrations:/app/migrations:ro
+      - ./models:/models
+      - ./tmp:/tmp/shelfy
+
+  scheduler-worker:
+    build: .
+    env_file:
+      - ${SHELFY_ENV_FILE:-.env}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: ["scheduler-worker"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "127.0.0.1:8081:8081"
+    volumes:
+      - ./copy:/app/copy:ro
+      - ./docs:/app/docs:ro
+      - ./migrations:/app/migrations:ro
+      - ./tmp:/tmp/shelfy
+
+volumes:
+  shelfy-postgres:

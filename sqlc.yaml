@@ -1,0 +1,13 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    schema: "internal/storage/postgres/schema.sql"
+    queries: "internal/storage/postgres/queries"
+    gen:
+      go:
+        package: "sqlcgen"
+        out: "internal/storage/postgres/sqlcgen"
+        sql_package: "pgx/v5"
+        emit_json_tags: false
+        emit_interface: false
+        emit_pointers_for_null_types: true

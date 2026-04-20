@@ -1,0 +1,91 @@
+package ingest
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log/slog"
+	"strings"
+	"time"
+
+	copycat "github.com/igor/shelfy/internal/copy"
+	"github.com/igor/shelfy/internal/domain"
+	"github.com/igor/shelfy/internal/jobs"
+	"github.com/igor/shelfy/internal/observability"
+	"github.com/igor/shelfy/internal/storage/postgres"
+	"github.com/igor/shelfy/internal/telegram"
+	"github.com/igor/shelfy/internal/ui"
+)
+
+type Service struct {
+	store            *postgres.Store
+	tg               *telegram.Client
+	ui               *ui.Renderer
+	logger           *slog.Logger
+	tmpDir           string
+	ollamaBaseURL    string
+	ollamaModel      string
+	tesseractCommand string
+	whisperCommand   string
+	whisperModelPath string
+}
+
+func NewService(store *postgres.Store, tg *telegram.Client, copy *copycat.Loader, logger *slog.Logger, tmpDir, ollamaBaseURL, ollamaModel, tesseractCommand, whisperCommand, whisperModelPath string) *Service {
+	return &Service{
+		store:            store,
+		tg:               tg,
+		ui:               ui.New(copy),
+		logger:           logger,
+		tmpDir:           tmpDir,
+		ollamaBaseURL:    strings.TrimRight(ollamaBaseURL, "/"),
+		ollamaModel:      ollamaModel,
+		tesseractCommand: tesseractCommand,
+		whisperCommand:   whisperCommand,
+		whisperModelPath: whisperModelPath,
+	}
+}
+
+func (s *Service) AllowedTypes() []string {
+	return []string{domain.JobTypeIngestText, domain.JobTypeIngestPhoto, domain.JobTypeIngestAudio}
+}
+
+func (s *Service) currentNow(ctx context.Context) (time.Time, error) {
+	return s.store.CurrentNow(ctx, time.Now().UTC())
+}
+
+func (s *Service) ProcessJob(ctx context.Context, job jobs.Envelope) error {
+	var payload jobs.IngestPayload
+	if err := json.Unmarshal(job.Payload, &payload); err != nil {
+		return err
+	}
+	ctx = observability.WithUserID(ctx, payload.UserID)
+	now, err := s.currentNow(ctx)
+	if err != nil {
+		return err
+	}
+	settings, err := s.store.GetUserSettings(ctx, payload.UserID)
+	if err != nil {
+		return err
+	}
+	location, err := time.LoadLocation(settings.Timezone)
+	if err != nil {
+		location = time.UTC
+	}
+	localNow := now.In(location)
+	s.logger.InfoContext(ctx, "ingest_job_started", observability.LogAttrs(ctx,
+		"job_type", job.JobType,
+		"message_kind", payload.Kind,
+		"message_id", payload.MessageID,
+		"local_now", localNow.Format(time.RFC3339),
+	)...)
+	switch job.JobType {
+	case domain.JobTypeIngestText:
+		return s.handleText(ctx, payload, localNow)
+	case domain.JobTypeIngestPhoto:
+		return s.handlePhoto(ctx, payload, localNow)
+	case domain.JobTypeIngestAudio:
+		return s.handleAudio(ctx, payload, localNow)
+	default:
+		return fmt.Errorf("unsupported ingest job type %s", job.JobType)
+	}
+}

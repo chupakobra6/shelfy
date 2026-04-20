@@ -1,0 +1,20 @@
+# Local environment
+.env
+.env.local
+.env.*.local
+
+# Local runtime state
+tmp/
+models/
+*.log
+*.pid
+coverage.out
+
+# Go build outputs
+bin/
+dist/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/

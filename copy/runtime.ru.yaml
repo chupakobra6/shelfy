@@ -1,0 +1,100 @@
+labels:
+  dashboard.button.list: "📋 Список"
+  dashboard.button.soon: "⏰ Скоро"
+  dashboard.button.stats: "📊 Стата"
+  dashboard.button.settings: "⚙️ Настройки"
+  dashboard.button.back: "⬅️ Назад"
+  settings.button.digest_earlier: "🕘 Дайджест -1ч"
+  settings.button.digest_later: "🕙 Дайджест +1ч"
+  settings.button.timezone.moscow: "🇷🇺 Москва"
+  settings.button.timezone.utc: "🌍 UTC"
+  settings.button.timezone.berlin: "🇩🇪 Берлин"
+  settings.button.timezone.new_york: "🇺🇸 Нью-Йорк"
+  product.button.open_prefix: "👀 "
+  product.button.consumed: "✅ Съедено"
+  product.button.discarded: "🗑️ Выброшено"
+  product.button.deleted: "❌ Удалить"
+  draft.button.confirm: "✅ Подтвердить"
+  draft.button.edit_name: "📝 Имя"
+  draft.button.edit_date: "📅 Дата"
+  draft.button.delete: "❌ Удалить"
+  draft.button.cancel: "↩️ Отмена"
+  draft.value.missing: "не указан"
+  source_kind.text: "текст"
+  source_kind.photo: "фото"
+  source_kind.voice: "голосовое"
+  source_kind.audio: "аудио"
+  product.status.active: "активный"
+  product.status.consumed: "съеден"
+  product.status.discarded: "выброшен"
+  product.status.deleted: "удален"
+
+messages:
+  dashboard.home: |
+    🧺 <b>Shelfy</b>
+    
+    Активные продукты: <b>{{active_count}}</b>
+    Скоро истекают: <b>{{soon_count}}</b>
+    Просрочены: <b>{{expired_count}}</b>
+    
+    Выбери раздел ниже или просто отправь сообщение с продуктом.
+  ingest.processing: "⏳ Принял. Разбираю сообщение и соберу карточку продукта."
+  ingest.unsupported: "⚠️ Этот тип сообщения я пока не умею разбирать. Отправь текст, фото или голосовое."
+  draft.card: |
+    🧾 <b>Черновик продукта</b>
+    
+    Название: <b>{{name}}</b>
+    Срок: <b>{{expires_on}}</b>
+    Источник: <b>{{source_kind}}</b>
+    
+    {{missing_fields}}
+  draft.confirmed: "✅ Сохранил: <b>{{name}}</b> до <b>{{expires_on}}</b>."
+  draft.canceled: "🗑️ Черновик удален."
+  ingest.failed: "⚠️ Не смог разобрать сообщение. Попробуй еще раз или уточни продукт текстом."
+  draft.edit_name_prompt: "📝 Пришли новым сообщением только название продукта."
+  draft.edit_date_prompt: "📅 Пришли новым сообщением только дату или фразу вроде «до пятницы»."
+  draft.edit_date_invalid: "📅 Не понял дату. Подойдут варианты вроде «до пятницы», «сб», «26», «1 мая» или «14.04»."
+  draft.incomplete: "⚠️ Нужно заполнить имя и срок."
+  callback.dashboard_stale: "⚠️ Этот экран уже устарел. Используй актуальный закрепленный дашборд."
+  callback.draft_already_processed: "⚠️ Этот черновик уже завершен и больше не принимает действия."
+  dashboard.list_empty: |
+    📭 <b>Пока пусто</b>
+    
+    Здесь появятся активные продукты после подтверждения черновиков.
+  dashboard.list.title.active: "Активные продукты"
+  dashboard.list.title.soon: "Скоро истекают"
+  dashboard.list.header: "📋 <b>{{title}}</b>"
+  dashboard.list.item: "• <b>{{name}}</b> — {{expires_on}}"
+  dashboard.stats: |
+    📊 <b>Статистика</b>
+    
+    Активные: <b>{{active_count}}</b>
+    Скоро истекают: <b>{{soon_count}}</b>
+    Просрочены: <b>{{expired_count}}</b>
+    Съедены: <b>{{consumed_count}}</b>
+    Выброшены: <b>{{discarded_count}}</b>
+    Удалены: <b>{{deleted_count}}</b>
+  dashboard.settings: |
+    ⚙️ <b>Настройки</b>
+    
+    Часовой пояс: <b>{{timezone}}</b>
+    Утренний дайджест: <b>{{digest_time}}</b>
+    
+    Ниже можно поменять время дайджеста и выбрать часовой пояс.
+  product.card: |
+    🧺 <b>{{name}}</b>
+    
+    Срок: <b>{{expires_on}}</b>
+    Статус: <b>{{status}}</b>
+  draft.missing.none: "Все поля заполнены."
+  draft.missing.name: "• не хватает названия"
+  draft.missing.date: "• не хватает срока годности"
+  draft.missing.both: |
+    • не хватает названия
+    • не хватает срока годности
+  digest.morning: |
+    ⏰ <b>Утренний обзор Shelfy</b>
+    
+    {{digest_lines}}
+  digest.line.expired: "🚨 {{name}} — {{expires_on}}"
+  digest.line.soon: "⏳ {{name}} — {{expires_on}}"
