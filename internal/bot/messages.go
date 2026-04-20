@@ -17,7 +17,7 @@ func (s *Service) HandleMessage(ctx context.Context, msg telegram.Message) error
 		return nil
 	}
 	if msg.From.IsBot {
-		s.logger.InfoContext(ctx, "telegram_message_ignored_from_bot", observability.LogAttrs(ctx,
+		s.logger.DebugContext(ctx, "telegram_message_ignored_from_bot", observability.LogAttrs(ctx,
 			"message_id", msg.MessageID,
 			"user_id", msg.From.ID,
 			"username", msg.From.Username,
@@ -28,6 +28,11 @@ func (s *Service) HandleMessage(ctx context.Context, msg telegram.Message) error
 	if editable, ok, err := s.store.FindEditableDraft(ctx, msg.From.ID); err != nil {
 		return err
 	} else if ok && msg.Text != "" {
+		s.logger.InfoContext(ctx, "draft_edit_input_received", observability.LogAttrs(ctx,
+			"draft_id", editable.ID,
+			"message_id", msg.MessageID,
+			"draft_status", editable.Status,
+		)...)
 		return s.handleDraftEditMessage(observability.WithDraftID(ctx, editable.ID), editable, msg)
 	}
 
@@ -84,6 +89,10 @@ func (s *Service) HandleMessage(ctx context.Context, msg telegram.Message) error
 			return err
 		}
 		if handled {
+			s.logger.InfoContext(ctx, "message_processed_fast_path", observability.LogAttrs(ctx,
+				"message_id", msg.MessageID,
+				"kind", kind,
+			)...)
 			return nil
 		}
 	}
@@ -92,6 +101,12 @@ func (s *Service) HandleMessage(ctx context.Context, msg telegram.Message) error
 	if err := s.enqueueJobNow(ctx, traceID, jobType, payload, nil); err != nil {
 		return err
 	}
+	s.logger.InfoContext(ctx, "message_accepted_async", observability.LogAttrs(ctx,
+		"message_id", msg.MessageID,
+		"kind", kind,
+		"job_type", jobType,
+		"feedback_message_id", feedback.MessageID,
+	)...)
 	return s.scheduleDeleteMessages(ctx, traceID, msg.Chat.ID, fallbackCleanupAt, feedback.MessageID)
 }
 
@@ -148,6 +163,13 @@ func (s *Service) handleDraftEditMessage(ctx context.Context, draft domain.Draft
 			return err
 		}
 	}
+	s.logger.InfoContext(ctx, "draft_edit_applied", observability.LogAttrs(ctx,
+		"draft_id", draft.ID,
+		"draft_status", draft.Status,
+		"message_id", msg.MessageID,
+		"has_name", strings.TrimSpace(updated.DraftName) != "",
+		"has_expiry", updated.DraftExpiresOn != nil,
+	)...)
 	s.cleanupDraftEditMessages(ctx, msg.Chat.ID, msg.MessageID, ptrValue(promptMessageID))
 	return nil
 }
@@ -173,6 +195,12 @@ func (s *Service) handleInvalidDraftEditMessage(ctx context.Context, draft domai
 	if err != nil {
 		return err
 	}
+	s.logger.InfoContext(ctx, "draft_edit_invalid", observability.LogAttrs(ctx,
+		"draft_id", draft.ID,
+		"draft_status", draft.Status,
+		"message_id", msg.MessageID,
+		"date_mode", dateMode,
+	)...)
 	s.deleteMessagesNow(ctx, msg.Chat.ID, msg.MessageID)
 	return s.scheduleDeleteMessages(ctx, draft.TraceID, msg.Chat.ID, 6*time.Second, feedback.MessageID)
 }
@@ -195,6 +223,10 @@ func (s *Service) handleUnsupportedMessage(ctx context.Context, msg telegram.Mes
 		return err
 	}
 	traceID := observability.TraceID(observability.EnsureTraceID(ctx))
+	s.logger.InfoContext(ctx, "unsupported_message_handled", observability.LogAttrs(ctx,
+		"message_id", msg.MessageID,
+		"kind", "unsupported",
+	)...)
 	if err := s.store.SaveIngestEvent(ctx, traceID, msg.From.ID, msg.Chat.ID, msg.MessageID, domain.MessageKindUnsupported, "unsupported", "unsupported message type", nil); err != nil {
 		return err
 	}

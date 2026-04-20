@@ -3,6 +3,7 @@ package bot
 import (
 	"context"
 
+	"github.com/igor/shelfy/internal/observability"
 	"github.com/igor/shelfy/internal/telegram"
 )
 
@@ -27,6 +28,10 @@ func (s *Service) handleSettingsCallback(ctx context.Context, callback telegram.
 			return err
 		}
 		settings.DigestLocalTime = updated
+		s.logger.InfoContext(ctx, "settings_updated", observability.LogAttrs(ctx,
+			"field", "digest_local_time",
+			"value", updated,
+		)...)
 	case "timezone":
 		if len(parts) < 3 {
 			return nil
@@ -38,6 +43,10 @@ func (s *Service) handleSettingsCallback(ctx context.Context, callback telegram.
 			return err
 		}
 		settings.Timezone = parts[2]
+		s.logger.InfoContext(ctx, "settings_updated", observability.LogAttrs(ctx,
+			"field", "timezone",
+			"value", parts[2],
+		)...)
 	default:
 		return nil
 	}

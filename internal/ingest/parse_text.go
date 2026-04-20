@@ -102,6 +102,15 @@ func heuristicParse(text string, now time.Time) parsedDraft {
 			Source:            "heuristic_suffix",
 		}
 	}
+	if name, phrase, resolved, ok := extractNaturalDateFromText(cleaned, now); ok {
+		return parsedDraft{
+			Name:              name,
+			ExpiresOn:         resolved.Value,
+			RawDeadlinePhrase: phrase,
+			Confidence:        resolved.Confidence,
+			Source:            "heuristic_natural",
+		}
+	}
 	resolved := domain.ResolveRelativeDate(cleaned, now)
 	if resolved.Value != nil {
 		return parsedDraft{
@@ -176,4 +185,32 @@ func splitTrailingDatePhrase(cleaned string, now time.Time) (name string, phrase
 		return name, phrase, resolved, true
 	}
 	return "", "", domain.ResolvedDate{}, false
+}
+
+func extractNaturalDateFromText(cleaned string, now time.Time) (name string, phrase string, resolved domain.ResolvedDate, ok bool) {
+	extracted, ok := domain.ExtractDateFromText(cleaned, now)
+	if !ok || extracted.Value == nil {
+		return "", "", domain.ResolvedDate{}, false
+	}
+	name = removeDatePhrase(cleaned, extracted.Phrase)
+	if name == "" || name == cleaned {
+		return "", "", domain.ResolvedDate{}, false
+	}
+	return name, extracted.Phrase, domain.ResolvedDate{
+		Value:      extracted.Value,
+		Confidence: extracted.Confidence,
+	}, true
+}
+
+func removeDatePhrase(cleaned, phrase string) string {
+	idx := strings.Index(cleaned, phrase)
+	if idx < 0 {
+		return cleaned
+	}
+	value := strings.TrimSpace(cleaned[:idx] + " " + cleaned[idx+len(phrase):])
+	value = strings.TrimSpace(strings.Trim(value, "-—,:;"))
+	for _, suffix := range []string{" до", " к", " на", " в", " во", " by"} {
+		value = strings.TrimSuffix(value, suffix)
+	}
+	return strings.TrimSpace(value)
 }

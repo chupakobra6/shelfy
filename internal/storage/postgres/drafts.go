@@ -35,7 +35,7 @@ func (s *Store) CreateDraftSession(ctx context.Context, draft domain.DraftSessio
 		CleanupAfter:      pgTimestamptzFromTimePtr(draft.CleanupAfter),
 	})
 	if err == nil {
-		s.logger.InfoContext(ctx, "draft_session_created", observability.LogAttrs(ctx,
+		s.logger.DebugContext(ctx, "draft_session_created", observability.LogAttrs(ctx,
 			"draft_id", id,
 			"source_kind", draft.SourceKind,
 			"status", draft.Status,
@@ -82,7 +82,7 @@ func (s *Store) SetDraftMessageID(ctx context.Context, draftID, messageID int64)
 		DraftMessageID: &messageID,
 	})
 	if err == nil {
-		s.logger.InfoContext(ctx, "draft_message_id_set", observability.LogAttrs(ctx, "draft_id", draftID, "message_id", messageID)...)
+		s.logger.DebugContext(ctx, "draft_message_id_set", observability.LogAttrs(ctx, "draft_id", draftID, "message_id", messageID)...)
 	}
 	return err
 }
@@ -93,7 +93,7 @@ func (s *Store) SetDraftEditPromptMessageID(ctx context.Context, draftID int64, 
 		EditPromptMessageID: messageID,
 	})
 	if err == nil {
-		s.logger.InfoContext(ctx, "draft_edit_prompt_message_id_set", observability.LogAttrs(ctx, "draft_id", draftID, "message_id", optionalInt64(messageID))...)
+		s.logger.DebugContext(ctx, "draft_edit_prompt_message_id_set", observability.LogAttrs(ctx, "draft_id", draftID, "message_id", optionalInt64(messageID))...)
 	}
 	return err
 }
@@ -104,7 +104,7 @@ func (s *Store) UpdateDraftStatus(ctx context.Context, draftID int64, status dom
 		Status: string(status),
 	})
 	if err == nil {
-		s.logger.InfoContext(ctx, "draft_status_updated", observability.LogAttrs(ctx, "draft_id", draftID, "status", status)...)
+		s.logger.DebugContext(ctx, "draft_status_updated", observability.LogAttrs(ctx, "draft_id", draftID, "status", status)...)
 	}
 	return err
 }
@@ -118,7 +118,7 @@ func (s *Store) UpdateDraftFields(ctx context.Context, draftID int64, name strin
 		Status:            string(status),
 	})
 	if err == nil {
-		s.logger.InfoContext(ctx, "draft_fields_updated", observability.LogAttrs(ctx, "draft_id", draftID, "status", status)...)
+		s.logger.DebugContext(ctx, "draft_fields_updated", observability.LogAttrs(ctx, "draft_id", draftID, "status", status)...)
 	}
 	return err
 }

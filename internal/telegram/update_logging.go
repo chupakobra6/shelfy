@@ -14,7 +14,7 @@ func (c *Client) LogIncomingUpdate(ctx context.Context, update Update) {
 	case update.CallbackQuery != nil:
 		c.logIncomingCallback(ctx, *update.CallbackQuery)
 	default:
-		c.logger.InfoContext(ctx, "telegram.incoming_update_ignored", observability.LogAttrs(ctx)...)
+		c.logger.DebugContext(ctx, "telegram.incoming_update_ignored", observability.LogAttrs(ctx)...)
 	}
 }
 

@@ -28,7 +28,7 @@ func (s *Store) SaveIngestEvent(ctx context.Context, traceID string, userID, cha
 		Metadata:    encoded,
 	})
 	if err == nil {
-		s.logger.InfoContext(ctx, "ingest_event_saved", observability.LogAttrs(ctx,
+		s.logger.DebugContext(ctx, "ingest_event_saved", observability.LogAttrs(ctx,
 			"message_id", messageID,
 			"message_kind", kind,
 			"status", status,
@@ -44,7 +44,7 @@ func (s *Store) UpdateIngestStatus(ctx context.Context, traceID, status, summary
 		Summary: emptyToNil(summary),
 	})
 	if err == nil {
-		s.logger.InfoContext(ctx, "ingest_status_updated", observability.LogAttrs(ctx,
+		s.logger.DebugContext(ctx, "ingest_status_updated", observability.LogAttrs(ctx,
 			"status", status,
 			"summary", truncateForDB(summary, 200),
 		)...)

@@ -35,6 +35,11 @@ func (s *Service) ensureCurrentDashboardCallback(ctx context.Context, userID int
 	if settings.DashboardMessageID != nil && *settings.DashboardMessageID == messageID {
 		return true, nil
 	}
+	s.logger.InfoContext(ctx, "dashboard_callback_ignored_stale", observability.LogAttrs(ctx,
+		"message_id", messageID,
+		"chat_id", chatID,
+		"current_dashboard_message_id", ptrValue(settings.DashboardMessageID),
+	)...)
 	text, err := s.ui.DashboardStale()
 	if err != nil {
 		return false, err

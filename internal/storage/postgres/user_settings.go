@@ -26,7 +26,7 @@ func (s *Store) UpsertUserSettings(ctx context.Context, settings UserSettings) e
 		DashboardMessageID: settings.DashboardMessageID,
 	})
 	if err == nil {
-		s.logger.InfoContext(ctx, "user_settings_upserted", observability.LogAttrs(ctx,
+		s.logger.DebugContext(ctx, "user_settings_upserted", observability.LogAttrs(ctx,
 			"user_id", settings.UserID,
 			"chat_id", settings.ChatID,
 			"timezone", settings.Timezone,
@@ -42,7 +42,7 @@ func (s *Store) SetDashboardMessageID(ctx context.Context, userID, messageID int
 		DashboardMessageID: &messageID,
 	})
 	if err == nil {
-		s.logger.InfoContext(ctx, "dashboard_message_id_set", observability.LogAttrs(ctx, "user_id", userID, "dashboard_message_id", messageID)...)
+		s.logger.DebugContext(ctx, "dashboard_message_id_set", observability.LogAttrs(ctx, "user_id", userID, "dashboard_message_id", messageID)...)
 	}
 	return err
 }
@@ -53,7 +53,7 @@ func (s *Store) UpdateUserTimezone(ctx context.Context, userID int64, timezone s
 		Timezone: timezone,
 	})
 	if err == nil {
-		s.logger.InfoContext(ctx, "user_timezone_updated", observability.LogAttrs(ctx, "user_id", userID, "timezone", timezone)...)
+		s.logger.DebugContext(ctx, "user_timezone_updated", observability.LogAttrs(ctx, "user_id", userID, "timezone", timezone)...)
 	}
 	return err
 }
@@ -64,7 +64,7 @@ func (s *Store) UpdateUserDigestLocalTime(ctx context.Context, userID int64, dig
 		DigestLocalTime: digestLocalTime,
 	})
 	if err == nil {
-		s.logger.InfoContext(ctx, "user_digest_local_time_updated", observability.LogAttrs(ctx, "user_id", userID, "digest_local_time", digestLocalTime)...)
+		s.logger.DebugContext(ctx, "user_digest_local_time_updated", observability.LogAttrs(ctx, "user_id", userID, "digest_local_time", digestLocalTime)...)
 	}
 	return err
 }

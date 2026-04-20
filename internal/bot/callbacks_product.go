@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/igor/shelfy/internal/domain"
+	"github.com/igor/shelfy/internal/observability"
 	"github.com/igor/shelfy/internal/telegram"
 )
 
@@ -26,6 +27,10 @@ func (s *Service) handleProductCallback(ctx context.Context, callback telegram.C
 		if err != nil {
 			return err
 		}
+		s.logger.InfoContext(ctx, "dashboard_product_opened", observability.LogAttrs(ctx,
+			"product_id", product.ID,
+			"product_name", product.Name,
+		)...)
 		return s.editDashboardMessage(ctx, callback.Message.Chat.ID, callback.Message.MessageID, text, markup)
 	case "set":
 		if len(parts) < 4 {
@@ -35,6 +40,10 @@ func (s *Service) handleProductCallback(ctx context.Context, callback telegram.C
 		if err := s.store.UpdateProductStatus(ctx, productID, status); err != nil {
 			return err
 		}
+		s.logger.InfoContext(ctx, "product_status_changed", observability.LogAttrs(ctx,
+			"product_id", productID,
+			"status", status,
+		)...)
 		return s.RefreshDashboardHome(ctx, callback.From.ID, callback.Message.Chat.ID)
 	default:
 		return nil

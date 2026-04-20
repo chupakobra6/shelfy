@@ -25,6 +25,11 @@ func (s *Service) handleDraftCallback(ctx context.Context, callback telegram.Cal
 		return err
 	}
 	if isDraftTerminal(draft.Status) {
+		s.logger.InfoContext(ctx, "draft_callback_ignored_terminal", observability.LogAttrs(ctx,
+			"draft_id", draftID,
+			"draft_status", draft.Status,
+			"action", parts[1],
+		)...)
 		text, err := s.ui.DraftAlreadyProcessed()
 		if err != nil {
 			return err
@@ -42,6 +47,11 @@ func (s *Service) handleDraftCallback(ctx context.Context, callback telegram.Cal
 	switch parts[1] {
 	case "confirm":
 		if draft.DraftExpiresOn == nil || strings.TrimSpace(draft.DraftName) == "" {
+			s.logger.InfoContext(ctx, "draft_confirm_blocked_incomplete", observability.LogAttrs(ctx,
+				"draft_id", draftID,
+				"has_name", strings.TrimSpace(draft.DraftName) != "",
+				"has_expiry", draft.DraftExpiresOn != nil,
+			)...)
 			text, err := s.ui.DraftIncomplete()
 			if err != nil {
 				return err
@@ -52,6 +62,11 @@ func (s *Service) handleDraftCallback(ctx context.Context, callback telegram.Cal
 		if err != nil {
 			return err
 		}
+		s.logger.InfoContext(ctx, "draft_confirmed", observability.LogAttrs(ctx,
+			"draft_id", draftID,
+			"product_id", product.ID,
+			"product_name", product.Name,
+		)...)
 		text, err := s.ui.DraftConfirmed(product.Name, product.ExpiresOn)
 		if err != nil {
 			return err
@@ -66,12 +81,20 @@ func (s *Service) handleDraftCallback(ctx context.Context, callback telegram.Cal
 		if err != nil {
 			return err
 		}
+		s.logger.InfoContext(ctx, "draft_edit_requested", observability.LogAttrs(ctx,
+			"draft_id", draftID,
+			"mode", "name",
+		)...)
 		return s.enterDraftEditMode(ctx, draft, callback.Message.Chat.ID, domain.DraftStatusEditingName, text)
 	case "edit_date":
 		text, err := s.ui.DraftEditDatePrompt()
 		if err != nil {
 			return err
 		}
+		s.logger.InfoContext(ctx, "draft_edit_requested", observability.LogAttrs(ctx,
+			"draft_id", draftID,
+			"mode", "date",
+		)...)
 		return s.enterDraftEditMode(ctx, draft, callback.Message.Chat.ID, domain.DraftStatusEditingDate, text)
 	default:
 		return nil
@@ -82,6 +105,10 @@ func (s *Service) closeDraftWithStatus(ctx context.Context, draftID int64, draft
 	if err := s.store.UpdateDraftStatus(ctx, draftID, status); err != nil {
 		return err
 	}
+	s.logger.InfoContext(ctx, "draft_closed", observability.LogAttrs(ctx,
+		"draft_id", draftID,
+		"status", status,
+	)...)
 	text, err := s.ui.DraftCanceled()
 	if err != nil {
 		return err

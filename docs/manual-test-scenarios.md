@@ -1,33 +1,33 @@
-# Shelfy Manual Test Scenarios
+# Сценарии Ручного Тестирования Shelfy
 
-This document is the baseline manual test checklist for local Telegram testing.
+Этот документ — базовый чек-лист для ручного локального тестирования Shelfy через Telegram.
 
-## Setup
+## Подготовка
 
-1. Start the stack with `make dev`.
-2. Open live logs with `make logs`.
-3. Make sure the bot answers in a private chat.
+1. Подними стек командой `make dev`.
+2. Открой live-логи командой `make logs`.
+3. Убедись, что бот отвечает в личном чате.
 
-## Core Start Flow
+## Базовый Стартовый Флоу
 
-1. Send `/start`.
-2. Verify a new pinned dashboard is created.
-3. Send `/start` again.
-4. Verify the old dashboard is replaced by a new pinned dashboard.
-5. Press buttons on the old dashboard if it still exists.
-6. Verify the bot shows the stale-dashboard feedback instead of changing state.
+1. Отправь `/start`.
+2. Убедись, что создан новый закрепленный dashboard.
+3. Отправь `/start` еще раз.
+4. Убедись, что старый dashboard заменен новым закрепленным dashboard.
+5. Если старый dashboard еще виден, нажми на его кнопки.
+6. Убедись, что бот показывает feedback про устаревший экран и не меняет состояние.
 
-## Text Fast Path
+## Быстрый Текстовый Путь
 
-1. Send `зефир завтра`.
-2. Verify there is no long-lived `processing` message.
-3. Verify a draft card appears quickly.
-4. Confirm the product.
-5. Verify the source text, draft card, and transient confirmation disappear in the expected order.
+1. Отправь `зефир завтра`.
+2. Убедись, что нет долгоживущего сообщения `processing`.
+3. Убедись, что карточка черновика появляется быстро.
+4. Подтверди продукт.
+5. Убедись, что исходное сообщение, карточка черновика и временное подтверждение исчезают в ожидаемом порядке.
 
-## Text Date Variants
+## Текстовые Варианты Дат
 
-Test each input as a new product:
+Проверь каждый вариант как новый продукт:
 
 - `молоко до пятницы`
 - `молоко до пт`
@@ -36,87 +36,87 @@ Test each input as a new product:
 - `йогурт 26`
 - `сыр 14.04`
 
-For each case verify:
+Для каждого варианта проверь:
 
-1. The product name is correct.
-2. The date is correct.
-3. No unnecessary `processing` message remains in chat.
+1. Название продукта распознано правильно.
+2. Дата распознана правильно.
+3. В чате не остается лишнего `processing` сообщения.
 
-## Name-Only Draft
+## Черновик Только С Названием
 
-1. Send `молоко`.
-2. Verify the bot creates an incomplete draft without waiting for the worker.
-3. Verify the draft shows that the expiry date is missing.
+1. Отправь `молоко`.
+2. Убедись, что бот создает неполный черновик без ожидания worker-а.
+3. Убедись, что в черновике явно показано отсутствие срока годности.
 
-## Draft Edit Name
+## Редактирование Названия
 
-1. Create an incomplete draft.
-2. Press `📝 Название`.
-3. Verify only one edit prompt is visible.
-4. Send a valid name.
-5. Verify both your reply and the prompt are deleted immediately.
-6. Verify the draft card updates in place.
+1. Создай неполный черновик.
+2. Нажми `📝 Название`.
+3. Убедись, что виден только один prompt на редактирование.
+4. Отправь корректное название.
+5. Убедись, что и твое сообщение, и prompt удаляются сразу.
+6. Убедись, что карточка черновика обновляется на месте.
 
-## Draft Edit Date
+## Редактирование Даты
 
-1. Create an incomplete or editable draft.
-2. Press `📅 Срок`.
-3. Press `📅 Срок` several times quickly.
-4. Verify old prompts do not pile up.
-5. Send `сб`.
-6. Verify the draft updates and your message plus the prompt disappear immediately.
+1. Создай неполный или редактируемый черновик.
+2. Нажми `📅 Срок`.
+3. Быстро нажми `📅 Срок` несколько раз подряд.
+4. Убедись, что старые prompt-сообщения не копятся.
+5. Отправь `сб`.
+6. Убедись, что черновик обновляется, а твое сообщение и prompt исчезают сразу.
 
-## Draft Invalid Date
+## Некорректная Дата В Черновике
 
-1. Press `📅 Срок`.
-2. Send an invalid value like `ываф`.
-3. Verify your invalid message disappears quickly.
-4. Verify the invalid-date feedback disappears after a short delay.
-5. Verify the draft remains editable.
+1. Нажми `📅 Срок`.
+2. Отправь некорректное значение, например `ываф`.
+3. Убедись, что твое некорректное сообщение быстро исчезает.
+4. Убедись, что feedback про неверную дату исчезает через короткое время.
+5. Убедись, что черновик остается редактируемым.
 
-## Unsupported Message
+## Неподдерживаемый Тип Сообщения
 
-1. Send a sticker.
-2. Verify the unsupported-type feedback appears.
-3. Verify the sticker message is removed quickly.
-4. Verify the feedback disappears after a short delay.
+1. Отправь стикер.
+2. Убедись, что появляется feedback про неподдерживаемый тип.
+3. Убедись, что сообщение со стикером быстро удаляется.
+4. Убедись, что сам feedback исчезает через короткое время.
 
-## Photo Pipeline
+## Фото Пайплайн
 
-1. Send a clear package photo with a readable expiry date.
-2. Verify `processing` appears only for the background path.
-3. Verify `processing` disappears as soon as the draft is ready.
-4. Verify the draft card contains the product name and expiry.
+1. Отправь четкое фото упаковки с читаемой датой срока.
+2. Убедись, что `processing` появляется только для background path.
+3. Убедись, что `processing` исчезает сразу, как только черновик готов.
+4. Убедись, что карточка черновика содержит название продукта и срок.
 
-## Audio Pipeline
+## Аудио Пайплайн
 
-1. Send a voice message like `добавь кефир до пятницы`.
-2. Verify `processing` appears.
-3. Verify it disappears when the draft is ready or on failure.
-4. Verify the draft contents are reasonable.
+1. Отправь голосовое сообщение вроде `добавь кефир до пятницы`.
+2. Убедись, что появляется `processing`.
+3. Убедись, что оно исчезает, когда черновик готов или когда произошла ошибка.
+4. Убедись, что содержимое черновика выглядит разумно.
 
-## Product Closure
+## Закрытие Продукта
 
-1. Confirm a product.
-2. Open it from the dashboard list.
-3. Mark it as `✅ Съедено`.
-4. Verify it disappears from visible lists.
-5. Verify it is still counted in statistics.
+1. Подтверди продукт.
+2. Открой его из списка в dashboard.
+3. Пометь его как `✅ Съедено`.
+4. Убедись, что он исчезает из видимых списков.
+5. Убедись, что он по-прежнему учитывается в статистике.
 
-## Timed Controls
+## Проверка Timed Controls
 
-1. Use the dev control API to set virtual time close to the digest time.
-2. Trigger due jobs.
-3. Verify the morning digest appears.
-4. Close or delete the referenced products.
-5. Trigger digest reconciliation.
-6. Verify the digest message is removed.
+1. Используй dev control API, чтобы выставить виртуальное время рядом со временем дайджеста.
+2. Запусти due jobs вручную.
+3. Убедись, что появляется утренний дайджест.
+4. Закрой или удали продукты, на которые он ссылается.
+5. Запусти digest reconciliation.
+6. Убедись, что сообщение дайджеста удаляется.
 
-## Log Review
+## Проверка Логов
 
-During all scenarios verify that logs remain readable:
+Во всех сценариях проверь, что логи остаются читаемыми:
 
-- no maintenance spam at `INFO`
-- no long-lived Telegram send timeouts on simple text flows
-- immediate text fast-path requests do not enqueue `ingest_text`
-- delayed delete jobs are used only for true delayed cleanup
+- нет спама maintenance-событиями на уровне `INFO`
+- нет долгих Telegram send timeout на простых text flow
+- immediate text fast-path не ставит `ingest_text` в очередь
+- delayed delete jobs используются только для реально отложенного cleanup

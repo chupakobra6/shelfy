@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/igor/shelfy/internal/bootstrap"
 	"github.com/igor/shelfy/internal/bot"
@@ -39,15 +41,23 @@ func main() {
 	service := bot.NewService(runtime.Store, tg, runtime.Copy, runtime.Logger, runtime.Config.DefaultTimezone, runtime.Config.DigestLocalTime, fastText)
 
 	var offset int64
+	var pollErrorStreak int
 	for {
 		updates, err := tg.PollUpdates(ctx, offset, runtime.Config.PollTimeoutSeconds)
 		if err != nil {
 			if errors.Is(err, context.Canceled) {
 				return
 			}
-			runtime.Logger.ErrorContext(ctx, "poll_updates_failed", "error", err)
+			pollErrorStreak++
+			logPollError(runtime.Logger, ctx, err, pollErrorStreak)
+			select {
+			case <-time.After(pollRetryDelay(pollErrorStreak)):
+			case <-ctx.Done():
+				return
+			}
 			continue
 		}
+		pollErrorStreak = 0
 		if len(updates) > 0 {
 			runtime.Logger.InfoContext(ctx, "telegram.poll_batch_received",
 				"update_count", len(updates),
@@ -84,5 +94,35 @@ func main() {
 				}
 			}
 		}
+	}
+}
+
+func logPollError(logger *slog.Logger, ctx context.Context, err error, streak int) {
+	attrs := []any{"error", err, "streak", streak}
+	if telegram.IsTransientPollError(err) {
+		if streak == 1 || streak%10 == 0 {
+			logger.WarnContext(ctx, "poll_updates_transient_failure", attrs...)
+			return
+		}
+		logger.DebugContext(ctx, "poll_updates_transient_failure", attrs...)
+		return
+	}
+	if streak == 1 || streak%5 == 0 {
+		logger.ErrorContext(ctx, "poll_updates_failed", attrs...)
+		return
+	}
+	logger.DebugContext(ctx, "poll_updates_failed", attrs...)
+}
+
+func pollRetryDelay(streak int) time.Duration {
+	switch {
+	case streak <= 1:
+		return time.Second
+	case streak <= 5:
+		return 2 * time.Second
+	case streak <= 15:
+		return 5 * time.Second
+	default:
+		return 15 * time.Second
 	}
 }

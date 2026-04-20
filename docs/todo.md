@@ -1,32 +1,32 @@
-# Shelfy TODO
+# TODO Shelfy
 
 ## P0
 
-- Stabilize single-item UX after the text fast-path rollout.
-- Verify immediate cleanup behavior for:
-  - draft edit prompts
-  - successful name/date edits
-  - unsupported message feedback
-  - async processing feedback
-- Add regression tests around text fast-path and prompt cleanup.
+- Довести single-item UX после внедрения быстрого text fast-path.
+- Проверить поведение немедленного cleanup для:
+  - prompt-сообщений при редактировании черновика
+  - успешного изменения имени и даты
+  - feedback для неподдерживаемых сообщений
+  - асинхронного `processing` feedback
+- Добавить регрессионные тесты на text fast-path и cleanup prompt-сообщений.
 
 ## P1
 
-- Improve multimodal extraction:
-  - pass cleaned OCR text into the vision fallback prompt
-  - compare `OCR -> Gemma text` against `Gemma vision only` on a real photo set
-- Add retry/backoff tuning for transient Telegram API failures.
-- Add a clearer loading state for slow photo/audio pipelines without polluting chat history.
+- Улучшить multimodal extraction:
+  - передавать очищенный OCR-текст в prompt vision fallback
+  - сравнить `OCR -> Gemma text` и `Gemma vision only` на реальном наборе фото
+- Настроить retry/backoff для временных сбоев Telegram API.
+- Добавить более понятный loading state для медленных photo/audio pipeline без засорения истории чата.
 
 ## P2
 
-- Batch add from multi-line text.
-- Batch add from one voice note with several products.
-- Batch add from multiple photos / album.
-- Receipt ingestion flow.
+- Пакетное добавление из многострочного текста.
+- Пакетное добавление из одного голосового сообщения с несколькими продуктами.
+- Пакетное добавление из нескольких фото / альбома.
+- Флоу распознавания чека.
 
-## Research
+## Исследования
 
-- Measure whether `Gemma 3` vision alone beats `Tesseract + Gemma text` on Russian упаковки.
-- Decide whether OCR should remain the primary path or become a cheap hint for vision.
-- Evaluate whether Telegram-side request routing should move to a dedicated adapter with per-method retry policy.
+- Измерить, дает ли `Gemma 3` vision alone лучший результат, чем `Tesseract + Gemma text`, на русскоязычных упаковках.
+- Решить, должен ли OCR оставаться основным путем или стать дешевым hint для vision.
+- Оценить, стоит ли выносить Telegram-side request routing в отдельный адаптер с per-method retry policy.

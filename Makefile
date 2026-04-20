@@ -1,7 +1,7 @@
 APP_NAME := shelfy
 SQLC_VERSION := v1.29.0
 
-.PHONY: setup prepare generate dev api worker-pipeline worker-scheduler migrate test lint fmt tidy up down logs
+.PHONY: setup prepare generate dev api worker-pipeline worker-scheduler migrate test lint fmt tidy up down logs logs-all logs-db
 
 prepare:
 	@test -f .env || (echo ".env is required; copy .env.example to .env and fill secrets" && exit 1)
@@ -47,4 +47,10 @@ down:
 	docker compose down
 
 logs:
-	docker compose logs -f
+	docker compose logs --tail=200 -f telegram-api pipeline-worker scheduler-worker
+
+logs-all:
+	docker compose logs --tail=200 -f
+
+logs-db:
+	docker compose logs --tail=200 -f postgres

@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -265,7 +267,42 @@ func (c *Client) redactError(err error) error {
 	if err == nil {
 		return nil
 	}
-	return fmt.Errorf("%s", strings.ReplaceAll(err.Error(), c.token, "<redacted>"))
+	return &redactedError{
+		public: strings.ReplaceAll(err.Error(), c.token, "<redacted>"),
+		cause:  err,
+	}
+}
+
+func IsTransientPollError(err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, io.EOF) {
+		return true
+	}
+	var netErr net.Error
+	if errors.As(err, &netErr) && (netErr.Timeout() || netErr.Temporary()) {
+		return true
+	}
+	message := strings.ToLower(err.Error())
+	return strings.Contains(message, "context deadline exceeded") ||
+		strings.Contains(message, "client.timeout exceeded") ||
+		strings.Contains(message, "unexpected eof") ||
+		strings.Contains(message, "connection reset by peer") ||
+		strings.Contains(message, "tls handshake timeout")
+}
+
+type redactedError struct {
+	public string
+	cause  error
+}
+
+func (e *redactedError) Error() string {
+	return e.public
+}
+
+func (e *redactedError) Unwrap() error {
+	return e.cause
 }
 
 func isTelegramNotModifiedError(err error) bool {
