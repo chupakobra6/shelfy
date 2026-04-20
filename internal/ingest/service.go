@@ -53,6 +53,47 @@ func (s *Service) currentNow(ctx context.Context) (time.Time, error) {
 	return s.store.CurrentNow(ctx, time.Now().UTC())
 }
 
+func (s *Service) currentLocalNow(ctx context.Context, userID int64) (time.Time, error) {
+	now, err := s.currentNow(ctx)
+	if err != nil {
+		return time.Time{}, err
+	}
+	settings, err := s.store.GetUserSettings(ctx, userID)
+	if err != nil {
+		return time.Time{}, err
+	}
+	location, err := time.LoadLocation(settings.Timezone)
+	if err != nil {
+		location = time.UTC
+	}
+	return now.In(location), nil
+}
+
+func (s *Service) TryHandleTextFast(ctx context.Context, payload jobs.IngestPayload) (bool, error) {
+	if payload.Kind != domain.MessageKindText {
+		return false, nil
+	}
+	localNow, err := s.currentLocalNow(ctx, payload.UserID)
+	if err != nil {
+		return false, err
+	}
+	cleaned := normalizeFreeText(payload.Text)
+	result := heuristicParse(cleaned, localNow)
+	if result.Name == "" && result.ExpiresOn == nil {
+		return false, nil
+	}
+	if shouldTryTextModel(cleaned, result) {
+		return false, nil
+	}
+	s.logger.InfoContext(ctx, "fast_text_path_accepted", observability.LogAttrs(ctx,
+		"has_name", result.Name != "",
+		"has_expiry", result.ExpiresOn != nil,
+		"source", result.Source,
+		"confidence", result.Confidence,
+	)...)
+	return true, s.createDraftCard(ctx, payload, result)
+}
+
 func (s *Service) ProcessJob(ctx context.Context, job jobs.Envelope) error {
 	var payload jobs.IngestPayload
 	if err := json.Unmarshal(job.Payload, &payload); err != nil {

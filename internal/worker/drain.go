@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/igor/shelfy/internal/domain"
 	"github.com/igor/shelfy/internal/jobs"
 	"github.com/igor/shelfy/internal/observability"
 	"github.com/igor/shelfy/internal/storage/postgres"
@@ -37,6 +38,7 @@ func DrainDue(ctx context.Context, logger *slog.Logger, store *postgres.Store, w
 func processJob(ctx context.Context, logger *slog.Logger, store *postgres.Store, workerName string, processor Processor, job jobs.Envelope, retryAt time.Time) error {
 	jobCtx := observability.WithTraceID(ctx, job.TraceID)
 	jobCtx = observability.WithJobID(jobCtx, job.ID)
+	jobCtx = postgres.WithJobType(jobCtx, job.JobType)
 	if err := processor.ProcessJob(jobCtx, job); err != nil {
 		logger.ErrorContext(jobCtx, "worker_job_failed", observability.LogAttrs(jobCtx,
 			"worker", workerName,
@@ -52,6 +54,10 @@ func processJob(ctx context.Context, logger *slog.Logger, store *postgres.Store,
 		logger.ErrorContext(jobCtx, "worker_mark_done_failed", observability.LogAttrs(jobCtx, "error", doneErr)...)
 		return doneErr
 	}
-	logger.InfoContext(jobCtx, "worker_job_done", observability.LogAttrs(jobCtx, "worker", workerName, "job_type", job.JobType)...)
+	if job.JobType == domain.JobTypeDeleteMessages {
+		logger.DebugContext(jobCtx, "worker_job_done", observability.LogAttrs(jobCtx, "worker", workerName, "job_type", job.JobType)...)
+	} else {
+		logger.InfoContext(jobCtx, "worker_job_done", observability.LogAttrs(jobCtx, "worker", workerName, "job_type", job.JobType)...)
+	}
 	return nil
 }

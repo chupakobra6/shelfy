@@ -34,5 +34,7 @@ When you change storage queries or the schema snapshot, regenerate typed DB code
 
 - Runtime user-facing copy lives in `copy/runtime.ru.yaml`.
 - Copy-generation requirements live in `docs/copy-spec.md`, and the message inventory for copy work lives in `docs/message-inventory.ru.yaml`.
+- Product backlog lives in `docs/todo.md`.
+- Manual Telegram verification scenarios live in `docs/manual-test-scenarios.md`.
 - Timed test controls are exposed only when `SHELFY_ENABLE_DEV_CONTROL_API=true`.
 - `sqlc` query sources live in `internal/storage/postgres/queries`, and generated code is committed in `internal/storage/postgres/sqlcgen`.

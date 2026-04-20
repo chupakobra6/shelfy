@@ -78,14 +78,25 @@ func (s *Service) HandleMessage(ctx context.Context, msg telegram.Message) error
 		Text:              msg.Text,
 		Kind:              kind,
 	}
+	if kind == domain.MessageKindText && s.textFastPath != nil {
+		handled, err := s.textFastPath.TryHandleTextFast(ctx, payload)
+		if err != nil {
+			return err
+		}
+		if handled {
+			return nil
+		}
+	}
 	jobType := jobTypeForMessage(kind)
+	fallbackCleanupAt := 2 * time.Minute
 	if err := s.enqueueJobNow(ctx, traceID, jobType, payload, nil); err != nil {
 		return err
 	}
-	return s.scheduleDeleteMessages(ctx, traceID, msg.Chat.ID, 45*time.Second, feedback.MessageID)
+	return s.scheduleDeleteMessages(ctx, traceID, msg.Chat.ID, fallbackCleanupAt, feedback.MessageID)
 }
 
 func (s *Service) handleDraftEditMessage(ctx context.Context, draft domain.DraftSession, msg telegram.Message) error {
+	promptMessageID := draft.EditPromptMessageID
 	settings, err := s.store.GetUserSettings(ctx, draft.UserID)
 	if err != nil {
 		return err
@@ -137,9 +148,7 @@ func (s *Service) handleDraftEditMessage(ctx context.Context, draft domain.Draft
 			return err
 		}
 	}
-	if err := s.cleanupDraftEditMessages(ctx, updated, msg.Chat.ID, msg.MessageID); err != nil {
-		return err
-	}
+	s.cleanupDraftEditMessages(ctx, msg.Chat.ID, msg.MessageID, ptrValue(promptMessageID))
 	return nil
 }
 
@@ -164,21 +173,12 @@ func (s *Service) handleInvalidDraftEditMessage(ctx context.Context, draft domai
 	if err != nil {
 		return err
 	}
-	return s.scheduleDeleteMessages(ctx, draft.TraceID, msg.Chat.ID, 15*time.Second, msg.MessageID, feedback.MessageID)
+	s.deleteMessagesNow(ctx, msg.Chat.ID, msg.MessageID)
+	return s.scheduleDeleteMessages(ctx, draft.TraceID, msg.Chat.ID, 6*time.Second, feedback.MessageID)
 }
 
-func (s *Service) cleanupDraftEditMessages(ctx context.Context, draft domain.DraftSession, chatID, userMessageID int64) error {
-	messageIDs := jobs.CompactMessageIDs(userMessageID, ptrValue(draft.EditPromptMessageID))
-	for _, messageID := range messageIDs {
-		if err := s.tg.DeleteMessage(ctx, chatID, messageID); err != nil {
-			s.logger.WarnContext(ctx, "draft_edit_message_delete_failed", observability.LogAttrs(ctx,
-				"chat_id", chatID,
-				"message_id", messageID,
-				"error", err,
-			)...)
-		}
-	}
-	return nil
+func (s *Service) cleanupDraftEditMessages(ctx context.Context, chatID, userMessageID, promptMessageID int64) {
+	s.deleteMessagesNow(ctx, chatID, userMessageID, promptMessageID)
 }
 
 func (s *Service) handleUnsupportedMessage(ctx context.Context, msg telegram.Message) error {
@@ -198,5 +198,6 @@ func (s *Service) handleUnsupportedMessage(ctx context.Context, msg telegram.Mes
 	if err := s.store.SaveIngestEvent(ctx, traceID, msg.From.ID, msg.Chat.ID, msg.MessageID, domain.MessageKindUnsupported, "unsupported", "unsupported message type", nil); err != nil {
 		return err
 	}
-	return s.scheduleDeleteMessages(ctx, traceID, msg.Chat.ID, 20*time.Second, msg.MessageID, feedback.MessageID)
+	s.deleteMessagesNow(ctx, msg.Chat.ID, msg.MessageID)
+	return s.scheduleDeleteMessages(ctx, traceID, msg.Chat.ID, 6*time.Second, feedback.MessageID)
 }

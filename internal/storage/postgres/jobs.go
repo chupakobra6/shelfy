@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/igor/shelfy/internal/domain"
@@ -26,13 +27,13 @@ func (s *Store) EnqueueJob(ctx context.Context, traceID, jobType string, payload
 		RunAt:          pgTimestamptzFromTime(runAt),
 	})
 	if err == nil && rowsAffected == 1 {
-		s.logger.InfoContext(ctx, "job_enqueued", observability.LogAttrs(ctx,
+		s.logJobEvent(ctx, slog.LevelInfo, slog.LevelDebug, jobType, "job_enqueued", observability.LogAttrs(ctx,
 			"job_type", jobType,
 			"run_at", runAt.Format(time.RFC3339),
 			"idempotency_key", idempotencyKey,
 		)...)
 	} else if err == nil {
-		s.logger.InfoContext(ctx, "job_enqueue_skipped", observability.LogAttrs(ctx,
+		s.logJobEvent(ctx, slog.LevelInfo, slog.LevelDebug, jobType, "job_enqueue_skipped", observability.LogAttrs(ctx,
 			"job_type", jobType,
 			"run_at", runAt.Format(time.RFC3339),
 			"idempotency_key", idempotencyKey,
@@ -64,7 +65,7 @@ func (s *Store) ClaimJob(ctx context.Context, workerName string, allowedTypes []
 		IdempotencyKey: row.IdempotencyKey,
 		LastError:      row.LastError,
 	}
-	s.logger.InfoContext(ctx, "job_claimed", observability.LogAttrs(ctx,
+	s.logJobEvent(ctx, slog.LevelInfo, slog.LevelDebug, job.JobType, "job_claimed", observability.LogAttrs(ctx,
 		"job_id", job.ID,
 		"job_type", job.JobType,
 		"worker", workerName,
@@ -75,9 +76,13 @@ func (s *Store) ClaimJob(ctx context.Context, workerName string, allowedTypes []
 }
 
 func (s *Store) MarkJobDone(ctx context.Context, jobID int64) error {
+	jobType := ""
+	if v, ok := ctx.Value(jobTypeCtxKey{}).(string); ok {
+		jobType = v
+	}
 	err := s.queries.MarkJobDone(ctx, jobID)
 	if err == nil {
-		s.logger.InfoContext(ctx, "job_marked_done", observability.LogAttrs(ctx, "job_id", jobID)...)
+		s.logJobEvent(ctx, slog.LevelInfo, slog.LevelDebug, jobType, "job_marked_done", observability.LogAttrs(ctx, "job_id", jobID)...)
 	}
 	return err
 }
@@ -96,4 +101,25 @@ func (s *Store) MarkJobRetry(ctx context.Context, jobID int64, runAt time.Time, 
 		)...)
 	}
 	return err
+}
+
+type jobTypeCtxKey struct{}
+
+func WithJobType(ctx context.Context, jobType string) context.Context {
+	return context.WithValue(ctx, jobTypeCtxKey{}, jobType)
+}
+
+func (s *Store) logJobEvent(ctx context.Context, normalLevel, deleteMessagesLevel slog.Level, jobType, msg string, attrs ...any) {
+	level := normalLevel
+	if jobType == domain.JobTypeDeleteMessages {
+		level = deleteMessagesLevel
+	}
+	switch level {
+	case slog.LevelDebug:
+		s.logger.DebugContext(ctx, msg, attrs...)
+	case slog.LevelWarn:
+		s.logger.WarnContext(ctx, msg, attrs...)
+	default:
+		s.logger.InfoContext(ctx, msg, attrs...)
+	}
 }

@@ -30,7 +30,7 @@ func (s *Service) parsePhotoDraft(ctx context.Context, ocrText string, now time.
 		}
 	}
 	if imagePath != "" && (result.Name == "" || result.ExpiresOn == nil) {
-		if vision, err := s.callOllamaVision(ctx, imagePath); err == nil {
+		if vision, err := s.callOllamaVision(ctx, imagePath, cleaned); err == nil {
 			result = mergeStructuredDraft(result, vision, now)
 			if result.Name != "" || result.ExpiresOn != nil {
 				result.Confidence = "model_vision"

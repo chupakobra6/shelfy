@@ -16,7 +16,7 @@ func (s *Service) RunMaintenanceTick(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	s.logger.InfoContext(ctx, "scheduler_maintenance_started", observability.LogAttrs(ctx, "now", now.Format(time.RFC3339))...)
+	s.logger.DebugContext(ctx, "scheduler_maintenance_started", observability.LogAttrs(ctx, "now", now.Format(time.RFC3339))...)
 	if err := s.enqueueDueDigests(ctx, now); err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func (s *Service) RunMaintenanceTick(ctx context.Context) error {
 	if err := s.cleanupStaleDrafts(ctx, now); err != nil {
 		return err
 	}
-	s.logger.InfoContext(ctx, "scheduler_maintenance_completed", observability.LogAttrs(ctx, "now", now.Format(time.RFC3339))...)
+	s.logger.DebugContext(ctx, "scheduler_maintenance_completed", observability.LogAttrs(ctx, "now", now.Format(time.RFC3339))...)
 	return nil
 }
 

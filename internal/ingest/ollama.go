@@ -31,11 +31,14 @@ func (s *Service) callOllamaText(ctx context.Context, text string) (ollamaDraft,
 	return s.callOllama(ctx, "text", prompt, text, nil)
 }
 
-func (s *Service) callOllamaVision(ctx context.Context, imagePath string) (ollamaDraft, error) {
+func (s *Service) callOllamaVision(ctx context.Context, imagePath string, ocrHint string) (ollamaDraft, error) {
 	if strings.TrimSpace(s.ollamaBaseURL) == "" {
 		return ollamaDraft{}, fmt.Errorf("ollama disabled")
 	}
 	prompt := "Inspect the product package image. Return compact JSON with keys name and raw_deadline_phrase. raw_deadline_phrase should capture the visible expiry wording or date."
+	if strings.TrimSpace(ocrHint) != "" {
+		prompt += "\nUse this OCR text as a noisy hint, but prefer the image if the OCR looks wrong:\n" + ocrHint
+	}
 	raw, err := os.ReadFile(imagePath)
 	if err != nil {
 		return ollamaDraft{}, err

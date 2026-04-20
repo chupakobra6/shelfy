@@ -9,6 +9,7 @@ import (
 
 	"github.com/igor/shelfy/internal/bootstrap"
 	"github.com/igor/shelfy/internal/bot"
+	"github.com/igor/shelfy/internal/ingest"
 	"github.com/igor/shelfy/internal/observability"
 	"github.com/igor/shelfy/internal/telegram"
 )
@@ -23,7 +24,19 @@ func main() {
 	}
 	defer runtime.Close()
 	tg := telegram.NewClient(runtime.Config.BotToken, runtime.Logger)
-	service := bot.NewService(runtime.Store, tg, runtime.Copy, runtime.Logger, runtime.Config.DefaultTimezone, runtime.Config.DigestLocalTime)
+	fastText := ingest.NewService(
+		runtime.Store,
+		tg,
+		runtime.Copy,
+		runtime.Logger,
+		runtime.Config.TmpDir,
+		runtime.Config.OllamaBaseURL,
+		runtime.Config.OllamaModel,
+		runtime.Config.TesseractCommand,
+		runtime.Config.WhisperCommand,
+		runtime.Config.WhisperModelPath,
+	)
+	service := bot.NewService(runtime.Store, tg, runtime.Copy, runtime.Logger, runtime.Config.DefaultTimezone, runtime.Config.DigestLocalTime, fastText)
 
 	var offset int64
 	for {

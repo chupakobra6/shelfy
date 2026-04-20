@@ -26,7 +26,7 @@ func NewClient(token string, logger *slog.Logger) *Client {
 	return &Client{
 		token: token,
 		http: &http.Client{
-			Timeout: 60 * time.Second,
+			Timeout: 75 * time.Second,
 		},
 		logger: logger,
 	}
@@ -198,11 +198,13 @@ func (c *Client) DownloadFile(ctx context.Context, fileID, targetPath string) er
 }
 
 func (c *Client) callJSON(ctx context.Context, method string, requestBody any, dest any) error {
+	requestCtx, cancel := context.WithTimeout(ctx, c.requestTimeout(method))
+	defer cancel()
 	encoded, err := json.Marshal(requestBody)
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.apiURL(method), bytes.NewReader(encoded))
+	req, err := http.NewRequestWithContext(requestCtx, http.MethodPost, c.apiURL(method), bytes.NewReader(encoded))
 	if err != nil {
 		return c.redactError(err)
 	}
@@ -238,6 +240,17 @@ func (c *Client) callJSON(ctx context.Context, method string, requestBody any, d
 		}
 	}
 	return nil
+}
+
+func (c *Client) requestTimeout(method string) time.Duration {
+	switch method {
+	case "getUpdates":
+		return 70 * time.Second
+	case "sendMessage", "editMessageText", "deleteMessage", "pinChatMessage", "answerCallbackQuery", "getFile":
+		return 15 * time.Second
+	default:
+		return 30 * time.Second
+	}
 }
 
 func (c *Client) apiURL(method string) string {

@@ -38,6 +38,28 @@ func TestHeuristicParseRussianTextStillWorks(t *testing.T) {
 	}
 }
 
+func TestHeuristicParseShortRussianWeekday(t *testing.T) {
+	now := time.Date(2026, time.April, 20, 10, 0, 0, 0, time.UTC)
+	got := heuristicParse("молоко до пт", now)
+	if got.Name != "молоко" {
+		t.Fatalf("expected name молоко, got %q", got.Name)
+	}
+	if got.ExpiresOn == nil || got.ExpiresOn.Format("2006-01-02") != "2026-04-24" {
+		t.Fatalf("expected expiry 2026-04-24, got %#v", got.ExpiresOn)
+	}
+}
+
+func TestHeuristicParseTomorrowSuffix(t *testing.T) {
+	now := time.Date(2026, time.April, 20, 10, 0, 0, 0, time.UTC)
+	got := heuristicParse("зефир завтра", now)
+	if got.Name != "зефир" {
+		t.Fatalf("expected name зефир, got %q", got.Name)
+	}
+	if got.ExpiresOn == nil || got.ExpiresOn.Format("2006-01-02") != "2026-04-21" {
+		t.Fatalf("expected expiry 2026-04-21, got %#v", got.ExpiresOn)
+	}
+}
+
 func TestHeuristicParseTrailingDatePhrase(t *testing.T) {
 	now := time.Date(2026, time.April, 20, 10, 0, 0, 0, time.UTC)
 	got := heuristicParse("молоко 1 мая", now)

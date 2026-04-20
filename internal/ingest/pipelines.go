@@ -82,6 +82,9 @@ func (s *Service) createDraftCard(ctx context.Context, payload jobs.IngestPayloa
 				"draft_id", existing.ID,
 				"draft_message_id", *existing.DraftMessageID,
 			)...)
+			if payload.FeedbackMessageID != 0 {
+				s.tg.DeleteMessage(ctx, payload.ChatID, payload.FeedbackMessageID)
+			}
 			return s.store.UpdateIngestStatus(ctx, payload.TraceID, "draft_ready", "draft reused")
 		}
 	} else {
@@ -134,6 +137,9 @@ func (s *Service) createDraftCard(ctx context.Context, payload jobs.IngestPayloa
 		"confidence", parsed.Confidence,
 		"source", parsed.Source,
 	)...)
+	if payload.FeedbackMessageID != 0 {
+		s.tg.DeleteMessage(ctx, payload.ChatID, payload.FeedbackMessageID)
+	}
 	return s.store.UpdateIngestStatus(ctx, payload.TraceID, "draft_ready", "draft created")
 }
 
@@ -151,6 +157,9 @@ func (s *Service) sendFailure(ctx context.Context, payload jobs.IngestPayload, o
 	if err != nil {
 		return err
 	}
+	if payload.FeedbackMessageID != 0 {
+		s.tg.DeleteMessage(ctx, payload.ChatID, payload.FeedbackMessageID)
+	}
 	now, err := s.currentNow(ctx)
 	if err != nil {
 		return err
@@ -158,9 +167,9 @@ func (s *Service) sendFailure(ctx context.Context, payload jobs.IngestPayload, o
 	cleanup := jobs.DeleteMessagesPayload{
 		TraceID:    payload.TraceID,
 		ChatID:     payload.ChatID,
-		MessageIDs: jobs.CompactMessageIDs(payload.MessageID, payload.FeedbackMessageID, message.MessageID),
+		MessageIDs: jobs.CompactMessageIDs(payload.MessageID, message.MessageID),
 	}
-	if err := s.store.EnqueueJob(ctx, payload.TraceID, domain.JobTypeDeleteMessages, cleanup, now.Add(20*time.Second), nil); err != nil {
+	if err := s.store.EnqueueJob(ctx, payload.TraceID, domain.JobTypeDeleteMessages, cleanup, now.Add(8*time.Second), nil); err != nil {
 		return err
 	}
 	return s.store.UpdateIngestStatus(ctx, payload.TraceID, "failed", originalErr.Error())
