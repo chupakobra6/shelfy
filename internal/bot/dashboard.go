@@ -34,3 +34,13 @@ func (s *Service) RefreshDashboardHome(ctx context.Context, userID, chatID int64
 		ReplyMarkup: markup,
 	})
 }
+
+func (s *Service) editDashboardMessage(ctx context.Context, chatID, messageID int64, text string, markup *telegram.InlineKeyboardMarkup) error {
+	return s.tg.EditMessageText(ctx, telegram.EditMessageTextRequest{
+		ChatID:      chatID,
+		MessageID:   messageID,
+		Text:        text,
+		ParseMode:   "HTML",
+		ReplyMarkup: markup,
+	})
+}
