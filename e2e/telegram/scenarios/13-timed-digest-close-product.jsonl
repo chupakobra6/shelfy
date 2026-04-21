@@ -1,0 +1,9 @@
+# Closes the digest-referenced product so digest cleanup can be reconciled.
+{"id":"select_chat","action":"select_chat","chat":"@your_bot_username"}
+{"id":"open_list","action":"click_button","button_text":"📋 Список"}
+{"id":"wait_list","action":"wait","timeout_ms":12000}
+{"id":"open_product","action":"click_button","button_text":"👀 кефир"}
+{"id":"wait_product_card","action":"wait","timeout_ms":12000}
+{"id":"mark_consumed","action":"click_button","button_text":"✅ Съедено"}
+{"id":"wait_consumed","action":"wait","timeout_ms":12000}
+{"id":"dump_after_close","action":"dump_state"}

@@ -27,6 +27,13 @@ func TestIncomingContentType(t *testing.T) {
 		}
 	})
 
+	t.Run("service pinned message", func(t *testing.T) {
+		got := incomingContentType(Message{PinnedMessage: &MessageRef{MessageID: 42}})
+		if got != "service_pinned_message" {
+			t.Fatalf("expected service_pinned_message, got %s", got)
+		}
+	})
+
 	t.Run("unknown", func(t *testing.T) {
 		got := incomingContentType(Message{})
 		if got != "unknown" {

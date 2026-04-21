@@ -36,6 +36,7 @@ func (c *Client) logIncomingMessage(ctx context.Context, message Message) {
 		"document_file_id", documentFileID(message.Document),
 		"document_name", documentFileName(message.Document),
 		"document_mime_type", documentMimeType(message.Document),
+		"pinned_target_message_id", pinnedTargetMessageID(message.PinnedMessage),
 	)...)
 }
 
@@ -84,6 +85,8 @@ func incomingContentType(message Message) string {
 		return "document"
 	case message.Sticker != nil:
 		return "sticker"
+	case message.PinnedMessage != nil:
+		return "service_pinned_message"
 	default:
 		return "unknown"
 	}
@@ -143,6 +146,13 @@ func documentMimeType(document *Document) string {
 		return ""
 	}
 	return document.MimeType
+}
+
+func pinnedTargetMessageID(message *MessageRef) any {
+	if message == nil || message.MessageID == 0 {
+		return nil
+	}
+	return message.MessageID
 }
 
 func zeroToNil(value int64) any {

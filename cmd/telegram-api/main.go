@@ -77,7 +77,7 @@ func main() {
 			}
 			tg.LogIncomingUpdate(updateCtx, update)
 			if update.Message != nil && update.Message.Text == "/start" {
-				if err := service.HandleStart(updateCtx, update.Message.From.ID, update.Message.Chat.ID); err != nil {
+				if err := service.HandleStart(updateCtx, update.Message.From.ID, update.Message.Chat.ID, update.Message.MessageID); err != nil {
 					runtime.Logger.ErrorContext(updateCtx, "handle_start_failed", "update_id", update.UpdateID, "error", err)
 				}
 				continue

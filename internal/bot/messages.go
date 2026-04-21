@@ -13,7 +13,15 @@ import (
 )
 
 func (s *Service) HandleMessage(ctx context.Context, msg telegram.Message) error {
-	if msg.Chat.Type != "private" || msg.From == nil {
+	if msg.Chat.Type != "private" {
+		return nil
+	}
+	if handled, err := s.handleServiceMessage(ctx, msg); err != nil {
+		return err
+	} else if handled {
+		return nil
+	}
+	if msg.From == nil {
 		return nil
 	}
 	if msg.From.IsBot {

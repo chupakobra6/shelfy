@@ -1,0 +1,5 @@
+# Covers voice upload and the bot's first visible reaction.
+{"id":"select_chat","action":"select_chat","chat":"@your_bot_username"}
+{"id":"send_voice","action":"send_voice","path":"@fixtures/e2e-voice.ogg"}
+{"id":"wait_voice_result","action":"wait","timeout_ms":25000}
+{"id":"dump_voice_result","action":"dump_state"}

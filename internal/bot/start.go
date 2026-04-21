@@ -8,7 +8,7 @@ import (
 	"github.com/igor/shelfy/internal/telegram"
 )
 
-func (s *Service) HandleStart(ctx context.Context, userID, chatID int64) error {
+func (s *Service) HandleStart(ctx context.Context, userID, chatID, startMessageID int64) error {
 	now, err := s.currentNow(ctx)
 	if err != nil {
 		return err
@@ -54,6 +54,12 @@ func (s *Service) HandleStart(ctx context.Context, userID, chatID int64) error {
 			)...)
 		}
 	}
-	s.logger.InfoContext(ctx, "start_dashboard_created", observability.LogAttrs(ctx, "user_id", userID, "chat_id", chatID, "dashboard_message_id", message.MessageID)...)
+	s.deleteMessagesNow(ctx, chatID, startMessageID)
+	s.logger.InfoContext(ctx, "start_dashboard_created", observability.LogAttrs(ctx,
+		"user_id", userID,
+		"chat_id", chatID,
+		"start_message_id", startMessageID,
+		"dashboard_message_id", message.MessageID,
+	)...)
 	return nil
 }

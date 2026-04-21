@@ -14,17 +14,22 @@ type CallbackQuery struct {
 }
 
 type Message struct {
-	MessageID       int64     `json:"message_id"`
-	MessageThreadID int64     `json:"message_thread_id,omitempty"`
-	From            *User     `json:"from,omitempty"`
-	Chat            Chat      `json:"chat"`
-	Text            string    `json:"text,omitempty"`
-	Caption         string    `json:"caption,omitempty"`
-	Photo           []Photo   `json:"photo,omitempty"`
-	Voice           *Voice    `json:"voice,omitempty"`
-	Audio           *Audio    `json:"audio,omitempty"`
-	Sticker         *Sticker  `json:"sticker,omitempty"`
-	Document        *Document `json:"document,omitempty"`
+	MessageID       int64       `json:"message_id"`
+	MessageThreadID int64       `json:"message_thread_id,omitempty"`
+	From            *User       `json:"from,omitempty"`
+	Chat            Chat        `json:"chat"`
+	Text            string      `json:"text,omitempty"`
+	Caption         string      `json:"caption,omitempty"`
+	Photo           []Photo     `json:"photo,omitempty"`
+	Voice           *Voice      `json:"voice,omitempty"`
+	Audio           *Audio      `json:"audio,omitempty"`
+	Sticker         *Sticker    `json:"sticker,omitempty"`
+	Document        *Document   `json:"document,omitempty"`
+	PinnedMessage   *MessageRef `json:"pinned_message,omitempty"`
+}
+
+type MessageRef struct {
+	MessageID int64 `json:"message_id"`
 }
 
 type User struct {

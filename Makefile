@@ -1,7 +1,23 @@
 APP_NAME := shelfy
 SQLC_VERSION := v1.29.0
 
-.PHONY: setup prepare generate dev api worker-pipeline worker-scheduler migrate test lint fmt tidy up down logs logs-all logs-db
+.DEFAULT_GOAL := help
+
+.PHONY: help setup prepare generate dev api worker-pipeline worker-scheduler migrate test lint fmt tidy up down logs logs-all logs-db
+
+help:
+	@printf "Available commands:\n"
+	@printf "  make setup            # go mod tidy\n"
+	@printf "  make dev              # start local docker compose stack in the background\n"
+	@printf "  make down             # stop local docker compose stack\n"
+	@printf "  make logs             # follow app logs (telegram-api, pipeline-worker, scheduler-worker)\n"
+	@printf "  make logs-db          # follow postgres logs only\n"
+	@printf "  make test             # go test ./...\n"
+	@printf "  make generate         # regenerate sqlc code\n"
+	@printf "  make api              # run telegram-api locally without docker\n"
+	@printf "  make worker-pipeline  # run pipeline-worker locally without docker\n"
+	@printf "  make worker-scheduler # run scheduler-worker locally without docker\n"
+	@printf "  make migrate          # apply DB migrations\n"
 
 prepare:
 	@test -f .env || (echo ".env is required; copy .env.example to .env and fill secrets" && exit 1)

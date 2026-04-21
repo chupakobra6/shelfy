@@ -1,0 +1,8 @@
+# Covers repeated /start, new pinned dashboard creation, and pinned/service history updates.
+# This scenario intentionally seeds the home dashboard for the later static suite fragments.
+{"id":"select_chat","action":"select_chat","chat":"@your_bot_username"}
+{"id":"start_one","action":"send_text","text":"/start"}
+{"id":"wait_after_start_one","action":"wait","timeout_ms":12000}
+{"id":"start_two","action":"send_text","text":"/start"}
+{"id":"wait_after_start_two","action":"wait","timeout_ms":12000}
+{"id":"dump_stale_dashboard","action":"dump_state"}
