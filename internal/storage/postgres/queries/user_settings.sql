@@ -1,5 +1,11 @@
 -- name: UpsertUserSettings :execrows
-INSERT INTO user_settings (user_id, chat_id, timezone, digest_local_time, dashboard_message_id)
+INSERT INTO user_settings (
+    user_id,
+    chat_id,
+    timezone,
+    digest_local_time,
+    dashboard_message_id
+)
 VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT (user_id) DO UPDATE SET
     chat_id = EXCLUDED.chat_id,
@@ -10,7 +16,14 @@ ON CONFLICT (user_id) DO UPDATE SET
 
 -- name: SetDashboardMessageID :exec
 UPDATE user_settings
-SET dashboard_message_id = $2, updated_at = NOW()
+SET dashboard_message_id = $2,
+    updated_at = NOW()
+WHERE user_id = $1;
+
+-- name: ClearDashboardMessageID :exec
+UPDATE user_settings
+SET dashboard_message_id = NULL,
+    updated_at = NOW()
 WHERE user_id = $1;
 
 -- name: UpdateUserTimezone :exec

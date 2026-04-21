@@ -7,7 +7,9 @@ The bot is built around one pinned dashboard, transient draft cards, and backgro
 ## Highlights
 
 - one pinned dashboard instead of a command-heavy chat UI
+- paginated dashboard product lists instead of unbounded keyboards
 - text, photo, voice, and audio ingestion
+- multimodal photo intake where a photo caption can complement OCR/image parsing
 - transient drafts before save, with cleanup-first UX
 - morning digests and deterministic timed testing through dev controls
 - real Telegram E2E scenarios kept next to the product
@@ -28,7 +30,8 @@ The bot is built around one pinned dashboard, transient draft cards, and backgro
 - Docker Compose for local runtime
 - Ollama on the host for LLM inference
 - Tesseract for OCR
-- `whisper.cpp` for speech-to-text
+- Vosk `small-ru-0.22` for speech-to-text
+- shared runtime base image so app rebuilds do not reinstall OCR/ASR dependencies
 
 ## Architecture
 
@@ -50,6 +53,7 @@ More detail lives in [docs/architecture.md](./docs/architecture.md).
 ```bash
 cp .env.example .env
 make setup
+make runtime-base
 make dev
 ```
 
@@ -68,17 +72,32 @@ Useful next reads:
 ## Local runtime expectations
 
 For local development the bot expects a native Ollama server on the host, reachable from Docker at `http://host.docker.internal:11434`.
-For Russian voice input use a multilingual Whisper model such as `ggml-base.bin`, not `ggml-base.en.bin`.
-The pipeline worker expects Whisper models in `./models`, mounted into the container as `/models`.
+For Russian voice input the pipeline worker expects a Vosk model directory at `./models/vosk-model-small-ru-0.22`, mounted into the container as `/models/vosk-model-small-ru-0.22`.
+The heavy runtime layer is split out into `shelfy-runtime-base:vosk-small-ru-0.22`.
+`make dev` and `make up` now only ensure that base image exists; they no longer force a rebuild of the heavy runtime layer on every loop.
+Use `make runtime-base-rebuild` only when you intentionally change OCR/ASR/runtime dependencies.
+If you run raw `docker compose` commands instead of `make`, build the base image once first with `make runtime-base`.
 If outbound network access requires a proxy, add standard `HTTP_PROXY` / `HTTPS_PROXY` / `ALL_PROXY` / `NO_PROXY` variables to `.env` so the containers inherit them.
+
+Current runtime dependencies are already close to the minimum safe set for existing flows:
+
+- `ffmpeg` for voice/audio transcoding
+- `tesseract-ocr` + `tesseract-ocr-rus` for photo OCR
+- Python runtime for the Vosk helper
+- `libatomic1` because `libvosk.so` needs it on this platform
+
+The one dependency cut in this split is that the app image no longer reinstalls Python and `pip`; they now live only in the shared runtime base.
 
 ## Main commands
 
 ```bash
 make help
+make runtime-base
+make runtime-base-rebuild
 make dev
 make down
 make logs
+make lint
 make test
 make generate
 ```
@@ -94,6 +113,13 @@ Use `make logs` to watch structured runtime logs after `make dev`. When you chan
 
 All execution, orchestration, fixtures, transcripts, and helper commands live in the sibling `telegram-bot-e2e-test-tool` repository.
 
+Default triage order after an automated E2E run:
+
+1. open `../telegram-bot-e2e-test-tool/artifacts/transcripts/last-run-summary.txt`
+2. if failed, open `../telegram-bot-e2e-test-tool/artifacts/transcripts/last-failure.txt`
+3. if still blocked, run `make e2e-last-failure`
+4. only then open raw transcripts or full `docker compose logs`
+
 Typical flows:
 
 ```bash
@@ -106,6 +132,41 @@ make -C ../telegram-bot-e2e-test-tool run-text-matrix \
   CHAT=@your_bot_username \
   CASES="$PWD/e2e/telegram/date-cases.txt"
 ```
+
+Command contract:
+
+- `/start` is bootstrap + idempotent and no longer recreates the dashboard on every repeat.
+- `/dashboard` is the explicit recovery/home command for the active dashboard.
+
+Deterministic stateful blocks:
+
+- `POST /control/e2e/reset` is available only in non-production when `SHELFY_ENABLE_DEV_CONTROL_API=true` and `SHELFY_E2E_TEST_USER_ID` is configured.
+- Generic block orchestration now lives in the sibling Telegram E2E tool, not in Shelfy.
+- Shelfy keeps only product-owned control primitives such as `/control/e2e/reset`, `/control/time/*`, `/control/jobs/run-due`, and `/control/digests/reconcile`.
+
+Example timed setup block:
+
+```bash
+CHAT=@your_bot_username \
+CONTROL_URL=http://127.0.0.1:8081 \
+RUN_PREFIX=demo123 \
+../telegram-bot-e2e-test-tool/scripts/run-block.sh \
+  "$PWD/e2e/telegram/scenarios/00-home-ready.jsonl" \
+  "$PWD/e2e/telegram/scenarios/11-timed-digest-setup.jsonl.tmpl"
+```
+
+`00-home-ready` is the bootstrap helper. Some navigation scenarios, such as dashboard-only flows, are intentionally not standalone after a hard reset and should be composed behind `00-home-ready` or `/dashboard` recovery first.
+
+Compact triage helpers in this repo:
+
+```bash
+make e2e-last-failure
+make e2e-trace-logs TRACE_ID=74ca98dc944f13f4
+make e2e-trace-logs SCENARIO_LABEL=02-dashboard-navigation-and-settings
+```
+
+`scripts/e2e/trace-logs.sh` slices recent container logs by time and optional `trace_id` / `update_id` / `job_id`.
+`scripts/e2e/last-failure-pack.sh` builds a compact pack under `tmp/e2e-failure-pack/` from the latest tool failure artifact and normalized service log slices.
 
 ## Repository map
 

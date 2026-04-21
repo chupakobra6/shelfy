@@ -4,6 +4,8 @@ labels:
   dashboard.button.stats: "📊 Статистика"
   dashboard.button.settings: "⚙️ Настройки"
   dashboard.button.back: "⬅️ Назад"
+  dashboard.button.prev_page: "⬅️ Пред."
+  dashboard.button.next_page: "След. ➡️"
   settings.button.digest_earlier: "🕘 На час раньше"
   settings.button.digest_later: "🕙 На час позже"
   settings.button.timezone.moscow: "🇷🇺 Москва"
@@ -55,6 +57,7 @@ messages:
   draft.edit_date_prompt: "📅 Пришли следующим сообщением только дату или фразу вроде «до пятницы»."
   draft.edit_date_invalid: "📅 Не понял дату. Подойдут варианты вроде «до пятницы», «сб», «26», «1 мая» или «14.04»."
   draft.incomplete: "⚠️ Заполни название и срок, чтобы я мог сохранить продукт."
+  command.dashboard_recover_hint: "⚠️ Активный дашборд не найден. Напиши /dashboard, чтобы восстановить его."
   callback.dashboard_stale: "⚠️ Этот экран уже устарел. Используй актуальное закрепленное сообщение."
   callback.draft_already_processed: "⚠️ Этот продукт уже сохранен или удален."
   dashboard.list_empty: |
@@ -64,6 +67,7 @@ messages:
   dashboard.list.title.active: "Активные продукты"
   dashboard.list.title.soon: "Скоро истекают"
   dashboard.list.header: "📋 <b>{{title}}</b>"
+  dashboard.list.page_meta: "Страница <b>{{current_page}}</b> / <b>{{total_pages}}</b>"
   dashboard.list.item: "• <b>{{name}}</b> — {{expires_on}}"
   dashboard.stats: |
     📊 <b>Статистика</b>

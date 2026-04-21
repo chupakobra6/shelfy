@@ -42,6 +42,60 @@ func (s *Store) ListVisibleProducts(ctx context.Context, userID int64, mode stri
 	}
 }
 
+func (s *Store) ListVisibleProductsPage(ctx context.Context, userID int64, mode string, now time.Time, limit, offset int) ([]domain.Product, int, error) {
+	if limit <= 0 {
+		limit = 1
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	switch mode {
+	case "soon":
+		totalCount, err := s.queries.CountSoonProducts(ctx, sqlcgen.CountSoonProductsParams{
+			UserID:  userID,
+			Column2: pgDateFromTime(now),
+			Column3: pgDateFromTime(now.AddDate(0, 0, 3)),
+		})
+		if err != nil {
+			return nil, 0, err
+		}
+		items, err := s.queries.ListSoonProductsPage(ctx, sqlcgen.ListSoonProductsPageParams{
+			UserID:  userID,
+			Column2: pgDateFromTime(now),
+			Column3: pgDateFromTime(now.AddDate(0, 0, 3)),
+			Limit:   int32(limit),
+			Offset:  int32(offset),
+		})
+		if err != nil {
+			return nil, 0, err
+		}
+		return productsFromModels(items), int(totalCount), nil
+	case "expired":
+		items, err := s.queries.ListExpiredProducts(ctx, sqlcgen.ListExpiredProductsParams{
+			UserID:  userID,
+			Column2: pgDateFromTime(now),
+		})
+		if err != nil {
+			return nil, 0, err
+		}
+		return productsFromModels(items), len(items), nil
+	default:
+		totalCount, err := s.queries.CountActiveProducts(ctx, userID)
+		if err != nil {
+			return nil, 0, err
+		}
+		items, err := s.queries.ListActiveProductsPage(ctx, sqlcgen.ListActiveProductsPageParams{
+			UserID: userID,
+			Limit:  int32(limit),
+			Offset: int32(offset),
+		})
+		if err != nil {
+			return nil, 0, err
+		}
+		return productsFromModels(items), int(totalCount), nil
+	}
+}
+
 func (s *Store) GetProduct(ctx context.Context, productID int64) (domain.Product, error) {
 	item, err := s.queries.GetProduct(ctx, productID)
 	if err != nil {

@@ -25,10 +25,24 @@ type Client struct {
 }
 
 func NewClient(token string, logger *slog.Logger) *Client {
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+		ForceAttemptHTTP2:     false,
+		MaxIdleConns:          20,
+		MaxIdleConnsPerHost:   10,
+		IdleConnTimeout:       30 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: time.Second,
+	}
 	return &Client{
 		token: token,
 		http: &http.Client{
-			Timeout: 75 * time.Second,
+			Timeout:   75 * time.Second,
+			Transport: transport,
 		},
 		logger: logger,
 	}
@@ -144,6 +158,19 @@ func (c *Client) AnswerCallbackQuery(ctx context.Context, request AnswerCallback
 	return nil
 }
 
+func (c *Client) SetMyCommands(ctx context.Context, commands []BotCommand) error {
+	startedAt := time.Now()
+	var response BaseResponse
+	if err := c.callJSON(ctx, "setMyCommands", SetMyCommandsRequest{Commands: commands}, &response); err != nil {
+		return err
+	}
+	c.logger.InfoContext(ctx, "telegram_set_my_commands_completed", observability.LogAttrs(ctx,
+		"command_count", len(commands),
+		"duration_ms", time.Since(startedAt).Milliseconds(),
+	)...)
+	return nil
+}
+
 func (c *Client) GetFilePath(ctx context.Context, fileID string) (string, error) {
 	startedAt := time.Now()
 	var response FileResponse
@@ -200,15 +227,53 @@ func (c *Client) DownloadFile(ctx context.Context, fileID, targetPath string) er
 }
 
 func (c *Client) callJSON(ctx context.Context, method string, requestBody any, dest any) error {
-	requestCtx, cancel := context.WithTimeout(ctx, c.requestTimeout(method))
-	defer cancel()
 	encoded, err := json.Marshal(requestBody)
 	if err != nil {
 		return err
 	}
+	maxAttempts := c.retryAttempts(method)
+	var lastErr error
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		if attempt > 1 {
+			if err := sleepContext(ctx, c.retryDelay(attempt)); err != nil {
+				if lastErr != nil {
+					return lastErr
+				}
+				return err
+			}
+		}
+		if err := c.callJSONOnce(ctx, method, encoded, dest); err == nil {
+			return nil
+		} else {
+			lastErr = err
+		}
+		if attempt >= maxAttempts || !c.shouldRetry(method, lastErr) {
+			return lastErr
+		}
+		if c.http != nil {
+			c.http.CloseIdleConnections()
+		}
+		if c.logger != nil {
+			c.logger.WarnContext(ctx, "telegram_request_retrying", observability.LogAttrs(ctx,
+				"method", method,
+				"attempt", attempt,
+				"max_attempts", maxAttempts,
+				"error", lastErr,
+			)...)
+		}
+	}
+	return lastErr
+}
+
+func (c *Client) callJSONOnce(ctx context.Context, method string, encoded []byte, dest any) error {
+	requestCtx, cancel := context.WithTimeout(ctx, c.requestTimeout(method))
+	defer cancel()
 	req, err := http.NewRequestWithContext(requestCtx, http.MethodPost, c.apiURL(method), bytes.NewReader(encoded))
 	if err != nil {
 		return c.redactError(err)
+	}
+	if c.shouldUseFreshConnection(method) {
+		req.Close = true
 	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := c.http.Do(req)
@@ -244,12 +309,75 @@ func (c *Client) callJSON(ctx context.Context, method string, requestBody any, d
 	return nil
 }
 
+func (c *Client) shouldUseFreshConnection(method string) bool {
+	switch method {
+	case "sendMessage", "editMessageText", "deleteMessage", "pinChatMessage", "answerCallbackQuery":
+		return true
+	default:
+		return false
+	}
+}
+
+func (c *Client) retryAttempts(method string) int {
+	switch method {
+	case "getUpdates", "editMessageText", "answerCallbackQuery", "deleteMessage", "pinChatMessage", "getFile":
+		return 3
+	default:
+		return 1
+	}
+}
+
+func (c *Client) retryDelay(attempt int) time.Duration {
+	switch attempt {
+	case 2:
+		return 250 * time.Millisecond
+	case 3:
+		return 750 * time.Millisecond
+	default:
+		return 0
+	}
+}
+
+func (c *Client) shouldRetry(method string, err error) bool {
+	if err == nil {
+		return false
+	}
+	if c.retryAttempts(method) <= 1 {
+		return false
+	}
+	return isTelegramTransientRequestError(err)
+}
+
 func (c *Client) requestTimeout(method string) time.Duration {
 	switch method {
 	case "getUpdates":
 		return 70 * time.Second
-	case "sendMessage", "editMessageText", "deleteMessage", "pinChatMessage", "answerCallbackQuery", "getFile":
+	case "answerCallbackQuery":
+		// Too-short callback answers cause Telegram clients to resend taps even when
+		// the actual edit succeeds. Keep this comfortably below sendMessage, but give
+		// Bot API enough room to acknowledge the tap under transient latency.
+		return 8 * time.Second
+	case "editMessageText":
+		// Dashboard and card edits are user-visible state transitions. Give Telegram
+		// enough room here so transient Bot API slowness does not turn a real view
+		// change into a silent stale UI.
+		return 20 * time.Second
+	case "sendMessage":
+		// Draft cards and confirmations are user-visible results of background work.
+		// Give Telegram more time here so finished OCR/LLM jobs and repeated /start
+		// dashboard refreshes do not fail just because the Bot API was briefly slow.
+		return 60 * time.Second
+	case "deleteMessage":
 		return 15 * time.Second
+	case "pinChatMessage":
+		// A slow pin leaves the user on an outdated dashboard and makes subsequent
+		// callback-driven tests race against stale UI. Give pinning extra room.
+		return 30 * time.Second
+	case "getFile":
+		// Media pipelines can already take tens of seconds end-to-end.
+		// Give Bot API file lookups a bit more room so transient Telegram slowness
+		// does not fail voice/audio ingestion before ASR even starts.
+		return 30 * time.Second
 	default:
 		return 30 * time.Second
 	}
@@ -274,6 +402,10 @@ func (c *Client) redactError(err error) error {
 }
 
 func IsTransientPollError(err error) bool {
+	return isTelegramTransientRequestError(err)
+}
+
+func isTelegramTransientRequestError(err error) bool {
 	if err == nil {
 		return false
 	}
@@ -289,7 +421,10 @@ func IsTransientPollError(err error) bool {
 		strings.Contains(message, "client.timeout exceeded") ||
 		strings.Contains(message, "unexpected eof") ||
 		strings.Contains(message, "connection reset by peer") ||
-		strings.Contains(message, "tls handshake timeout")
+		strings.Contains(message, "tls handshake timeout") ||
+		strings.Contains(message, "bad record mac") ||
+		strings.Contains(message, "broken pipe") ||
+		strings.Contains(message, "http2: client connection lost")
 }
 
 type redactedError struct {
@@ -317,4 +452,29 @@ func isTelegramMissingDeleteTarget(err error) bool {
 		return false
 	}
 	return strings.Contains(err.Error(), "message to delete not found")
+}
+
+func IsMissingMessageTargetError(err error) bool {
+	if err == nil {
+		return false
+	}
+	message := strings.ToLower(err.Error())
+	return strings.Contains(message, "message to edit not found") ||
+		strings.Contains(message, "message to delete not found") ||
+		strings.Contains(message, "message to pin not found") ||
+		strings.Contains(message, "message_id_invalid")
+}
+
+func sleepContext(ctx context.Context, delay time.Duration) error {
+	if delay <= 0 {
+		return nil
+	}
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+	select {
+	case <-timer.C:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }

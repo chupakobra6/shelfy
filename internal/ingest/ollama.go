@@ -20,6 +20,13 @@ type ollamaDraft struct {
 	RawDeadlinePhrase string `json:"raw_deadline_phrase"`
 }
 
+type photoVisionMode string
+
+const (
+	photoVisionModeStrictExtract      photoVisionMode = "strict_extract"
+	photoVisionModeAnchoredNameAssist photoVisionMode = "anchored_name_assist"
+)
+
 func (s *Service) callOllamaText(ctx context.Context, text string) (ollamaDraft, error) {
 	if strings.TrimSpace(s.ollamaBaseURL) == "" {
 		return ollamaDraft{}, fmt.Errorf("ollama disabled")
@@ -31,13 +38,19 @@ func (s *Service) callOllamaText(ctx context.Context, text string) (ollamaDraft,
 	return s.callOllama(ctx, "text", prompt, text, nil)
 }
 
-func (s *Service) callOllamaVision(ctx context.Context, imagePath string, ocrHint string) (ollamaDraft, error) {
+func (s *Service) callOllamaVision(ctx context.Context, imagePath string, ocrHint string, mode photoVisionMode, anchorHint string) (ollamaDraft, error) {
 	if strings.TrimSpace(s.ollamaBaseURL) == "" {
 		return ollamaDraft{}, fmt.Errorf("ollama disabled")
 	}
-	prompt := "Inspect the product package image. Return compact JSON with keys name and raw_deadline_phrase. raw_deadline_phrase should capture the visible expiry wording or date."
+	prompt := "Inspect the product package image and return compact JSON with keys name and raw_deadline_phrase. Extract only text that is actually readable on the image. If there is no clearly readable product name or expiry wording/date, return empty strings for both fields. Never guess from packaging, colors, brand style, shape, object type, or context."
+	if mode == photoVisionModeAnchoredNameAssist {
+		prompt = "Inspect the product package image and return compact JSON with keys name and raw_deadline_phrase. A reliable deadline hint is already known from external text, so your job is to identify only the product name if it is clearly visible on the package. Leave raw_deadline_phrase empty unless the exact same deadline text is clearly readable on the image. If the product name is not clearly visible, return empty strings. Never guess from packaging colors, brand style, shape, object type, or context."
+		if strings.TrimSpace(anchorHint) != "" {
+			prompt += "\nExternal deadline hint:\n" + anchorHint
+		}
+	}
 	if strings.TrimSpace(ocrHint) != "" {
-		prompt += "\nUse this OCR text as a noisy hint, but prefer the image if the OCR looks wrong:\n" + ocrHint
+		prompt += "\nUse this OCR text only as a noisy hint. Do not treat it as permission to invent missing fields. If both the OCR and image are unclear, return empty strings:\n" + ocrHint
 	}
 	raw, err := os.ReadFile(imagePath)
 	if err != nil {

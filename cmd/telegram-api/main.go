@@ -3,14 +3,18 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/igor/shelfy/internal/bootstrap"
 	"github.com/igor/shelfy/internal/bot"
+	"github.com/igor/shelfy/internal/dispatcher"
 	"github.com/igor/shelfy/internal/ingest"
 	"github.com/igor/shelfy/internal/observability"
 	"github.com/igor/shelfy/internal/telegram"
@@ -26,6 +30,7 @@ func main() {
 	}
 	defer runtime.Close()
 	tg := telegram.NewClient(runtime.Config.BotToken, runtime.Logger)
+	registerBotCommands(ctx, tg, runtime.Logger)
 	fastText := ingest.NewService(
 		runtime.Store,
 		tg,
@@ -35,10 +40,18 @@ func main() {
 		runtime.Config.OllamaBaseURL,
 		runtime.Config.OllamaModel,
 		runtime.Config.TesseractCommand,
-		runtime.Config.WhisperCommand,
-		runtime.Config.WhisperModelPath,
+		runtime.Config.VoskCommand,
+		runtime.Config.VoskModelPath,
 	)
 	service := bot.NewService(runtime.Store, tg, runtime.Copy, runtime.Logger, runtime.Config.DefaultTimezone, runtime.Config.DigestLocalTime, fastText)
+	updateDispatcher := dispatcher.New(32, 5*time.Minute)
+	defer func() {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := updateDispatcher.Shutdown(shutdownCtx); err != nil && !errors.Is(err, context.Canceled) {
+			runtime.Logger.WarnContext(context.Background(), "update_dispatcher_shutdown_failed", "error", err)
+		}
+	}()
 
 	var offset int64
 	var pollErrorStreak int
@@ -67,7 +80,8 @@ func main() {
 		}
 		for _, update := range updates {
 			offset = update.UpdateID + 1
-			updateCtx := observability.EnsureTraceID(context.Background())
+			update := update
+			updateCtx := observability.EnsureTraceID(ctx)
 			updateCtx = observability.WithUpdateID(updateCtx, update.UpdateID)
 			if update.Message != nil && update.Message.From != nil {
 				updateCtx = observability.WithUserID(updateCtx, update.Message.From.ID)
@@ -76,25 +90,71 @@ func main() {
 				updateCtx = observability.WithUserID(updateCtx, update.CallbackQuery.From.ID)
 			}
 			tg.LogIncomingUpdate(updateCtx, update)
-			if update.Message != nil && update.Message.Text == "/start" {
-				if err := service.HandleStart(updateCtx, update.Message.From.ID, update.Message.Chat.ID, update.Message.MessageID); err != nil {
-					runtime.Logger.ErrorContext(updateCtx, "handle_start_failed", "update_id", update.UpdateID, "error", err)
-				}
-				continue
-			}
-			if update.Message != nil {
-				if err := service.HandleMessage(updateCtx, *update.Message); err != nil {
-					runtime.Logger.ErrorContext(updateCtx, "handle_message_failed", "update_id", update.UpdateID, "error", err)
-				}
-				continue
-			}
 			if update.CallbackQuery != nil {
-				if err := service.HandleCallback(updateCtx, *update.CallbackQuery); err != nil {
-					runtime.Logger.ErrorContext(updateCtx, "handle_callback_failed", "update_id", update.UpdateID, "error", err)
+				if err := tg.AnswerCallbackQuery(updateCtx, telegram.AnswerCallbackQueryRequest{
+					CallbackQueryID: update.CallbackQuery.ID,
+				}); err != nil {
+					runtime.Logger.WarnContext(updateCtx, "answer_callback_failed", "update_id", update.UpdateID, "error", err)
 				}
+			}
+			if err := updateDispatcher.Submit(updateCtx, updateMailboxKey(update), func(jobCtx context.Context) {
+				handleUpdate(jobCtx, runtime.Logger, service, update)
+			}); err != nil {
+				if errors.Is(err, dispatcher.ErrDispatcherClosed) || errors.Is(err, context.Canceled) {
+					return
+				}
+				runtime.Logger.ErrorContext(updateCtx, "dispatch_update_failed", "update_id", update.UpdateID, "error", err)
 			}
 		}
 	}
+}
+
+func handleUpdate(ctx context.Context, logger *slog.Logger, service *bot.Service, update telegram.Update) {
+	if update.Message != nil && update.Message.From != nil {
+		switch {
+		case isTelegramCommand(update.Message.Text, "/start"):
+			if err := service.HandleStart(ctx, update.Message.From.ID, update.Message.Chat.ID, update.Message.MessageID); err != nil {
+				logger.ErrorContext(ctx, "handle_start_failed", "update_id", update.UpdateID, "error", err)
+			}
+			return
+		case isTelegramCommand(update.Message.Text, "/dashboard"):
+			if err := service.HandleDashboardCommand(ctx, update.Message.From.ID, update.Message.Chat.ID, update.Message.MessageID); err != nil {
+				logger.ErrorContext(ctx, "handle_dashboard_command_failed", "update_id", update.UpdateID, "error", err)
+			}
+			return
+		}
+	}
+	if update.Message != nil {
+		if err := service.HandleMessage(ctx, *update.Message); err != nil {
+			logger.ErrorContext(ctx, "handle_message_failed", "update_id", update.UpdateID, "error", err)
+		}
+		return
+	}
+	if update.CallbackQuery != nil {
+		if err := service.HandleCallback(ctx, *update.CallbackQuery); err != nil {
+			logger.ErrorContext(ctx, "handle_callback_failed", "update_id", update.UpdateID, "error", err)
+		}
+	}
+}
+
+func registerBotCommands(ctx context.Context, tg *telegram.Client, logger *slog.Logger) {
+	if err := tg.SetMyCommands(ctx, []telegram.BotCommand{
+		{
+			Command:     "dashboard",
+			Description: "Восстановить или обновить дашборд",
+		},
+	}); err != nil {
+		logger.WarnContext(ctx, "register_bot_commands_failed", "error", err)
+	}
+}
+
+func isTelegramCommand(text, command string) bool {
+	fields := strings.Fields(strings.TrimSpace(text))
+	if len(fields) == 0 {
+		return false
+	}
+	token := strings.SplitN(fields[0], "@", 2)[0]
+	return token == command
 }
 
 func logPollError(logger *slog.Logger, ctx context.Context, err error, streak int) {
@@ -125,4 +185,17 @@ func pollRetryDelay(streak int) time.Duration {
 	default:
 		return 15 * time.Second
 	}
+}
+
+func updateMailboxKey(update telegram.Update) string {
+	if update.CallbackQuery != nil {
+		return strconv.FormatInt(update.CallbackQuery.From.ID, 10)
+	}
+	if update.Message != nil {
+		if update.Message.From != nil {
+			return strconv.FormatInt(update.Message.From.ID, 10)
+		}
+		return fmt.Sprintf("chat:%d", update.Message.Chat.ID)
+	}
+	return fmt.Sprintf("update:%d", update.UpdateID)
 }

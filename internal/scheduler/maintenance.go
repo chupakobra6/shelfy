@@ -123,14 +123,24 @@ func (s *Service) cleanupDigestMessages(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		if err := s.tg.DeleteMessage(ctx, settings.ChatID, digest.TelegramMessageID); err != nil {
-			s.logger.WarnContext(ctx, "digest_delete_failed", "digest_id", digest.ID, "error", err)
+		if err := s.tg.DeleteMessage(ctx, settings.ChatID, digest.TelegramMessageID); !shouldMarkDigestDeletedAfterCleanup(err) {
+			s.logger.WarnContext(ctx, "digest_cleanup_deferred", observability.LogAttrs(ctx,
+				"digest_id", digest.ID,
+				"user_id", digest.UserID,
+				"telegram_message_id", digest.TelegramMessageID,
+				"error", err,
+			)...)
+			continue
 		}
 		if err := s.store.MarkDigestDeleted(ctx, digest.ID); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func shouldMarkDigestDeletedAfterCleanup(err error) bool {
+	return err == nil || telegram.IsMissingMessageTargetError(err)
 }
 
 func (s *Service) cleanupStaleDrafts(ctx context.Context, now time.Time) error {

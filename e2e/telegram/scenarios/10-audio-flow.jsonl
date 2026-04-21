@@ -1,5 +1,8 @@
-# Covers audio upload and the bot's first visible reaction.
+# Covers audio upload, draft creation from speech, and cleanup back to home.
 {"id":"select_chat","action":"select_chat","chat":"@your_bot_username"}
 {"id":"send_audio","action":"send_audio","path":"@fixtures/e2e-audio.mp3"}
-{"id":"wait_audio_result","action":"wait","timeout_ms":25000}
+{"id":"wait_audio_processing","action":"wait","timeout_ms":30000}
+{"id":"wait_audio_result","action":"wait","timeout_ms":45000}
 {"id":"dump_audio_result","action":"dump_state"}
+{"id":"cancel_audio_draft","action":"click_button","button_text":"↩️ Отмена"}
+{"id":"wait_audio_home","action":"wait","timeout_ms":30000}

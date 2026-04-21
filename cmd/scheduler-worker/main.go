@@ -26,7 +26,12 @@ func main() {
 	defer runtime.Close()
 	cfg := runtime.Config
 	tg := telegram.NewClient(cfg.BotToken, runtime.Logger)
-	service := scheduler.NewService(runtime.Store, tg, runtime.Copy, runtime.Logger)
+	service := scheduler.NewService(runtime.Store, tg, runtime.Copy, runtime.Logger, scheduler.Options{
+		DefaultTimezone: runtime.Config.DefaultTimezone,
+		DigestLocalTime: runtime.Config.DigestLocalTime,
+		E2ETestUserID:   runtime.Config.E2ETestUserID,
+		EnableE2EReset:  cfg.EnableDevControl && !cfg.IsProduction() && cfg.E2ETestUserID != 0,
+	})
 
 	if cfg.EnableDevControl && !cfg.IsProduction() {
 		server := &http.Server{

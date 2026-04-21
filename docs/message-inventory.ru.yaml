@@ -116,6 +116,15 @@ messages:
     max_length_hint: 120
     interpolation_fields: []
     buttons: []
+  command.dashboard_recover_hint:
+    purpose: "Transient feedback when `/start` sees a missing active dashboard and asks the user to use `/dashboard`."
+    location: "Transient bot message."
+    trigger: "User runs `/start`, but the stored dashboard message no longer exists."
+    auto_delete: true
+    emojis_required: true
+    max_length_hint: 160
+    interpolation_fields: []
+    buttons: []
   callback.dashboard_stale:
     purpose: "Transient feedback for an outdated dashboard message."
     location: "Transient bot message."
@@ -171,6 +180,17 @@ messages:
     max_length_hint: 120
     interpolation_fields:
       - title
+    buttons: []
+  dashboard.list.page_meta:
+    purpose: "Page indicator for paginated dashboard lists."
+    location: "Pinned dashboard sub-screen."
+    trigger: "Rendered under the list header when there is more than one page."
+    auto_delete: false
+    emojis_required: false
+    max_length_hint: 80
+    interpolation_fields:
+      - current_page
+      - total_pages
     buttons: []
   dashboard.list.item:
     purpose: "Line for a single product inside a dashboard list."

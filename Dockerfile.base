@@ -1,0 +1,12 @@
+FROM python:3.11-slim-bookworm
+
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends ca-certificates ffmpeg libatomic1 tesseract-ocr tesseract-ocr-rus \
+	&& python -m pip install --no-cache-dir vosk==0.3.44 \
+	&& rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+ENV SHELFY_TMP_DIR=/tmp/shelfy
+
+RUN mkdir -p /tmp/shelfy /models

@@ -16,7 +16,11 @@ services:
       retries: 20
 
   migrate:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SHELFY_RUNTIME_BASE_IMAGE: ${SHELFY_RUNTIME_BASE_IMAGE:-shelfy-runtime-base:vosk-small-ru-0.22}
     env_file:
       - ${SHELFY_ENV_FILE:-.env}
     depends_on:
@@ -26,7 +30,11 @@ services:
     restart: "no"
 
   telegram-api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SHELFY_RUNTIME_BASE_IMAGE: ${SHELFY_RUNTIME_BASE_IMAGE:-shelfy-runtime-base:vosk-small-ru-0.22}
     env_file:
       - ${SHELFY_ENV_FILE:-.env}
     depends_on:
@@ -42,7 +50,11 @@ services:
       - ./tmp:/tmp/shelfy
 
   pipeline-worker:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SHELFY_RUNTIME_BASE_IMAGE: ${SHELFY_RUNTIME_BASE_IMAGE:-shelfy-runtime-base:vosk-small-ru-0.22}
     env_file:
       - ${SHELFY_ENV_FILE:-.env}
     depends_on:
@@ -59,7 +71,11 @@ services:
       - ./tmp:/tmp/shelfy
 
   scheduler-worker:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SHELFY_RUNTIME_BASE_IMAGE: ${SHELFY_RUNTIME_BASE_IMAGE:-shelfy-runtime-base:vosk-small-ru-0.22}
     env_file:
       - ${SHELFY_ENV_FILE:-.env}
     depends_on:

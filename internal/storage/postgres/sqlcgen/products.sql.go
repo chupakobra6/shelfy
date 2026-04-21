@@ -27,6 +27,41 @@ func (q *Queries) ActiveProductsExist(ctx context.Context, dollar_1 []int64) (bo
 	return exists, err
 }
 
+const countActiveProducts = `-- name: CountActiveProducts :one
+SELECT COUNT(*)::bigint
+FROM products
+WHERE user_id = $1 AND status = 'active'
+`
+
+func (q *Queries) CountActiveProducts(ctx context.Context, userID int64) (int64, error) {
+	row := q.db.QueryRow(ctx, countActiveProducts, userID)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const countSoonProducts = `-- name: CountSoonProducts :one
+SELECT COUNT(*)::bigint
+FROM products
+WHERE user_id = $1
+  AND status = 'active'
+  AND expires_on >= $2::date
+  AND expires_on <= $3::date
+`
+
+type CountSoonProductsParams struct {
+	UserID  int64
+	Column2 pgtype.Date
+	Column3 pgtype.Date
+}
+
+func (q *Queries) CountSoonProducts(ctx context.Context, arg CountSoonProductsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countSoonProducts, arg.UserID, arg.Column2, arg.Column3)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createProduct = `-- name: CreateProduct :one
 INSERT INTO products (user_id, name, normalized_name, expires_on, raw_deadline_phrase, status, source_kind)
 VALUES ($1, $2, $3, $4, $5, 'active', $6)
@@ -153,6 +188,51 @@ func (q *Queries) ListActiveProducts(ctx context.Context, userID int64) ([]Produ
 	return items, nil
 }
 
+const listActiveProductsPage = `-- name: ListActiveProductsPage :many
+SELECT id, user_id, name, normalized_name, expires_on, raw_deadline_phrase, status, source_kind, created_at, closed_at
+FROM products
+WHERE user_id = $1 AND status = 'active'
+ORDER BY expires_on ASC, id DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListActiveProductsPageParams struct {
+	UserID int64
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) ListActiveProductsPage(ctx context.Context, arg ListActiveProductsPageParams) ([]Product, error) {
+	rows, err := q.db.Query(ctx, listActiveProductsPage, arg.UserID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Name,
+			&i.NormalizedName,
+			&i.ExpiresOn,
+			&i.RawDeadlinePhrase,
+			&i.Status,
+			&i.SourceKind,
+			&i.CreatedAt,
+			&i.ClosedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listExpiredProducts = `-- name: ListExpiredProducts :many
 SELECT id, user_id, name, normalized_name, expires_on, raw_deadline_phrase, status, source_kind, created_at, closed_at
 FROM products
@@ -216,6 +296,62 @@ type ListSoonProductsParams struct {
 
 func (q *Queries) ListSoonProducts(ctx context.Context, arg ListSoonProductsParams) ([]Product, error) {
 	rows, err := q.db.Query(ctx, listSoonProducts, arg.UserID, arg.Column2, arg.Column3)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Name,
+			&i.NormalizedName,
+			&i.ExpiresOn,
+			&i.RawDeadlinePhrase,
+			&i.Status,
+			&i.SourceKind,
+			&i.CreatedAt,
+			&i.ClosedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSoonProductsPage = `-- name: ListSoonProductsPage :many
+SELECT id, user_id, name, normalized_name, expires_on, raw_deadline_phrase, status, source_kind, created_at, closed_at
+FROM products
+WHERE user_id = $1
+  AND status = 'active'
+  AND expires_on >= $2::date
+  AND expires_on <= $3::date
+ORDER BY expires_on ASC, id DESC
+LIMIT $4 OFFSET $5
+`
+
+type ListSoonProductsPageParams struct {
+	UserID  int64
+	Column2 pgtype.Date
+	Column3 pgtype.Date
+	Limit   int32
+	Offset  int32
+}
+
+func (q *Queries) ListSoonProductsPage(ctx context.Context, arg ListSoonProductsPageParams) ([]Product, error) {
+	rows, err := q.db.Query(ctx, listSoonProductsPage,
+		arg.UserID,
+		arg.Column2,
+		arg.Column3,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}

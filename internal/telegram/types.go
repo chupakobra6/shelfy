@@ -75,6 +75,11 @@ type InlineKeyboardButton struct {
 	CallbackData string `json:"callback_data,omitempty"`
 }
 
+type BotCommand struct {
+	Command     string `json:"command"`
+	Description string `json:"description"`
+}
+
 type SendMessageRequest struct {
 	ChatID      int64                 `json:"chat_id"`
 	Text        string                `json:"text"`
@@ -94,6 +99,10 @@ type AnswerCallbackQueryRequest struct {
 	CallbackQueryID string `json:"callback_query_id"`
 	Text            string `json:"text,omitempty"`
 	ShowAlert       bool   `json:"show_alert,omitempty"`
+}
+
+type SetMyCommandsRequest struct {
+	Commands []BotCommand `json:"commands"`
 }
 
 type GetUpdatesResponse struct {

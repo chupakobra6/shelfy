@@ -23,10 +23,11 @@ type Config struct {
 	OllamaBaseURL      string
 	OllamaModel        string
 	TesseractCommand   string
-	WhisperCommand     string
-	WhisperModelPath   string
+	VoskCommand        string
+	VoskModelPath      string
 	EnableDevControl   bool
 	DevControlAddr     string
+	E2ETestUserID      int64
 }
 
 func Load() (Config, error) {
@@ -45,10 +46,11 @@ func Load() (Config, error) {
 		OllamaBaseURL:      strings.TrimRight(defaultString(os.Getenv("SHELFY_OLLAMA_BASE_URL"), "http://127.0.0.1:11434"), "/"),
 		OllamaModel:        defaultString(os.Getenv("SHELFY_OLLAMA_MODEL"), "gemma3:4b"),
 		TesseractCommand:   defaultString(os.Getenv("SHELFY_TESSERACT_COMMAND"), "tesseract"),
-		WhisperCommand:     defaultString(os.Getenv("SHELFY_WHISPER_COMMAND"), "whisper-cli"),
-		WhisperModelPath:   defaultString(os.Getenv("SHELFY_WHISPER_MODEL_PATH"), ""),
+		VoskCommand:        defaultString(os.Getenv("SHELFY_VOSK_COMMAND"), "/usr/local/bin/vosk-transcribe"),
+		VoskModelPath:      defaultString(os.Getenv("SHELFY_VOSK_MODEL_PATH"), "/models/vosk-model-small-ru-0.22"),
 		EnableDevControl:   defaultBool(os.Getenv("SHELFY_ENABLE_DEV_CONTROL_API"), true),
 		DevControlAddr:     defaultString(os.Getenv("SHELFY_DEV_CONTROL_LISTEN_ADDR"), ":8081"),
+		E2ETestUserID:      defaultInt64(os.Getenv("SHELFY_E2E_TEST_USER_ID"), 0),
 	}
 
 	if cfg.BotToken == "" {
@@ -76,6 +78,17 @@ func defaultInt(v string, fallback int) int {
 		return fallback
 	}
 	parsed, err := strconv.Atoi(v)
+	if err != nil {
+		return fallback
+	}
+	return parsed
+}
+
+func defaultInt64(v string, fallback int64) int64 {
+	if v == "" {
+		return fallback
+	}
+	parsed, err := strconv.ParseInt(v, 10, 64)
 	if err != nil {
 		return fallback
 	}

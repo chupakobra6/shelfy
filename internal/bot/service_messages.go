@@ -49,6 +49,9 @@ func (s *Service) handleServiceMessage(ctx context.Context, msg telegram.Message
 		"message_id", msg.MessageID,
 		"dashboard_message_id", msg.PinnedMessage.MessageID,
 	)...)
-	s.deleteMessagesNow(ctx, msg.Chat.ID, msg.MessageID)
+	traceID := observability.TraceID(observability.EnsureTraceID(ctx))
+	if err := s.deleteMessagesReliably(ctx, traceID, "pin_service", msg.Chat.ID, 0, msg.MessageID); err != nil {
+		return true, err
+	}
 	return true, nil
 }

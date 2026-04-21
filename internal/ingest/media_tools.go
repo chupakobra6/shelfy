@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -52,27 +50,30 @@ func (s *Service) runFFmpeg(ctx context.Context, inputPath, outputPath string) e
 	return nil
 }
 
-func (s *Service) runWhisper(ctx context.Context, wavPath string) (string, error) {
-	if strings.TrimSpace(s.whisperModelPath) == "" {
-		return "", fmt.Errorf("whisper model path is empty")
+func (s *Service) runVosk(ctx context.Context, wavPath string) (string, error) {
+	if strings.TrimSpace(s.voskModelPath) == "" {
+		return "", fmt.Errorf("vosk model path is empty")
+	}
+	if strings.TrimSpace(s.voskCommand) == "" {
+		return "", fmt.Errorf("vosk command is empty")
 	}
 	startedAt := time.Now()
-	outputPrefix := strings.TrimSuffix(wavPath, filepath.Ext(wavPath)) + "-transcript"
-	cmd := exec.CommandContext(ctx, s.whisperCommand, "-m", s.whisperModelPath, "-f", wavPath, "-otxt", "-of", outputPrefix)
-	output, err := cmd.CombinedOutput()
+	cmd := exec.CommandContext(ctx, s.voskCommand, s.voskModelPath, wavPath)
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
 	if err != nil {
-		return "", fmt.Errorf("whisper: %w: %s", err, string(output))
+		return "", fmt.Errorf("vosk: %w: %s", err, strings.TrimSpace(stderr.String()))
 	}
-	body, err := os.ReadFile(outputPrefix + ".txt")
-	if err != nil {
-		return "", err
-	}
-	text := strings.TrimSpace(string(body))
-	s.logger.InfoContext(ctx, "whisper_completed", observability.LogAttrs(ctx,
+	text := strings.TrimSpace(stdout.String())
+	s.logger.InfoContext(ctx, "vosk_completed", observability.LogAttrs(ctx,
 		"duration_ms", time.Since(startedAt).Milliseconds(),
 		"text_len", len(text),
-		"model_path", s.whisperModelPath,
+		"model_path", s.voskModelPath,
 		"text_excerpt", excerptForLog(text, 320),
+		"stderr_excerpt", excerptForLog(strings.TrimSpace(stderr.String()), 320),
 	)...)
 	return text, nil
 }

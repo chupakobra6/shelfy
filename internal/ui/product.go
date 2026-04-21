@@ -1,13 +1,11 @@
 package ui
 
 import (
-	"fmt"
-
 	"github.com/igor/shelfy/internal/domain"
 	"github.com/igor/shelfy/internal/telegram"
 )
 
-func (r *Renderer) ProductCard(product domain.Product) (string, *telegram.InlineKeyboardMarkup, error) {
+func (r *Renderer) ProductCard(product domain.Product, originMode string, originPage int) (string, *telegram.InlineKeyboardMarkup, error) {
 	statusLabel, err := r.copy.Label("product.status." + string(product.Status))
 	if err != nil {
 		return "", nil, err
@@ -39,13 +37,13 @@ func (r *Renderer) ProductCard(product domain.Product) (string, *telegram.Inline
 	return text, &telegram.InlineKeyboardMarkup{
 		InlineKeyboard: [][]telegram.InlineKeyboardButton{
 			{
-				{Text: consumedLabel, CallbackData: fmt.Sprintf("product:set:%d:consumed", product.ID)},
-				{Text: discardedLabel, CallbackData: fmt.Sprintf("product:set:%d:discarded", product.ID)},
+				{Text: consumedLabel, CallbackData: productSetCallback(product.ID, "consumed", originMode, originPage)},
+				{Text: discardedLabel, CallbackData: productSetCallback(product.ID, "discarded", originMode, originPage)},
 			},
 			{
-				{Text: deletedLabel, CallbackData: fmt.Sprintf("product:set:%d:deleted", product.ID)},
+				{Text: deletedLabel, CallbackData: productSetCallback(product.ID, "deleted", originMode, originPage)},
 			},
-			{{Text: backLabel, CallbackData: "dashboard:list"}},
+			{{Text: backLabel, CallbackData: dashboardPageCallback(originMode, originPage)}},
 		},
 	}, nil
 }

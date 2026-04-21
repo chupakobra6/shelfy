@@ -13,11 +13,6 @@ func (s *Service) HandleCallback(ctx context.Context, callback telegram.Callback
 		return nil
 	}
 	ctx = observability.WithUserID(ctx, callback.From.ID)
-	if err := s.tg.AnswerCallbackQuery(ctx, telegram.AnswerCallbackQueryRequest{
-		CallbackQueryID: callback.ID,
-	}); err != nil {
-		s.logger.WarnContext(ctx, "answer_callback_failed", observability.LogAttrs(ctx, "error", err)...)
-	}
 	parts := strings.Split(callback.Data, ":")
 	if len(parts) == 0 {
 		return nil

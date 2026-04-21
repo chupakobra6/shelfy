@@ -1,0 +1,8 @@
+# Covers receipt-like OCR with a caption-provided product name; still only one draft may be created.
+{"id":"select_chat","action":"select_chat","chat":"@your_bot_username"}
+{"id":"send_photo_receipt_caption","action":"send_photo","path":"@fixtures/e2e-receipt.png","caption":"кефир"}
+{"id":"wait_photo_receipt_caption_processing","action":"wait","timeout_ms":30000}
+{"id":"wait_photo_receipt_caption_result","action":"wait","timeout_ms":30000}
+{"id":"dump_photo_receipt_caption_result","action":"dump_state"}
+{"id":"cancel_photo_receipt_caption_draft","action":"click_button","button_text":"↩️ Отмена"}
+{"id":"wait_photo_receipt_caption_home","action":"wait","timeout_ms":30000}

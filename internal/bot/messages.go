@@ -8,7 +8,6 @@ import (
 	"github.com/igor/shelfy/internal/domain"
 	"github.com/igor/shelfy/internal/jobs"
 	"github.com/igor/shelfy/internal/observability"
-	"github.com/igor/shelfy/internal/storage/postgres"
 	"github.com/igor/shelfy/internal/telegram"
 )
 
@@ -49,17 +48,13 @@ func (s *Service) HandleMessage(ctx context.Context, msg telegram.Message) error
 		"message_id", msg.MessageID,
 		"kind", kind,
 		"has_text", strings.TrimSpace(msg.Text) != "",
+		"has_caption", strings.TrimSpace(msg.Caption) != "",
 		"has_file", fileID != "",
 	)...)
 	if kind == domain.MessageKindUnsupported {
 		return s.handleUnsupportedMessage(ctx, msg)
 	}
-	if err := s.store.UpsertUserSettings(ctx, postgres.UserSettings{
-		UserID:          msg.From.ID,
-		ChatID:          msg.Chat.ID,
-		Timezone:        s.defaultTimezone,
-		DigestLocalTime: s.digestLocalTime,
-	}); err != nil {
+	if _, err := s.ensureUserSettings(ctx, msg.From.ID, msg.Chat.ID); err != nil {
 		return err
 	}
 	traceID := observability.TraceID(observability.EnsureTraceID(ctx))
@@ -69,6 +64,23 @@ func (s *Service) HandleMessage(ctx context.Context, msg telegram.Message) error
 	}); err != nil {
 		return err
 	}
+	payload := jobs.IngestPayload{
+		TraceID:   traceID,
+		UserID:    msg.From.ID,
+		ChatID:    msg.Chat.ID,
+		MessageID: msg.MessageID,
+		FileID:    fileID,
+		Text:      msg.Text,
+		Caption:   msg.Caption,
+		Kind:      kind,
+	}
+
+	if handled, err := s.tryHandleTextFast(ctx, payload); err != nil {
+		return err
+	} else if handled {
+		return nil
+	}
+
 	processing, err := s.ui.ProcessingMessage()
 	if err != nil {
 		return err
@@ -81,29 +93,7 @@ func (s *Service) HandleMessage(ctx context.Context, msg telegram.Message) error
 	if err != nil {
 		return err
 	}
-	payload := jobs.IngestPayload{
-		TraceID:           traceID,
-		UserID:            msg.From.ID,
-		ChatID:            msg.Chat.ID,
-		MessageID:         msg.MessageID,
-		FeedbackMessageID: feedback.MessageID,
-		FileID:            fileID,
-		Text:              msg.Text,
-		Kind:              kind,
-	}
-	if kind == domain.MessageKindText && s.textFastPath != nil {
-		handled, err := s.textFastPath.TryHandleTextFast(ctx, payload)
-		if err != nil {
-			return err
-		}
-		if handled {
-			s.logger.InfoContext(ctx, "message_processed_fast_path", observability.LogAttrs(ctx,
-				"message_id", msg.MessageID,
-				"kind", kind,
-			)...)
-			return nil
-		}
-	}
+	payload.FeedbackMessageID = feedback.MessageID
 	jobType := jobTypeForMessage(kind)
 	fallbackCleanupAt := 2 * time.Minute
 	if err := s.enqueueJobNow(ctx, traceID, jobType, payload, nil); err != nil {
@@ -116,6 +106,24 @@ func (s *Service) HandleMessage(ctx context.Context, msg telegram.Message) error
 		"feedback_message_id", feedback.MessageID,
 	)...)
 	return s.scheduleDeleteMessages(ctx, traceID, msg.Chat.ID, fallbackCleanupAt, feedback.MessageID)
+}
+
+func (s *Service) tryHandleTextFast(ctx context.Context, payload jobs.IngestPayload) (bool, error) {
+	if payload.Kind != domain.MessageKindText || s.textFastPath == nil {
+		return false, nil
+	}
+	handled, err := s.textFastPath.TryHandleTextFast(ctx, payload)
+	if err != nil {
+		return false, err
+	}
+	if !handled {
+		return false, nil
+	}
+	s.logger.InfoContext(ctx, "message_processed_fast_path", observability.LogAttrs(ctx,
+		"message_id", payload.MessageID,
+		"kind", payload.Kind,
+	)...)
+	return true, nil
 }
 
 func (s *Service) handleDraftEditMessage(ctx context.Context, draft domain.DraftSession, msg telegram.Message) error {
@@ -138,7 +146,11 @@ func (s *Service) handleDraftEditMessage(ctx context.Context, draft domain.Draft
 		if name == "" {
 			return s.handleInvalidDraftEditMessage(ctx, draft, msg, false)
 		}
-		if err := s.store.UpdateDraftFields(ctx, draft.ID, name, draft.DraftExpiresOn, draft.RawDeadlinePhrase, domain.DraftStatusReady); err != nil {
+		nextStatus, err := applyDraftEditTransition(draft.Status)
+		if err != nil {
+			return err
+		}
+		if err := s.store.UpdateDraftFields(ctx, draft.ID, name, draft.DraftExpiresOn, draft.RawDeadlinePhrase, nextStatus); err != nil {
 			return err
 		}
 	case domain.DraftStatusEditingDate:
@@ -146,7 +158,11 @@ func (s *Service) handleDraftEditMessage(ctx context.Context, draft domain.Draft
 		if resolved.Value == nil {
 			return s.handleInvalidDraftEditMessage(ctx, draft, msg, true)
 		}
-		if err := s.store.UpdateDraftFields(ctx, draft.ID, draft.DraftName, resolved.Value, msg.Text, domain.DraftStatusReady); err != nil {
+		nextStatus, err := applyDraftEditTransition(draft.Status)
+		if err != nil {
+			return err
+		}
+		if err := s.store.UpdateDraftFields(ctx, draft.ID, draft.DraftName, resolved.Value, msg.Text, nextStatus); err != nil {
 			return err
 		}
 	default:
@@ -173,16 +189,19 @@ func (s *Service) handleDraftEditMessage(ctx context.Context, draft domain.Draft
 	}
 	s.logger.InfoContext(ctx, "draft_edit_applied", observability.LogAttrs(ctx,
 		"draft_id", draft.ID,
-		"draft_status", draft.Status,
+		"state_from", draft.Status,
+		"state_to", updated.Status,
 		"message_id", msg.MessageID,
 		"has_name", strings.TrimSpace(updated.DraftName) != "",
 		"has_expiry", updated.DraftExpiresOn != nil,
 	)...)
-	s.cleanupDraftEditMessages(ctx, msg.Chat.ID, msg.MessageID, ptrValue(promptMessageID))
-	return nil
+	return s.cleanupDraftEditMessages(ctx, draft.TraceID, msg.Chat.ID, msg.MessageID, ptrValue(promptMessageID))
 }
 
 func (s *Service) handleInvalidDraftEditMessage(ctx context.Context, draft domain.DraftSession, msg telegram.Message, dateMode bool) error {
+	if _, err := invalidDraftEditTransition(draft.Status); err != nil {
+		return err
+	}
 	var (
 		text string
 		err  error
@@ -209,12 +228,14 @@ func (s *Service) handleInvalidDraftEditMessage(ctx context.Context, draft domai
 		"message_id", msg.MessageID,
 		"date_mode", dateMode,
 	)...)
-	s.deleteMessagesNow(ctx, msg.Chat.ID, msg.MessageID)
-	return s.scheduleDeleteMessages(ctx, draft.TraceID, msg.Chat.ID, 6*time.Second, feedback.MessageID)
+	if err := s.deleteMessagesReliably(ctx, draft.TraceID, "invalid_input", msg.Chat.ID, 0, msg.MessageID); err != nil {
+		return err
+	}
+	return s.scheduleDeleteMessagesWithOrigin(ctx, draft.TraceID, "invalid_input", msg.Chat.ID, 6*time.Second, feedback.MessageID)
 }
 
-func (s *Service) cleanupDraftEditMessages(ctx context.Context, chatID, userMessageID, promptMessageID int64) {
-	s.deleteMessagesNow(ctx, chatID, userMessageID, promptMessageID)
+func (s *Service) cleanupDraftEditMessages(ctx context.Context, traceID string, chatID, userMessageID, promptMessageID int64) error {
+	return s.deleteMessagesReliably(ctx, traceID, "draft_edit_cleanup", chatID, 0, userMessageID, promptMessageID)
 }
 
 func (s *Service) handleUnsupportedMessage(ctx context.Context, msg telegram.Message) error {
@@ -238,6 +259,8 @@ func (s *Service) handleUnsupportedMessage(ctx context.Context, msg telegram.Mes
 	if err := s.store.SaveIngestEvent(ctx, traceID, msg.From.ID, msg.Chat.ID, msg.MessageID, domain.MessageKindUnsupported, "unsupported", "unsupported message type", nil); err != nil {
 		return err
 	}
-	s.deleteMessagesNow(ctx, msg.Chat.ID, msg.MessageID)
-	return s.scheduleDeleteMessages(ctx, traceID, msg.Chat.ID, 6*time.Second, feedback.MessageID)
+	if err := s.deleteMessagesReliably(ctx, traceID, "unsupported_input", msg.Chat.ID, 0, msg.MessageID); err != nil {
+		return err
+	}
+	return s.scheduleDeleteMessagesWithOrigin(ctx, traceID, "unsupported_input", msg.Chat.ID, 6*time.Second, feedback.MessageID)
 }

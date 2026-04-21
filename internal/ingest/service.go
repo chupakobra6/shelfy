@@ -26,11 +26,11 @@ type Service struct {
 	ollamaBaseURL    string
 	ollamaModel      string
 	tesseractCommand string
-	whisperCommand   string
-	whisperModelPath string
+	voskCommand      string
+	voskModelPath    string
 }
 
-func NewService(store *postgres.Store, tg *telegram.Client, copy *copycat.Loader, logger *slog.Logger, tmpDir, ollamaBaseURL, ollamaModel, tesseractCommand, whisperCommand, whisperModelPath string) *Service {
+func NewService(store *postgres.Store, tg *telegram.Client, copy *copycat.Loader, logger *slog.Logger, tmpDir, ollamaBaseURL, ollamaModel, tesseractCommand, voskCommand, voskModelPath string) *Service {
 	return &Service{
 		store:            store,
 		tg:               tg,
@@ -40,8 +40,8 @@ func NewService(store *postgres.Store, tg *telegram.Client, copy *copycat.Loader
 		ollamaBaseURL:    strings.TrimRight(ollamaBaseURL, "/"),
 		ollamaModel:      ollamaModel,
 		tesseractCommand: tesseractCommand,
-		whisperCommand:   whisperCommand,
-		whisperModelPath: whisperModelPath,
+		voskCommand:      voskCommand,
+		voskModelPath:    voskModelPath,
 	}
 }
 

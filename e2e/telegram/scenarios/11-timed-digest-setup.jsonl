@@ -1,7 +1,7 @@
-# Creates one active product before a forced timed-digest run.
+# Creates one uniquely named active product before a forced timed-digest run.
 {"id":"select_chat","action":"select_chat","chat":"@your_bot_username"}
-{"id":"send_product","action":"send_text","text":"кефир завтра"}
-{"id":"wait_draft","action":"wait","timeout_ms":12000}
+{"id":"send_product","action":"send_text","text":"тесткефир завтра"}
+{"id":"wait_draft","action":"wait","timeout_ms":30000}
 {"id":"confirm_draft","action":"click_button","button_text":"✅ Сохранить"}
-{"id":"wait_saved","action":"wait","timeout_ms":12000}
+{"id":"wait_saved","action":"wait","timeout_ms":30000}
 {"id":"dump_before_digest","action":"dump_state"}

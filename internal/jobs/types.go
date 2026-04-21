@@ -27,11 +27,13 @@ type IngestPayload struct {
 	FeedbackMessageID int64              `json:"feedback_message_id,omitempty"`
 	FileID            string             `json:"file_id,omitempty"`
 	Text              string             `json:"text,omitempty"`
+	Caption           string             `json:"caption,omitempty"`
 	Kind              domain.MessageKind `json:"kind"`
 }
 
 type DeleteMessagesPayload struct {
 	TraceID    string  `json:"trace_id"`
+	Origin     string  `json:"origin,omitempty"`
 	ChatID     int64   `json:"chat_id"`
 	MessageIDs []int64 `json:"message_ids"`
 }

@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/igor/shelfy/internal/domain"
@@ -35,13 +34,13 @@ func (r *Renderer) DashboardHome(stats domain.DashboardStats) (string, *telegram
 	}
 	return text, &telegram.InlineKeyboardMarkup{
 		InlineKeyboard: [][]telegram.InlineKeyboardButton{
-			{{Text: listLabel, CallbackData: "dashboard:list"}, {Text: soonLabel, CallbackData: "dashboard:soon"}},
+			{{Text: listLabel, CallbackData: dashboardPageCallback("list", 0)}, {Text: soonLabel, CallbackData: dashboardPageCallback("soon", 0)}},
 			{{Text: statsLabel, CallbackData: "dashboard:stats"}, {Text: settingsLabel, CallbackData: "dashboard:settings"}},
 		},
 	}, nil
 }
 
-func (r *Renderer) DashboardList(products []domain.Product, mode string) (string, *telegram.InlineKeyboardMarkup, error) {
+func (r *Renderer) DashboardList(products []domain.Product, mode string, page, totalCount, pageSize int) (string, *telegram.InlineKeyboardMarkup, error) {
 	if len(products) == 0 {
 		text, err := r.copy.Render("dashboard.list_empty", nil)
 		if err != nil {
@@ -70,7 +69,19 @@ func (r *Renderer) DashboardList(products []domain.Product, mode string) (string
 	if err != nil {
 		return "", nil, err
 	}
-	lines := []string{header, ""}
+	lines := []string{header}
+	totalPages := dashboardPageCount(totalCount, pageSize)
+	if totalPages > 1 {
+		pageMeta, err := r.copy.Render("dashboard.list.page_meta", map[string]any{
+			"current_page": page + 1,
+			"total_pages":  totalPages,
+		})
+		if err != nil {
+			return "", nil, err
+		}
+		lines = append(lines, pageMeta)
+	}
+	lines = append(lines, "")
 	keyboard := make([][]telegram.InlineKeyboardButton, 0, len(products)+1)
 	for _, product := range products {
 		line, err := r.copy.Render("dashboard.list.item", map[string]any{
@@ -82,8 +93,17 @@ func (r *Renderer) DashboardList(products []domain.Product, mode string) (string
 		}
 		lines = append(lines, line)
 		keyboard = append(keyboard, []telegram.InlineKeyboardButton{
-			{Text: openPrefix + short(product.Name, 18), CallbackData: fmt.Sprintf("product:open:%d", product.ID)},
+			{Text: openPrefix + short(product.Name, 18), CallbackData: productOpenCallback(product.ID, mode, page)},
 		})
+	}
+	if totalPages > 1 {
+		navRow, err := r.dashboardPaginationRow(mode, page, totalPages)
+		if err != nil {
+			return "", nil, err
+		}
+		if len(navRow) > 0 {
+			keyboard = append(keyboard, navRow)
+		}
 	}
 	keyboard = append(keyboard, []telegram.InlineKeyboardButton{{Text: backLabel, CallbackData: "dashboard:home"}})
 	return strings.Join(lines, "\n"), &telegram.InlineKeyboardMarkup{InlineKeyboard: keyboard}, nil
@@ -113,4 +133,30 @@ func (r *Renderer) dashboardBackKeyboard() (*telegram.InlineKeyboardMarkup, erro
 	return &telegram.InlineKeyboardMarkup{
 		InlineKeyboard: [][]telegram.InlineKeyboardButton{{{Text: backLabel, CallbackData: "dashboard:home"}}},
 	}, nil
+}
+
+func (r *Renderer) dashboardPaginationRow(mode string, page, totalPages int) ([]telegram.InlineKeyboardButton, error) {
+	row := make([]telegram.InlineKeyboardButton, 0, 2)
+	if page > 0 {
+		prevLabel, err := r.copy.Label("dashboard.button.prev_page")
+		if err != nil {
+			return nil, err
+		}
+		row = append(row, telegram.InlineKeyboardButton{Text: prevLabel, CallbackData: dashboardPageCallback(mode, page-1)})
+	}
+	if page < totalPages-1 {
+		nextLabel, err := r.copy.Label("dashboard.button.next_page")
+		if err != nil {
+			return nil, err
+		}
+		row = append(row, telegram.InlineKeyboardButton{Text: nextLabel, CallbackData: dashboardPageCallback(mode, page+1)})
+	}
+	return row, nil
+}
+
+func dashboardPageCount(totalCount, pageSize int) int {
+	if totalCount <= 0 || pageSize <= 0 {
+		return 0
+	}
+	return (totalCount-1)/pageSize + 1
 }

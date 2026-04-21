@@ -31,6 +31,7 @@ func (s *Store) UpsertUserSettings(ctx context.Context, settings UserSettings) e
 			"chat_id", settings.ChatID,
 			"timezone", settings.Timezone,
 			"digest_local_time", settings.DigestLocalTime,
+			"dashboard_message_id", messageIDValue(settings.DashboardMessageID),
 		)...)
 	}
 	return err
@@ -42,7 +43,20 @@ func (s *Store) SetDashboardMessageID(ctx context.Context, userID, messageID int
 		DashboardMessageID: &messageID,
 	})
 	if err == nil {
-		s.logger.DebugContext(ctx, "dashboard_message_id_set", observability.LogAttrs(ctx, "user_id", userID, "dashboard_message_id", messageID)...)
+		s.logger.DebugContext(ctx, "dashboard_message_id_set", observability.LogAttrs(ctx,
+			"user_id", userID,
+			"dashboard_message_id", messageID,
+		)...)
+	}
+	return err
+}
+
+func (s *Store) ClearDashboardMessageID(ctx context.Context, userID int64) error {
+	err := s.queries.ClearDashboardMessageID(ctx, userID)
+	if err == nil {
+		s.logger.DebugContext(ctx, "dashboard_message_id_cleared", observability.LogAttrs(ctx,
+			"user_id", userID,
+		)...)
 	}
 	return err
 }
@@ -119,4 +133,11 @@ func (s *Store) DashboardStats(ctx context.Context, userID int64, now time.Time)
 		DiscardedCount: int(row.DiscardedCount),
 		DeletedCount:   int(row.DeletedCount),
 	}, nil
+}
+
+func messageIDValue(value *int64) int64 {
+	if value == nil {
+		return 0
+	}
+	return *value
 }

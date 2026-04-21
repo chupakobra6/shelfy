@@ -1,5 +1,4 @@
 # Helper scenario: establish a fresh pinned home dashboard before running a targeted stateful fragment.
 {"id":"select_chat","action":"select_chat","chat":"@your_bot_username"}
 {"id":"start","action":"send_text","text":"/start"}
-{"id":"wait_start","action":"wait","timeout_ms":12000}
 {"id":"dump_home_ready","action":"dump_state"}

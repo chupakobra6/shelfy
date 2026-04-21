@@ -11,6 +11,18 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const clearDashboardMessageID = `-- name: ClearDashboardMessageID :exec
+UPDATE user_settings
+SET dashboard_message_id = NULL,
+    updated_at = NOW()
+WHERE user_id = $1
+`
+
+func (q *Queries) ClearDashboardMessageID(ctx context.Context, userID int64) error {
+	_, err := q.db.Exec(ctx, clearDashboardMessageID, userID)
+	return err
+}
+
 const dashboardStats = `-- name: DashboardStats :one
 SELECT
     COUNT(*) FILTER (WHERE status = 'active')::bigint AS active_count,
@@ -122,7 +134,8 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 
 const setDashboardMessageID = `-- name: SetDashboardMessageID :exec
 UPDATE user_settings
-SET dashboard_message_id = $2, updated_at = NOW()
+SET dashboard_message_id = $2,
+    updated_at = NOW()
 WHERE user_id = $1
 `
 
@@ -169,7 +182,13 @@ func (q *Queries) UpdateUserTimezone(ctx context.Context, arg UpdateUserTimezone
 }
 
 const upsertUserSettings = `-- name: UpsertUserSettings :execrows
-INSERT INTO user_settings (user_id, chat_id, timezone, digest_local_time, dashboard_message_id)
+INSERT INTO user_settings (
+    user_id,
+    chat_id,
+    timezone,
+    digest_local_time,
+    dashboard_message_id
+)
 VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT (user_id) DO UPDATE SET
     chat_id = EXCLUDED.chat_id,

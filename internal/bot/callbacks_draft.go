@@ -58,6 +58,10 @@ func (s *Service) handleDraftCallback(ctx context.Context, callback telegram.Cal
 			}
 			return s.sendTransientFeedback(ctx, callback.Message.Chat.ID, text, 20*time.Second)
 		}
+		nextStatus, err := confirmDraftTransition(draft.Status)
+		if err != nil {
+			return err
+		}
 		product, err := s.store.CreateProductFromDraft(ctx, draftID)
 		if err != nil {
 			return err
@@ -66,6 +70,8 @@ func (s *Service) handleDraftCallback(ctx context.Context, callback telegram.Cal
 			"draft_id", draftID,
 			"product_id", product.ID,
 			"product_name", product.Name,
+			"state_from", draft.Status,
+			"state_to", nextStatus,
 		)...)
 		text, err := s.ui.DraftConfirmed(product.Name, product.ExpiresOn)
 		if err != nil {
@@ -102,12 +108,17 @@ func (s *Service) handleDraftCallback(ctx context.Context, callback telegram.Cal
 }
 
 func (s *Service) closeDraftWithStatus(ctx context.Context, draftID int64, draft domain.DraftSession, chatID int64, status domain.DraftStatus) error {
-	if err := s.store.UpdateDraftStatus(ctx, draftID, status); err != nil {
+	nextStatus, err := closeDraftTransition(draft.Status, status)
+	if err != nil {
+		return err
+	}
+	if err := s.store.UpdateDraftStatus(ctx, draftID, nextStatus); err != nil {
 		return err
 	}
 	s.logger.InfoContext(ctx, "draft_closed", observability.LogAttrs(ctx,
 		"draft_id", draftID,
-		"status", status,
+		"state_from", draft.Status,
+		"state_to", nextStatus,
 	)...)
 	text, err := s.ui.DraftCanceled()
 	if err != nil {

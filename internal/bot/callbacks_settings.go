@@ -50,9 +50,14 @@ func (s *Service) handleSettingsCallback(ctx context.Context, callback telegram.
 	default:
 		return nil
 	}
-	text, markup, err := s.ui.SettingsCard(settings.Timezone, settings.DigestLocalTime)
+	effectiveState, err := s.ops.ApplyDashboard(ctx, callback.From.ID, callback.Message.Chat.ID, callback.Message.MessageID, settingsDashboardState())
 	if err != nil {
 		return err
 	}
-	return s.editDashboardMessage(ctx, callback.Message.Chat.ID, callback.Message.MessageID, text, markup)
+	s.logger.InfoContext(ctx, "dashboard_transition_applied", observability.LogAttrs(ctx,
+		"trigger", callback.Data,
+		"state_to", effectiveState.View,
+		"page_to", effectiveState.Page,
+	)...)
+	return nil
 }

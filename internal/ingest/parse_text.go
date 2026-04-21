@@ -179,7 +179,7 @@ func splitTrailingDatePhrase(cleaned string, now time.Time) (name string, phrase
 			continue
 		}
 		name = strings.TrimSpace(strings.Join(parts[:len(parts)-tailSize], " "))
-		if name == "" {
+		if name == "" || isDatePrefixOnly(name) {
 			continue
 		}
 		return name, phrase, resolved, true
@@ -193,7 +193,7 @@ func extractNaturalDateFromText(cleaned string, now time.Time) (name string, phr
 		return "", "", domain.ResolvedDate{}, false
 	}
 	name = removeDatePhrase(cleaned, extracted.Phrase)
-	if name == "" || name == cleaned {
+	if name == "" || name == cleaned || isDatePrefixOnly(name) {
 		return "", "", domain.ResolvedDate{}, false
 	}
 	return name, extracted.Phrase, domain.ResolvedDate{
@@ -213,4 +213,13 @@ func removeDatePhrase(cleaned, phrase string) string {
 		value = strings.TrimSuffix(value, suffix)
 	}
 	return strings.TrimSpace(value)
+}
+
+func isDatePrefixOnly(value string) bool {
+	switch normalizeFreeText(strings.ToLower(value)) {
+	case "до", "к", "на", "в", "во", "by":
+		return true
+	default:
+		return false
+	}
 }

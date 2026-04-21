@@ -97,6 +97,10 @@ func (r *Renderer) DashboardStale() (string, error) {
 	return r.copy.Render("callback.dashboard_stale", nil)
 }
 
+func (r *Renderer) DashboardRecoverHint() (string, error) {
+	return r.copy.Render("command.dashboard_recover_hint", nil)
+}
+
 func (r *Renderer) DraftAlreadyProcessed() (string, error) {
 	return r.copy.Render("callback.draft_already_processed", nil)
 }

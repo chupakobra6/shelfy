@@ -35,7 +35,7 @@ func (s *Service) handlePhoto(ctx context.Context, payload jobs.IngestPayload, n
 	if err != nil {
 		s.logger.WarnContext(ctx, "tesseract_failed", observability.LogAttrs(ctx, "error", err)...)
 	}
-	draft, err := s.parsePhotoDraft(ctx, ocrText, now, imagePath)
+	draft, err := s.parsePhotoDraft(ctx, payload.Caption, ocrText, now, imagePath)
 	if err != nil {
 		return s.sendFailure(ctx, payload, err)
 	}
@@ -57,7 +57,7 @@ func (s *Service) handleAudio(ctx context.Context, payload jobs.IngestPayload, n
 	if err := s.runFFmpeg(ctx, inputPath, wavPath); err != nil {
 		return s.sendFailure(ctx, payload, err)
 	}
-	transcript, err := s.runWhisper(ctx, wavPath)
+	transcript, err := s.runVosk(ctx, wavPath)
 	if err != nil {
 		return s.sendFailure(ctx, payload, err)
 	}

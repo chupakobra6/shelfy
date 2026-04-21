@@ -1,6 +1,12 @@
 package ingest
 
 import (
+	"context"
+	"io"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -93,5 +99,47 @@ func TestShouldTryTextModelSkipsPlainProductName(t *testing.T) {
 func TestShouldTryTextModelKeepsModelFallbackForUnresolvedMixedText(t *testing.T) {
 	if !shouldTryTextModel("очень странная фраза про молоко когда-нибудь", parsedDraft{Name: "очень странная фраза про молоко когда-нибудь", Confidence: "low", Source: "heuristic_name_only"}) {
 		t.Fatalf("expected unresolved mixed text to keep model fallback")
+	}
+}
+
+func TestRunVoskUsesConfiguredModelPath(t *testing.T) {
+	dir := t.TempDir()
+	argsPath := filepath.Join(dir, "args.txt")
+	scriptPath := filepath.Join(dir, "vosk-mock.sh")
+	script := "#!/bin/sh\n" +
+		"printf '%s' \"$*\" > \"" + argsPath + "\"\n" +
+		"printf 'сметана завтра\\n'\n"
+	if err := os.WriteFile(scriptPath, []byte(script), 0o755); err != nil {
+		t.Fatalf("write mock vosk: %v", err)
+	}
+
+	service := &Service{
+		logger:        slog.New(slog.NewTextHandler(io.Discard, nil)),
+		voskCommand:   scriptPath,
+		voskModelPath: "/models/vosk-model-small-ru-0.22",
+	}
+	wavPath := filepath.Join(dir, "input.wav")
+	if err := os.WriteFile(wavPath, []byte("wav"), 0o644); err != nil {
+		t.Fatalf("write wav: %v", err)
+	}
+
+	text, err := service.runVosk(context.Background(), wavPath)
+	if err != nil {
+		t.Fatalf("runVosk error = %v", err)
+	}
+	if text != "сметана завтра" {
+		t.Fatalf("expected transcript, got %q", text)
+	}
+
+	argsRaw, err := os.ReadFile(argsPath)
+	if err != nil {
+		t.Fatalf("read args: %v", err)
+	}
+	args := string(argsRaw)
+	if !strings.Contains(args, "/models/vosk-model-small-ru-0.22") {
+		t.Fatalf("expected model path in args, got %q", args)
+	}
+	if !strings.Contains(args, wavPath) {
+		t.Fatalf("expected wav path in args, got %q", args)
 	}
 }

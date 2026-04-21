@@ -19,32 +19,43 @@ func (s *Service) handleProductCallback(ctx context.Context, callback telegram.C
 	}
 	switch parts[1] {
 	case "open":
-		product, err := s.store.GetProduct(ctx, productID)
-		if err != nil {
-			return err
-		}
-		text, markup, err := s.ui.ProductCard(product)
+		origin := parseProductOrigin(parts)
+		nextState := productDashboardState(productID, origin)
+		effectiveState, err := s.ops.ApplyDashboard(ctx, callback.From.ID, callback.Message.Chat.ID, callback.Message.MessageID, nextState)
 		if err != nil {
 			return err
 		}
 		s.logger.InfoContext(ctx, "dashboard_product_opened", observability.LogAttrs(ctx,
-			"product_id", product.ID,
-			"product_name", product.Name,
+			"product_id", productID,
+			"origin_mode", origin.mode,
+			"origin_page", origin.page,
+			"state_to", effectiveState.View,
+			"page_to", effectiveState.Page,
 		)...)
-		return s.editDashboardMessage(ctx, callback.Message.Chat.ID, callback.Message.MessageID, text, markup)
+		return nil
 	case "set":
 		if len(parts) < 4 {
 			return nil
 		}
 		status := domain.ProductStatus(parts[3])
+		origin := parseProductOrigin(parts[1:])
 		if err := s.store.UpdateProductStatus(ctx, productID, status); err != nil {
+			return err
+		}
+		nextState := dashboardStateForMode(origin.mode, origin.page)
+		effectiveState, err := s.ops.ApplyDashboard(ctx, callback.From.ID, callback.Message.Chat.ID, callback.Message.MessageID, nextState)
+		if err != nil {
 			return err
 		}
 		s.logger.InfoContext(ctx, "product_status_changed", observability.LogAttrs(ctx,
 			"product_id", productID,
 			"status", status,
+			"origin_mode", origin.mode,
+			"origin_page", origin.page,
+			"state_to", effectiveState.View,
+			"page_to", effectiveState.Page,
 		)...)
-		return s.RefreshDashboardHome(ctx, callback.From.ID, callback.Message.Chat.ID)
+		return nil
 	default:
 		return nil
 	}
