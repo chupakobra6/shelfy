@@ -6,7 +6,7 @@ import (
 )
 
 func TestLoadAndRenderCatalog(t *testing.T) {
-	loader, err := Load(filepath.Join("..", "..", "copy", "runtime.ru.yaml"))
+	loader, err := Load(filepath.Join("..", "..", "assets", "copy", "runtime.ru.yaml"))
 	if err != nil {
 		t.Fatalf("load catalog: %v", err)
 	}

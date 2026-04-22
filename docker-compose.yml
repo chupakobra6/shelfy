@@ -44,7 +44,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./copy:/app/copy:ro
+      - ./assets:/app/assets:ro
       - ./docs:/app/docs:ro
       - ./migrations:/app/migrations:ro
       - ./tmp:/tmp/shelfy
@@ -64,7 +64,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./copy:/app/copy:ro
+      - ./assets:/app/assets:ro
       - ./docs:/app/docs:ro
       - ./migrations:/app/migrations:ro
       - ./models:/models
@@ -87,7 +87,7 @@ services:
     ports:
       - "127.0.0.1:8081:8081"
     volumes:
-      - ./copy:/app/copy:ro
+      - ./assets:/app/assets:ro
       - ./docs:/app/docs:ro
       - ./migrations:/app/migrations:ro
       - ./tmp:/tmp/shelfy

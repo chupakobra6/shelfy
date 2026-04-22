@@ -27,7 +27,7 @@ COPY --from=build /out/scheduler-worker /usr/local/bin/scheduler-worker
 COPY --from=build /out/migrate /usr/local/bin/migrate
 COPY --from=build /out/vosk-transcribe /usr/local/bin/vosk-transcribe
 COPY migrations ./migrations
-COPY copy ./copy
+COPY assets ./assets
 COPY docs ./docs
 
 ENV SHELFY_TMP_DIR=/tmp/shelfy

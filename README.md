@@ -170,7 +170,7 @@ make e2e-trace-logs SCENARIO_LABEL=02-dashboard-navigation-and-settings
 
 ## Repository map
 
-- Runtime user-facing copy lives in `copy/runtime.ru.yaml`.
+- Runtime user-facing copy lives in `assets/copy/runtime.ru.yaml`.
 - Copy-generation requirements live in `docs/copy-spec.md`, and the message inventory for copy work lives in `docs/message-inventory.ru.yaml`.
 - Product backlog lives in `docs/todo.md`.
 - Manual Telegram verification scenarios live in `docs/manual-test-scenarios.md`.

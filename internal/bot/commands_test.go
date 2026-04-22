@@ -266,7 +266,7 @@ func newCommandTestService(t *testing.T, store *fakeStore, tg *fakeTelegram) *Se
 	if !ok {
 		t.Fatal("runtime.Caller failed")
 	}
-	loader, err := copycat.Load(filepath.Join(filepath.Dir(filename), "..", "..", "copy", "runtime.ru.yaml"))
+	loader, err := copycat.Load(filepath.Join(filepath.Dir(filename), "..", "..", "assets", "copy", "runtime.ru.yaml"))
 	if err != nil {
 		t.Fatalf("load runtime copy: %v", err)
 	}

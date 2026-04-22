@@ -36,7 +36,7 @@ func Load() (Config, error) {
 		DatabaseURL:        os.Getenv("SHELFY_DATABASE_URL"),
 		LogLevel:           defaultString(os.Getenv("SHELFY_LOG_LEVEL"), "INFO"),
 		Env:                defaultString(os.Getenv("SHELFY_ENV"), "development"),
-		CopyRuntimePath:    defaultString(os.Getenv("SHELFY_COPY_RUNTIME_PATH"), "copy/runtime.ru.yaml"),
+		CopyRuntimePath:    defaultString(os.Getenv("SHELFY_COPY_RUNTIME_PATH"), "assets/copy/runtime.ru.yaml"),
 		DefaultTimezone:    defaultString(os.Getenv("SHELFY_DEFAULT_TIMEZONE"), "Europe/Moscow"),
 		DigestLocalTime:    defaultString(os.Getenv("SHELFY_DIGEST_LOCAL_TIME"), "09:00"),
 		PollTimeoutSeconds: defaultInt(os.Getenv("SHELFY_POLL_TIMEOUT_SECONDS"), 30),
