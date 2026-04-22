@@ -1,11 +1,17 @@
 # Covers dashboard navigation plus settings actions.
 {"id":"select_chat","action":"select_chat","chat":"@your_bot_username"}
+{"id":"dashboard_home","action":"send_text","text":"/dashboard"}
+{"id":"wait_dashboard_home","action":"wait","timeout_ms":60000}
 {"id":"open_settings","action":"click_button","button_text":"⚙️ Настройки"}
 {"id":"wait_settings","action":"wait","timeout_ms":60000}
 {"id":"digest_earlier","action":"click_button","button_text":"🕘 На час раньше"}
 {"id":"wait_digest_earlier","action":"wait","timeout_ms":60000}
 {"id":"digest_later","action":"click_button","button_text":"🕙 На час позже"}
 {"id":"wait_digest_later","action":"wait","timeout_ms":60000}
+{"id":"timezone_utc","action":"click_button","button_text":"🌍 UTC"}
+{"id":"wait_timezone_utc","action":"wait","timeout_ms":60000}
+{"id":"timezone_new_york","action":"click_button","button_text":"🇺🇸 Нью-Йорк"}
+{"id":"wait_timezone_new_york","action":"wait","timeout_ms":60000}
 {"id":"timezone_berlin","action":"click_button","button_text":"🇩🇪 Берлин"}
 {"id":"wait_timezone_berlin","action":"wait","timeout_ms":60000}
 {"id":"timezone_moscow","action":"click_button","button_text":"🇷🇺 Москва"}

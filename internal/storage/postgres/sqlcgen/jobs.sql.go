@@ -69,6 +69,26 @@ func (q *Queries) ClaimJob(ctx context.Context, arg ClaimJobParams) (ClaimJobRow
 	return i, err
 }
 
+const countActiveJobsUpTo = `-- name: CountActiveJobsUpTo :one
+SELECT COUNT(*)::bigint
+FROM jobs
+WHERE status IN ('queued', 'retry', 'running')
+  AND run_at <= $1
+  AND job_type = ANY($2::text[])
+`
+
+type CountActiveJobsUpToParams struct {
+	RunAt   pgtype.Timestamptz
+	Column2 []string
+}
+
+func (q *Queries) CountActiveJobsUpTo(ctx context.Context, arg CountActiveJobsUpToParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countActiveJobsUpTo, arg.RunAt, arg.Column2)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const enqueueJob = `-- name: EnqueueJob :execrows
 INSERT INTO jobs (trace_id, job_type, status, idempotency_key, payload, run_at)
 VALUES ($1, $2, 'queued', $3, $4, $5)

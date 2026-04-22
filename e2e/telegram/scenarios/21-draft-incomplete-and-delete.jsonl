@@ -1,0 +1,9 @@
+# Covers blocked save on an incomplete draft and explicit draft deletion.
+{"id":"select_chat","action":"select_chat","chat":"@your_bot_username"}
+{"id":"send_name_only","action":"send_text","text":"ряженка"}
+{"id":"wait_name_only_draft","action":"wait","timeout_ms":30000}
+{"id":"confirm_incomplete_draft","action":"click_button","button_text":"✅ Сохранить"}
+{"id":"wait_incomplete_feedback","action":"wait","timeout_ms":30000}
+{"id":"delete_draft","action":"click_button","button_text":"❌ Удалить"}
+{"id":"wait_draft_deleted","action":"wait","timeout_ms":30000}
+{"id":"dump_incomplete_delete","action":"dump_state"}

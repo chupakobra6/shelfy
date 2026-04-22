@@ -75,6 +75,13 @@ func (s *Store) ClaimJob(ctx context.Context, workerName string, allowedTypes []
 	return job, true, nil
 }
 
+func (s *Store) CountActiveJobsUpTo(ctx context.Context, jobTypes []string, now time.Time) (int64, error) {
+	return s.queries.CountActiveJobsUpTo(ctx, sqlcgen.CountActiveJobsUpToParams{
+		RunAt:   pgTimestamptzFromTime(now),
+		Column2: jobTypes,
+	})
+}
+
 func (s *Store) MarkJobDone(ctx context.Context, jobID int64) error {
 	jobType := ""
 	if v, ok := ctx.Value(jobTypeCtxKey{}).(string); ok {

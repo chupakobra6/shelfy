@@ -3,15 +3,22 @@ package scheduler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/igor/shelfy/internal/domain"
 	"github.com/igor/shelfy/internal/observability"
 	"github.com/igor/shelfy/internal/storage/postgres"
 	"github.com/igor/shelfy/internal/telegram"
 	"github.com/igor/shelfy/internal/worker"
+)
+
+const (
+	controlRunDueSettleTimeout      = 5 * time.Second
+	controlRunDueSettlePollInterval = 100 * time.Millisecond
 )
 
 func (s *Service) Handler() http.Handler {
@@ -123,6 +130,10 @@ func (s *Service) handleRunDue(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if err := s.waitForSettledJobTypes(r.Context(), controlRelevantJobTypes(s.AllowedTypes())); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	_ = json.NewEncoder(w).Encode(map[string]any{
 		"ok":                  true,
 		"processed_jobs":      processed,
@@ -185,6 +196,47 @@ func (s *Service) bestEffortResetCleanup(ctx context.Context, result postgres.E2
 				"message_id", messageID,
 				"error", err,
 			)...)
+		}
+	}
+}
+
+func controlRelevantJobTypes(jobTypes []string) []string {
+	filtered := make([]string, 0, len(jobTypes))
+	for _, jobType := range jobTypes {
+		if jobType == domain.JobTypeDeleteMessages {
+			continue
+		}
+		filtered = append(filtered, jobType)
+	}
+	return filtered
+}
+
+func (s *Service) waitForSettledJobTypes(ctx context.Context, jobTypes []string) error {
+	if len(jobTypes) == 0 {
+		return nil
+	}
+	deadline := time.Now().Add(controlRunDueSettleTimeout)
+	for {
+		now, err := s.store.CurrentNow(ctx, time.Now().UTC())
+		if err != nil {
+			return err
+		}
+		activeCount, err := s.store.CountActiveJobsUpTo(ctx, jobTypes, now)
+		if err != nil {
+			return err
+		}
+		if activeCount == 0 {
+			return nil
+		}
+		if time.Now().After(deadline) {
+			return fmt.Errorf("timed out waiting for job types to settle: %v", jobTypes)
+		}
+		timer := time.NewTimer(controlRunDueSettlePollInterval)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return ctx.Err()
+		case <-timer.C:
 		}
 	}
 }

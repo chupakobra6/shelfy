@@ -1,7 +1,5 @@
 # Covers ordering-sensitive same-user interactions without extra settle time between steps.
 {"id":"select_chat","action":"select_chat","chat":"@your_bot_username"}
-{"id":"start","action":"send_text","text":"/start"}
-{"id":"wait_home","action":"wait","timeout_ms":60000}
 {"id":"open_settings","action":"click_button","button_text":"⚙️ Настройки"}
 {"id":"back_home","action":"click_button","button_text":"⬅️ Назад"}
 {"id":"wait_home_again","action":"wait","timeout_ms":60000}

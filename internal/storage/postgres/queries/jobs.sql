@@ -24,6 +24,13 @@ FROM next_job
 WHERE jobs.id = next_job.id
 RETURNING jobs.id, jobs.trace_id, jobs.job_type, jobs.status, jobs.payload, jobs.run_at, jobs.attempts, jobs.max_attempts, jobs.idempotency_key, jobs.last_error;
 
+-- name: CountActiveJobsUpTo :one
+SELECT COUNT(*)::bigint
+FROM jobs
+WHERE status IN ('queued', 'retry', 'running')
+  AND run_at <= $1
+  AND job_type = ANY($2::text[]);
+
 -- name: MarkJobDone :exec
 UPDATE jobs
 SET status = 'done', completed_at = NOW(), updated_at = NOW()

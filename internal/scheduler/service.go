@@ -33,6 +33,7 @@ type Store interface {
 	ActiveProductsExist(ctx context.Context, productIDs []int64) (bool, error)
 	GetUserSettings(ctx context.Context, userID int64) (postgres.UserSettings, error)
 	EnqueueJob(ctx context.Context, traceID, jobType string, payload any, runAt time.Time, idempotencyKey *string) error
+	CountActiveJobsUpTo(ctx context.Context, jobTypes []string, now time.Time) (int64, error)
 	UpdateDraftStatus(ctx context.Context, draftID int64, status domain.DraftStatus) error
 	ListStaleDrafts(ctx context.Context, now time.Time) ([]domain.DraftSession, error)
 	ResetE2EUserState(ctx context.Context, userID int64, defaultTimezone, digestLocalTime string) (postgres.E2EResetResult, error)

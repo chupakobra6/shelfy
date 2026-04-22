@@ -22,6 +22,8 @@ type fakeControlStore struct {
 	resetUserID          int64
 	resetDefaultTZ       string
 	resetDigestLocalTime string
+	activeJobCounts      []int64
+	activeJobCountCalls  int
 }
 
 func (s *fakeControlStore) SetClockOverride(context.Context, *time.Time) error {
@@ -66,6 +68,15 @@ func (s *fakeControlStore) GetUserSettings(context.Context, int64) (postgres.Use
 
 func (s *fakeControlStore) EnqueueJob(context.Context, string, string, any, time.Time, *string) error {
 	return nil
+}
+
+func (s *fakeControlStore) CountActiveJobsUpTo(context.Context, []string, time.Time) (int64, error) {
+	if s.activeJobCountCalls >= len(s.activeJobCounts) {
+		return 0, nil
+	}
+	value := s.activeJobCounts[s.activeJobCountCalls]
+	s.activeJobCountCalls++
+	return value, nil
 }
 
 func (s *fakeControlStore) UpdateDraftStatus(context.Context, int64, domain.DraftStatus) error {
@@ -215,6 +226,22 @@ func TestHandleE2EResetMissingSettingsStillReturnsOK(t *testing.T) {
 	}
 	if body.ChatID != 0 {
 		t.Fatalf("chat_id = %d, want 0", body.ChatID)
+	}
+}
+
+func TestWaitForSettledJobTypesPollsUntilZero(t *testing.T) {
+	store := &fakeControlStore{activeJobCounts: []int64{1, 1, 0}}
+	service := newControlTestService(store, &fakeTelegram{}, true)
+
+	start := time.Now()
+	if err := service.waitForSettledJobTypes(context.Background(), []string{domain.JobTypeSendMorningDigest}); err != nil {
+		t.Fatalf("waitForSettledJobTypes() error = %v", err)
+	}
+	if store.activeJobCountCalls != 3 {
+		t.Fatalf("active job count calls = %d, want 3", store.activeJobCountCalls)
+	}
+	if elapsed := time.Since(start); elapsed < 2*controlRunDueSettlePollInterval {
+		t.Fatalf("elapsed = %v, want at least %v", elapsed, 2*controlRunDueSettlePollInterval)
 	}
 }
 
