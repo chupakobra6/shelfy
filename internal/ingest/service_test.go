@@ -5,6 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -105,23 +106,38 @@ func TestShouldTryTextModelKeepsModelFallbackForUnresolvedMixedText(t *testing.T
 func TestRunVoskUsesConfiguredModelPath(t *testing.T) {
 	dir := t.TempDir()
 	argsPath := filepath.Join(dir, "args.txt")
-	scriptPath := filepath.Join(dir, "vosk-mock.sh")
-	script := "#!/bin/sh\n" +
-		"printf '%s' \"$*\" > \"" + argsPath + "\"\n" +
-		"printf 'сметана завтра\\n'\n"
-	if err := os.WriteFile(scriptPath, []byte(script), 0o755); err != nil {
-		t.Fatalf("write mock vosk: %v", err)
+	sourcePath := filepath.Join(dir, "main.go")
+	binaryPath := filepath.Join(dir, "vosk-mock")
+	source := `package main
+
+import (
+	"os"
+)
+
+func main() {
+	_ = os.WriteFile(os.Getenv("SHELFY_HELPER_ARGS_PATH"), []byte(os.Args[1]+" "+os.Args[2]), 0o644)
+	_, _ = os.Stdout.WriteString("сметана завтра\n")
+}
+`
+	if err := os.WriteFile(sourcePath, []byte(source), 0o644); err != nil {
+		t.Fatalf("write helper source: %v", err)
+	}
+	build := exec.Command("go", "build", "-o", binaryPath, sourcePath)
+	if output, err := build.CombinedOutput(); err != nil {
+		t.Fatalf("build helper: %v: %s", err, string(output))
 	}
 
 	service := &Service{
 		logger:        slog.New(slog.NewTextHandler(io.Discard, nil)),
-		voskCommand:   scriptPath,
+		voskCommand:   binaryPath,
 		voskModelPath: "/models/vosk-model-small-ru-0.22",
 	}
 	wavPath := filepath.Join(dir, "input.wav")
 	if err := os.WriteFile(wavPath, []byte("wav"), 0o644); err != nil {
 		t.Fatalf("write wav: %v", err)
 	}
+
+	t.Setenv("SHELFY_HELPER_ARGS_PATH", argsPath)
 
 	text, err := service.runVosk(context.Background(), wavPath)
 	if err != nil {

@@ -73,7 +73,7 @@ Useful next reads:
 
 For local development the bot expects a native Ollama server on the host, reachable from Docker at `http://host.docker.internal:11434`.
 For Russian voice input the pipeline worker expects a Vosk model directory at `./models/vosk-model-small-ru-0.22`, mounted into the container as `/models/vosk-model-small-ru-0.22`.
-The heavy runtime layer is split out into `shelfy-runtime-base:vosk-small-ru-0.22`.
+The heavy runtime layer is split out into `shelfy-runtime-base:vosk-lib-0.3.45-small-ru-0.22`.
 `make dev` and `make up` now only ensure that base image exists; they no longer force a rebuild of the heavy runtime layer on every loop.
 Use `make runtime-base-rebuild` only when you intentionally change OCR/ASR/runtime dependencies.
 If you run raw `docker compose` commands instead of `make`, build the base image once first with `make runtime-base`.
@@ -83,10 +83,11 @@ Current runtime dependencies are already close to the minimum safe set for exist
 
 - `ffmpeg` for voice/audio transcoding
 - `tesseract-ocr` + `tesseract-ocr-rus` for photo OCR
-- Python runtime for the Vosk helper
+- `libvosk.so` for offline speech-to-text
 - `libatomic1` because `libvosk.so` needs it on this platform
+- `libstdc++6` because upstream `libvosk.so` links against it
 
-The one dependency cut in this split is that the app image no longer reinstalls Python and `pip`; they now live only in the shared runtime base.
+The app image stays thin and does not carry Python; `vosk-transcribe` is now a small Go binary linked against `libvosk`.
 
 ## Main commands
 
@@ -147,12 +148,11 @@ Deterministic stateful blocks:
 Example timed setup block:
 
 ```bash
-CHAT=@your_bot_username \
-CONTROL_URL=http://127.0.0.1:8081 \
-RUN_PREFIX=demo123 \
-../telegram-bot-e2e-test-tool/scripts/run-block.sh \
-  "$PWD/e2e/telegram/scenarios/00-home-ready.jsonl" \
-  "$PWD/e2e/telegram/scenarios/11-timed-digest-setup.jsonl.tmpl"
+make -C ../telegram-bot-e2e-test-tool run-block \
+  CHAT=@your_bot_username \
+  CONTROL_URL=http://127.0.0.1:8081 \
+  RUN_PREFIX=demo123 \
+  SCENARIO="$PWD/e2e/telegram/scenarios/00-home-ready.jsonl $PWD/e2e/telegram/scenarios/11-timed-digest-setup.jsonl.tmpl"
 ```
 
 `00-home-ready` is the bootstrap helper. Some navigation scenarios, such as dashboard-only flows, are intentionally not standalone after a hard reset and should be composed behind `00-home-ready` or `/dashboard` recovery first.
@@ -165,8 +165,8 @@ make e2e-trace-logs TRACE_ID=74ca98dc944f13f4
 make e2e-trace-logs SCENARIO_LABEL=02-dashboard-navigation-and-settings
 ```
 
-`scripts/e2e/trace-logs.sh` slices recent container logs by time and optional `trace_id` / `update_id` / `job_id`.
-`scripts/e2e/last-failure-pack.sh` builds a compact pack under `tmp/e2e-failure-pack/` from the latest tool failure artifact and normalized service log slices.
+`go run ./cmd/e2e-triage trace-logs` slices recent container logs by time and optional `trace_id` / `update_id` / `job_id`.
+`go run ./cmd/e2e-triage last-failure-pack` builds a compact pack under `tmp/e2e-failure-pack/` from the latest tool failure artifact and normalized service log slices.
 
 ## Repository map
 

@@ -2,8 +2,6 @@ package bot
 
 import (
 	"context"
-
-	"github.com/igor/shelfy/internal/observability"
 	"github.com/igor/shelfy/internal/telegram"
 )
 
@@ -27,14 +25,5 @@ func (s *Service) handleDashboardCallback(ctx context.Context, callback telegram
 	default:
 		return nil
 	}
-	effectiveState, err := s.ops.ApplyDashboard(ctx, callback.From.ID, callback.Message.Chat.ID, callback.Message.MessageID, nextState)
-	if err != nil {
-		return err
-	}
-	s.logger.InfoContext(ctx, "dashboard_transition_applied", observability.LogAttrs(ctx,
-		"trigger", trigger,
-		"state_to", effectiveState.View,
-		"page_to", effectiveState.Page,
-	)...)
-	return nil
+	return s.applyDashboardCallbackState(ctx, callback, nextState, "dashboard_transition_applied", "trigger", trigger)
 }

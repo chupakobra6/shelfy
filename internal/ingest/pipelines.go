@@ -12,6 +12,8 @@ import (
 	"github.com/igor/shelfy/internal/telegram"
 )
 
+const ingestFailureCleanupTTL = 8 * time.Second
+
 func (s *Service) handleText(ctx context.Context, payload jobs.IngestPayload, now time.Time) error {
 	draft, err := s.parseTextDraft(ctx, payload.Text, now)
 	if err != nil {
@@ -21,51 +23,43 @@ func (s *Service) handleText(ctx context.Context, payload jobs.IngestPayload, no
 }
 
 func (s *Service) handlePhoto(ctx context.Context, payload jobs.IngestPayload, now time.Time) error {
-	dir, err := os.MkdirTemp(s.tmpDir, "photo-*")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(dir)
-	s.logger.InfoContext(ctx, "photo_pipeline_started", observability.LogAttrs(ctx, "tmp_dir", dir)...)
-	imagePath := filepath.Join(dir, "input.jpg")
-	if err := s.tg.DownloadFile(ctx, payload.FileID, imagePath); err != nil {
-		return s.sendFailure(ctx, payload, err)
-	}
-	ocrText, err := s.runTesseract(ctx, imagePath)
-	if err != nil {
-		s.logger.WarnContext(ctx, "tesseract_failed", observability.LogAttrs(ctx, "error", err)...)
-	}
-	draft, err := s.parsePhotoDraft(ctx, payload.Caption, ocrText, now, imagePath)
-	if err != nil {
-		return s.sendFailure(ctx, payload, err)
-	}
-	return s.createDraftCard(ctx, payload, draft)
+	return s.withPipelineWorkspace(ctx, "photo-*", "photo_pipeline_started", func(dir string) error {
+		imagePath := filepath.Join(dir, "input.jpg")
+		if err := s.tg.DownloadFile(ctx, payload.FileID, imagePath); err != nil {
+			return s.sendFailure(ctx, payload, err)
+		}
+		ocrText, err := s.runTesseract(ctx, imagePath)
+		if err != nil {
+			s.logger.WarnContext(ctx, "tesseract_failed", observability.LogAttrs(ctx, "error", err)...)
+		}
+		draft, err := s.parsePhotoDraft(ctx, payload.Caption, ocrText, now, imagePath)
+		if err != nil {
+			return s.sendFailure(ctx, payload, err)
+		}
+		return s.createDraftCard(ctx, payload, draft)
+	})
 }
 
 func (s *Service) handleAudio(ctx context.Context, payload jobs.IngestPayload, now time.Time) error {
-	dir, err := os.MkdirTemp(s.tmpDir, "audio-*")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(dir)
-	s.logger.InfoContext(ctx, "audio_pipeline_started", observability.LogAttrs(ctx, "tmp_dir", dir)...)
-	inputPath := filepath.Join(dir, "input")
-	if err := s.tg.DownloadFile(ctx, payload.FileID, inputPath); err != nil {
-		return s.sendFailure(ctx, payload, err)
-	}
-	wavPath := filepath.Join(dir, "input.wav")
-	if err := s.runFFmpeg(ctx, inputPath, wavPath); err != nil {
-		return s.sendFailure(ctx, payload, err)
-	}
-	transcript, err := s.runVosk(ctx, wavPath)
-	if err != nil {
-		return s.sendFailure(ctx, payload, err)
-	}
-	draft, err := s.parseTextDraft(ctx, transcript, now)
-	if err != nil {
-		return s.sendFailure(ctx, payload, err)
-	}
-	return s.createDraftCard(ctx, payload, draft)
+	return s.withPipelineWorkspace(ctx, "audio-*", "audio_pipeline_started", func(dir string) error {
+		inputPath := filepath.Join(dir, "input")
+		if err := s.tg.DownloadFile(ctx, payload.FileID, inputPath); err != nil {
+			return s.sendFailure(ctx, payload, err)
+		}
+		wavPath := filepath.Join(dir, "input.wav")
+		if err := s.runFFmpeg(ctx, inputPath, wavPath); err != nil {
+			return s.sendFailure(ctx, payload, err)
+		}
+		transcript, err := s.runVosk(ctx, wavPath)
+		if err != nil {
+			return s.sendFailure(ctx, payload, err)
+		}
+		draft, err := s.parseTextDraft(ctx, transcript, now)
+		if err != nil {
+			return s.sendFailure(ctx, payload, err)
+		}
+		return s.createDraftCard(ctx, payload, draft)
+	})
 }
 
 func (s *Service) createDraftCard(ctx context.Context, payload jobs.IngestPayload, parsed parsedDraft) error {
@@ -82,10 +76,7 @@ func (s *Service) createDraftCard(ctx context.Context, payload jobs.IngestPayloa
 				"draft_id", existing.ID,
 				"draft_message_id", *existing.DraftMessageID,
 			)...)
-			if payload.FeedbackMessageID != 0 {
-				s.tg.DeleteMessage(ctx, payload.ChatID, payload.FeedbackMessageID)
-			}
-			return s.store.UpdateIngestStatus(ctx, payload.TraceID, "draft_ready", "draft reused")
+			return s.finishDraftReady(ctx, payload, "draft reused")
 		}
 	} else {
 		session := domain.DraftSession{
@@ -137,10 +128,7 @@ func (s *Service) createDraftCard(ctx context.Context, payload jobs.IngestPayloa
 		"confidence", parsed.Confidence,
 		"source", parsed.Source,
 	)...)
-	if payload.FeedbackMessageID != 0 {
-		s.tg.DeleteMessage(ctx, payload.ChatID, payload.FeedbackMessageID)
-	}
-	return s.store.UpdateIngestStatus(ctx, payload.TraceID, "draft_ready", "draft created")
+	return s.finishDraftReady(ctx, payload, "draft created")
 }
 
 func (s *Service) sendFailure(ctx context.Context, payload jobs.IngestPayload, originalErr error) error {
@@ -157,9 +145,26 @@ func (s *Service) sendFailure(ctx context.Context, payload jobs.IngestPayload, o
 	if err != nil {
 		return err
 	}
-	if payload.FeedbackMessageID != 0 {
-		s.tg.DeleteMessage(ctx, payload.ChatID, payload.FeedbackMessageID)
+	s.deleteFeedbackMessage(ctx, payload.ChatID, payload.FeedbackMessageID)
+	if err := s.scheduleFailureCleanup(ctx, payload, message.MessageID, ingestFailureCleanupTTL); err != nil {
+		return err
 	}
+	return s.store.UpdateIngestStatus(ctx, payload.TraceID, "failed", originalErr.Error())
+}
+
+func (s *Service) finishDraftReady(ctx context.Context, payload jobs.IngestPayload, summary string) error {
+	s.deleteFeedbackMessage(ctx, payload.ChatID, payload.FeedbackMessageID)
+	return s.store.UpdateIngestStatus(ctx, payload.TraceID, "draft_ready", summary)
+}
+
+func (s *Service) deleteFeedbackMessage(ctx context.Context, chatID, messageID int64) {
+	if messageID == 0 {
+		return
+	}
+	s.tg.DeleteMessage(ctx, chatID, messageID)
+}
+
+func (s *Service) scheduleFailureCleanup(ctx context.Context, payload jobs.IngestPayload, feedbackMessageID int64, delay time.Duration) error {
 	now, err := s.currentNow(ctx)
 	if err != nil {
 		return err
@@ -167,10 +172,17 @@ func (s *Service) sendFailure(ctx context.Context, payload jobs.IngestPayload, o
 	cleanup := jobs.DeleteMessagesPayload{
 		TraceID:    payload.TraceID,
 		ChatID:     payload.ChatID,
-		MessageIDs: jobs.CompactMessageIDs(payload.MessageID, message.MessageID),
+		MessageIDs: jobs.CompactMessageIDs(payload.MessageID, feedbackMessageID),
 	}
-	if err := s.store.EnqueueJob(ctx, payload.TraceID, domain.JobTypeDeleteMessages, cleanup, now.Add(8*time.Second), nil); err != nil {
+	return s.store.EnqueueJob(ctx, payload.TraceID, domain.JobTypeDeleteMessages, cleanup, now.Add(delay), nil)
+}
+
+func (s *Service) withPipelineWorkspace(ctx context.Context, pattern, startedEvent string, fn func(string) error) error {
+	dir, err := os.MkdirTemp(s.tmpDir, pattern)
+	if err != nil {
 		return err
 	}
-	return s.store.UpdateIngestStatus(ctx, payload.TraceID, "failed", originalErr.Error())
+	defer os.RemoveAll(dir)
+	s.logger.InfoContext(ctx, startedEvent, observability.LogAttrs(ctx, "tmp_dir", dir)...)
+	return fn(dir)
 }

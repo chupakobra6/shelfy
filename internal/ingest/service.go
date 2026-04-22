@@ -58,15 +58,15 @@ func (s *Service) currentLocalNow(ctx context.Context, userID int64) (time.Time,
 	if err != nil {
 		return time.Time{}, err
 	}
+	return s.localizeNowForUser(ctx, userID, now)
+}
+
+func (s *Service) localizeNowForUser(ctx context.Context, userID int64, now time.Time) (time.Time, error) {
 	settings, err := s.store.GetUserSettings(ctx, userID)
 	if err != nil {
 		return time.Time{}, err
 	}
-	location, err := time.LoadLocation(settings.Timezone)
-	if err != nil {
-		location = time.UTC
-	}
-	return now.In(location), nil
+	return domain.LocalizeTime(now, settings.Timezone), nil
 }
 
 func (s *Service) TryHandleTextFast(ctx context.Context, payload jobs.IngestPayload) (bool, error) {
@@ -108,11 +108,7 @@ func (s *Service) ProcessJob(ctx context.Context, job jobs.Envelope) error {
 	if err != nil {
 		return err
 	}
-	location, err := time.LoadLocation(settings.Timezone)
-	if err != nil {
-		location = time.UTC
-	}
-	localNow := now.In(location)
+	localNow := domain.LocalizeTime(now, settings.Timezone)
 	s.logger.InfoContext(ctx, "ingest_job_started", observability.LogAttrs(ctx,
 		"job_type", job.JobType,
 		"message_kind", payload.Kind,

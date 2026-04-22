@@ -10,10 +10,6 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (s *Service) sendTransientFeedback(ctx context.Context, chatID int64, text string, delay time.Duration) error {
-	return s.ops.SendTransientFeedback(ctx, chatID, text, delay)
-}
-
 func (s *Service) ensureCurrentDashboardCallback(ctx context.Context, userID int64, messageID int64, chatID int64) (bool, error) {
 	settings, err := s.store.GetUserSettings(ctx, userID)
 	if err != nil {
@@ -34,7 +30,7 @@ func (s *Service) ensureCurrentDashboardCallback(ctx context.Context, userID int
 	if err != nil {
 		return false, err
 	}
-	if err := s.sendTransientFeedback(ctx, chatID, text, 20*time.Second); err != nil {
+	if err := s.ops.SendTransientFeedback(ctx, chatID, text, 20*time.Second); err != nil {
 		return false, err
 	}
 	return false, nil

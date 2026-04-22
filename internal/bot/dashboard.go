@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/igor/shelfy/internal/storage/postgres"
-	"github.com/igor/shelfy/internal/telegram"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -47,19 +46,4 @@ func (s *Service) ensureUserSettings(ctx context.Context, userID, chatID int64) 
 	default:
 		return postgres.UserSettings{}, err
 	}
-}
-
-func (s *Service) createHomeDashboard(ctx context.Context, userID, chatID int64) (telegram.Message, error) {
-	message, _, err := s.ops.CreateDashboard(ctx, userID, chatID, homeDashboardState())
-	return message, err
-}
-
-func (s *Service) editDashboardMessage(ctx context.Context, chatID, messageID int64, text string, markup *telegram.InlineKeyboardMarkup) error {
-	return s.tg.EditMessageText(ctx, telegram.EditMessageTextRequest{
-		ChatID:      chatID,
-		MessageID:   messageID,
-		Text:        text,
-		ParseMode:   "HTML",
-		ReplyMarkup: markup,
-	})
 }

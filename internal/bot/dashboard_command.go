@@ -17,7 +17,7 @@ func (s *Service) HandleDashboardCommand(ctx context.Context, userID, chatID, co
 	}
 
 	previousDashboardMessageID := ptrValue(settings.DashboardMessageID)
-	message, _, err := s.ops.CreateDashboard(ctx, userID, chatID, homeDashboardState())
+	message, err := s.ops.CreateDashboard(ctx, userID, chatID, homeDashboardState())
 	if err != nil {
 		return err
 	}
@@ -49,5 +49,5 @@ func (s *Service) promptDashboardRecovery(ctx context.Context, chatID int64) err
 	if err != nil {
 		return err
 	}
-	return s.sendTransientFeedback(ctx, chatID, text, dashboardRecoveryPromptTTL)
+	return s.ops.SendTransientFeedback(ctx, chatID, text, dashboardRecoveryPromptTTL)
 }

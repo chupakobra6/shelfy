@@ -40,3 +40,19 @@ func (s *Service) HandleCallback(ctx context.Context, callback telegram.Callback
 		return nil
 	}
 }
+
+func (s *Service) applyDashboardCallbackState(ctx context.Context, callback telegram.CallbackQuery, nextState dashboardState, event string, attrs ...any) error {
+	if callback.Message == nil {
+		return nil
+	}
+	effectiveState, err := s.ops.ApplyDashboard(ctx, callback.From.ID, callback.Message.Chat.ID, callback.Message.MessageID, nextState)
+	if err != nil {
+		return err
+	}
+	attrs = append(attrs,
+		"state_to", effectiveState.View,
+		"page_to", effectiveState.Page,
+	)
+	s.logger.InfoContext(ctx, event, observability.LogAttrs(ctx, attrs...)...)
+	return nil
+}

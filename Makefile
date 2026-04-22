@@ -1,6 +1,7 @@
 APP_NAME := shelfy
 SQLC_VERSION := v1.29.0
-RUNTIME_BASE_IMAGE ?= shelfy-runtime-base:vosk-small-ru-0.22
+RUNTIME_BASE_IMAGE ?= shelfy-runtime-base:vosk-lib-0.3.45-small-ru-0.22
+E2E_TRIAGE := go run ./cmd/e2e-triage
 
 .DEFAULT_GOAL := help
 
@@ -98,7 +99,7 @@ logs-db:
 	docker compose logs --tail=200 -f postgres
 
 e2e-last-failure:
-	./scripts/e2e/last-failure-pack.sh
+	TOOL_ROOT="$(TOOL_ROOT)" PACK_ROOT="$(PACK_ROOT)" MAX_LINES_PER_SERVICE="$(MAX_LINES_PER_SERVICE)" $(E2E_TRIAGE) last-failure-pack
 
 e2e-trace-logs:
-	./scripts/e2e/trace-logs.sh $(if $(TRACE_ID),--trace-id $(TRACE_ID),) $(if $(UPDATE_ID),--update-id $(UPDATE_ID),) $(if $(JOB_ID),--job-id $(JOB_ID),) $(if $(SCENARIO_LABEL),--scenario-label $(SCENARIO_LABEL),) $(if $(SERVICE),--service $(SERVICE),)
+	TOOL_ROOT="$(TOOL_ROOT)" MAX_LINES="$(MAX_LINES)" $(E2E_TRIAGE) trace-logs $(if $(TRACE_ID),--trace-id $(TRACE_ID),) $(if $(UPDATE_ID),--update-id $(UPDATE_ID),) $(if $(JOB_ID),--job-id $(JOB_ID),) $(if $(SCENARIO_LABEL),--scenario-label $(SCENARIO_LABEL),) $(if $(SERVICE),--service $(SERVICE),) $(if $(SINCE),--since $(SINCE),) $(if $(UNTIL),--until $(UNTIL),)

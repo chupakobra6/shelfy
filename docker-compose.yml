@@ -20,7 +20,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        SHELFY_RUNTIME_BASE_IMAGE: ${SHELFY_RUNTIME_BASE_IMAGE:-shelfy-runtime-base:vosk-small-ru-0.22}
+        SHELFY_RUNTIME_BASE_IMAGE: ${SHELFY_RUNTIME_BASE_IMAGE:-shelfy-runtime-base:vosk-lib-0.3.45-small-ru-0.22}
     env_file:
       - ${SHELFY_ENV_FILE:-.env}
     depends_on:
@@ -34,7 +34,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        SHELFY_RUNTIME_BASE_IMAGE: ${SHELFY_RUNTIME_BASE_IMAGE:-shelfy-runtime-base:vosk-small-ru-0.22}
+        SHELFY_RUNTIME_BASE_IMAGE: ${SHELFY_RUNTIME_BASE_IMAGE:-shelfy-runtime-base:vosk-lib-0.3.45-small-ru-0.22}
     env_file:
       - ${SHELFY_ENV_FILE:-.env}
     depends_on:
@@ -54,7 +54,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        SHELFY_RUNTIME_BASE_IMAGE: ${SHELFY_RUNTIME_BASE_IMAGE:-shelfy-runtime-base:vosk-small-ru-0.22}
+        SHELFY_RUNTIME_BASE_IMAGE: ${SHELFY_RUNTIME_BASE_IMAGE:-shelfy-runtime-base:vosk-lib-0.3.45-small-ru-0.22}
     env_file:
       - ${SHELFY_ENV_FILE:-.env}
     depends_on:
@@ -75,7 +75,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        SHELFY_RUNTIME_BASE_IMAGE: ${SHELFY_RUNTIME_BASE_IMAGE:-shelfy-runtime-base:vosk-small-ru-0.22}
+        SHELFY_RUNTIME_BASE_IMAGE: ${SHELFY_RUNTIME_BASE_IMAGE:-shelfy-runtime-base:vosk-lib-0.3.45-small-ru-0.22}
     env_file:
       - ${SHELFY_ENV_FILE:-.env}
     depends_on:

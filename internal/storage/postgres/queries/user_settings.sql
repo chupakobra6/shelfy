@@ -20,12 +20,6 @@ SET dashboard_message_id = $2,
     updated_at = NOW()
 WHERE user_id = $1;
 
--- name: ClearDashboardMessageID :exec
-UPDATE user_settings
-SET dashboard_message_id = NULL,
-    updated_at = NOW()
-WHERE user_id = $1;
-
 -- name: UpdateUserTimezone :exec
 UPDATE user_settings
 SET timezone = $2, updated_at = NOW()

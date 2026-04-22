@@ -36,11 +36,7 @@ func (s *Service) enqueueDueDigests(ctx context.Context, now time.Time) error {
 		return err
 	}
 	for _, user := range users {
-		location, err := time.LoadLocation(user.Timezone)
-		if err != nil {
-			location = time.UTC
-		}
-		localNow := now.In(location)
+		localNow := domain.LocalizeTime(now, user.Timezone)
 		if localNow.Format("15:04") != user.DigestLocalTime {
 			continue
 		}

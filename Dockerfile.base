@@ -1,12 +1,38 @@
-FROM python:3.11-slim-bookworm
+ARG VOSK_LIB_VERSION=0.3.45
+
+FROM debian:bookworm-slim AS vosk-lib
+
+ARG TARGETARCH
+ARG VOSK_LIB_VERSION
 
 RUN apt-get update \
-	&& apt-get install -y --no-install-recommends ca-certificates ffmpeg libatomic1 tesseract-ocr tesseract-ocr-rus \
-	&& python -m pip install --no-cache-dir vosk==0.3.44 \
+	&& apt-get install -y --no-install-recommends ca-certificates curl unzip \
+	&& arch="${TARGETARCH}" \
+	&& if [ -z "${arch}" ]; then arch="$(dpkg --print-architecture)"; fi \
+	&& case "${arch}" in \
+		amd64) vosk_arch=x86_64 ;; \
+		arm64|aarch64) vosk_arch=aarch64 ;; \
+		*) echo "unsupported TARGETARCH: ${arch}" >&2; exit 1 ;; \
+	esac \
+	&& curl -fsSL -o /tmp/vosk.zip "https://github.com/alphacep/vosk-api/releases/download/v${VOSK_LIB_VERSION}/vosk-linux-${vosk_arch}-${VOSK_LIB_VERSION}.zip" \
+	&& unzip -q /tmp/vosk.zip -d /tmp/vosk \
+	&& mkdir -p /opt/vosk \
+	&& cp "/tmp/vosk/vosk-linux-${vosk_arch}-${VOSK_LIB_VERSION}/libvosk.so" /opt/vosk/libvosk.so \
+	&& cp "/tmp/vosk/vosk-linux-${vosk_arch}-${VOSK_LIB_VERSION}/vosk_api.h" /opt/vosk/vosk_api.h \
+	&& rm -rf /tmp/vosk /tmp/vosk.zip /var/lib/apt/lists/*
+
+FROM debian:bookworm-slim
+
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends ca-certificates ffmpeg libatomic1 libstdc++6 tesseract-ocr tesseract-ocr-rus \
 	&& rm -rf /var/lib/apt/lists/*
+
+COPY --from=vosk-lib /opt/vosk/libvosk.so /usr/local/lib/libvosk.so
+COPY --from=vosk-lib /opt/vosk/vosk_api.h /usr/local/include/vosk_api.h
 
 WORKDIR /app
 
 ENV SHELFY_TMP_DIR=/tmp/shelfy
+ENV LD_LIBRARY_PATH=/usr/local/lib
 
 RUN mkdir -p /tmp/shelfy /models

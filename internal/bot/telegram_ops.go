@@ -33,10 +33,10 @@ func (o *TelegramOps) SendTransientFeedback(ctx context.Context, chatID int64, t
 	return o.service.scheduleDeleteMessages(ctx, traceID, chatID, delay, message.MessageID)
 }
 
-func (o *TelegramOps) CreateDashboard(ctx context.Context, userID, chatID int64, state dashboardState) (telegram.Message, dashboardState, error) {
-	text, markup, effectiveState, err := o.service.renderDashboardState(ctx, userID, state)
+func (o *TelegramOps) CreateDashboard(ctx context.Context, userID, chatID int64, state dashboardState) (telegram.Message, error) {
+	text, markup, _, err := o.service.renderDashboardState(ctx, userID, state)
 	if err != nil {
-		return telegram.Message{}, homeDashboardState(), err
+		return telegram.Message{}, err
 	}
 	message, err := o.service.tg.SendMessage(ctx, telegram.SendMessageRequest{
 		ChatID:      chatID,
@@ -45,15 +45,15 @@ func (o *TelegramOps) CreateDashboard(ctx context.Context, userID, chatID int64,
 		ReplyMarkup: markup,
 	})
 	if err != nil {
-		return telegram.Message{}, homeDashboardState(), err
+		return telegram.Message{}, err
 	}
 	if err := o.service.store.SetDashboardMessageID(ctx, userID, message.MessageID); err != nil {
-		return telegram.Message{}, homeDashboardState(), err
+		return telegram.Message{}, err
 	}
 	if err := o.service.tg.PinMessage(ctx, chatID, message.MessageID); err != nil {
-		return telegram.Message{}, homeDashboardState(), err
+		return telegram.Message{}, err
 	}
-	return message, effectiveState, nil
+	return message, nil
 }
 
 func (o *TelegramOps) ApplyDashboard(ctx context.Context, userID, chatID, messageID int64, state dashboardState) (dashboardState, error) {

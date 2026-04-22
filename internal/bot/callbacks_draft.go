@@ -34,7 +34,7 @@ func (s *Service) handleDraftCallback(ctx context.Context, callback telegram.Cal
 		if err != nil {
 			return err
 		}
-		if err := s.sendTransientFeedback(ctx, callback.Message.Chat.ID, text, 20*time.Second); err != nil {
+		if err := s.ops.SendTransientFeedback(ctx, callback.Message.Chat.ID, text, 20*time.Second); err != nil {
 			return err
 		}
 		if draft.DraftMessageID != nil {
@@ -56,7 +56,7 @@ func (s *Service) handleDraftCallback(ctx context.Context, callback telegram.Cal
 			if err != nil {
 				return err
 			}
-			return s.sendTransientFeedback(ctx, callback.Message.Chat.ID, text, 20*time.Second)
+			return s.ops.SendTransientFeedback(ctx, callback.Message.Chat.ID, text, 20*time.Second)
 		}
 		nextStatus, err := confirmDraftTransition(draft.Status)
 		if err != nil {
@@ -83,28 +83,24 @@ func (s *Service) handleDraftCallback(ctx context.Context, callback telegram.Cal
 	case "delete":
 		return s.closeDraftWithStatus(ctx, draftID, draft, callback.Message.Chat.ID, domain.DraftStatusDeleted)
 	case "edit_name":
-		text, err := s.ui.DraftEditNamePrompt()
-		if err != nil {
-			return err
-		}
-		s.logger.InfoContext(ctx, "draft_edit_requested", observability.LogAttrs(ctx,
-			"draft_id", draftID,
-			"mode", "name",
-		)...)
-		return s.enterDraftEditMode(ctx, draft, callback.Message.Chat.ID, domain.DraftStatusEditingName, text)
+		return s.requestDraftEdit(ctx, draftID, draft, callback.Message.Chat.ID, domain.DraftStatusEditingName, "name", s.ui.DraftEditNamePrompt)
 	case "edit_date":
-		text, err := s.ui.DraftEditDatePrompt()
-		if err != nil {
-			return err
-		}
-		s.logger.InfoContext(ctx, "draft_edit_requested", observability.LogAttrs(ctx,
-			"draft_id", draftID,
-			"mode", "date",
-		)...)
-		return s.enterDraftEditMode(ctx, draft, callback.Message.Chat.ID, domain.DraftStatusEditingDate, text)
+		return s.requestDraftEdit(ctx, draftID, draft, callback.Message.Chat.ID, domain.DraftStatusEditingDate, "date", s.ui.DraftEditDatePrompt)
 	default:
 		return nil
 	}
+}
+
+func (s *Service) requestDraftEdit(ctx context.Context, draftID int64, draft domain.DraftSession, chatID int64, status domain.DraftStatus, mode string, prompt func() (string, error)) error {
+	text, err := prompt()
+	if err != nil {
+		return err
+	}
+	s.logger.InfoContext(ctx, "draft_edit_requested", observability.LogAttrs(ctx,
+		"draft_id", draftID,
+		"mode", mode,
+	)...)
+	return s.enterDraftEditMode(ctx, draft, chatID, status, text)
 }
 
 func (s *Service) closeDraftWithStatus(ctx context.Context, draftID int64, draft domain.DraftSession, chatID int64, status domain.DraftStatus) error {

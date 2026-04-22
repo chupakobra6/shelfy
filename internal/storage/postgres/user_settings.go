@@ -51,16 +51,6 @@ func (s *Store) SetDashboardMessageID(ctx context.Context, userID, messageID int
 	return err
 }
 
-func (s *Store) ClearDashboardMessageID(ctx context.Context, userID int64) error {
-	err := s.queries.ClearDashboardMessageID(ctx, userID)
-	if err == nil {
-		s.logger.DebugContext(ctx, "dashboard_message_id_cleared", observability.LogAttrs(ctx,
-			"user_id", userID,
-		)...)
-	}
-	return err
-}
-
 func (s *Store) UpdateUserTimezone(ctx context.Context, userID int64, timezone string) error {
 	err := s.queries.UpdateUserTimezone(ctx, sqlcgen.UpdateUserTimezoneParams{
 		UserID:   userID,
@@ -88,13 +78,7 @@ func (s *Store) GetUserSettings(ctx context.Context, userID int64) (UserSettings
 	if err != nil {
 		return UserSettings{}, err
 	}
-	return UserSettings{
-		UserID:             row.UserID,
-		ChatID:             row.ChatID,
-		Timezone:           row.Timezone,
-		DigestLocalTime:    row.DigestLocalTime,
-		DashboardMessageID: row.DashboardMessageID,
-	}, nil
+	return newUserSettings(row.UserID, row.ChatID, row.Timezone, row.DigestLocalTime, row.DashboardMessageID), nil
 }
 
 func (s *Store) ListUsers(ctx context.Context) ([]UserSettings, error) {
@@ -104,13 +88,7 @@ func (s *Store) ListUsers(ctx context.Context) ([]UserSettings, error) {
 	}
 	result := make([]UserSettings, 0, len(rows))
 	for _, row := range rows {
-		result = append(result, UserSettings{
-			UserID:             row.UserID,
-			ChatID:             row.ChatID,
-			Timezone:           row.Timezone,
-			DigestLocalTime:    row.DigestLocalTime,
-			DashboardMessageID: row.DashboardMessageID,
-		})
+		result = append(result, newUserSettings(row.UserID, row.ChatID, row.Timezone, row.DigestLocalTime, row.DashboardMessageID))
 	}
 	return result, nil
 }
@@ -140,4 +118,14 @@ func messageIDValue(value *int64) int64 {
 		return 0
 	}
 	return *value
+}
+
+func newUserSettings(userID, chatID int64, timezone, digestLocalTime string, dashboardMessageID *int64) UserSettings {
+	return UserSettings{
+		UserID:             userID,
+		ChatID:             chatID,
+		Timezone:           timezone,
+		DigestLocalTime:    digestLocalTime,
+		DashboardMessageID: dashboardMessageID,
+	}
 }

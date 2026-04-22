@@ -15,7 +15,7 @@ func (s *Service) HandleStart(ctx context.Context, userID, chatID, startMessageI
 	}
 
 	if settings.DashboardMessageID == nil {
-		message, _, err := s.ops.CreateDashboard(ctx, userID, chatID, homeDashboardState())
+		message, err := s.ops.CreateDashboard(ctx, userID, chatID, homeDashboardState())
 		if err != nil {
 			return err
 		}

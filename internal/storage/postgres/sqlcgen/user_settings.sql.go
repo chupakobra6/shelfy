@@ -11,18 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const clearDashboardMessageID = `-- name: ClearDashboardMessageID :exec
-UPDATE user_settings
-SET dashboard_message_id = NULL,
-    updated_at = NOW()
-WHERE user_id = $1
-`
-
-func (q *Queries) ClearDashboardMessageID(ctx context.Context, userID int64) error {
-	_, err := q.db.Exec(ctx, clearDashboardMessageID, userID)
-	return err
-}
-
 const dashboardStats = `-- name: DashboardStats :one
 SELECT
     COUNT(*) FILTER (WHERE status = 'active')::bigint AS active_count,

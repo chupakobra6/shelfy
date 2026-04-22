@@ -10,52 +10,6 @@ import (
 	"github.com/igor/shelfy/internal/telegram"
 )
 
-func TestShouldReuseDraftEditPrompt(t *testing.T) {
-	promptMessageID := int64(42)
-
-	tests := []struct {
-		name   string
-		draft  domain.DraftSession
-		status domain.DraftStatus
-		want   bool
-	}{
-		{
-			name: "same status with prompt reuses existing prompt",
-			draft: domain.DraftSession{
-				Status:              domain.DraftStatusEditingDate,
-				EditPromptMessageID: &promptMessageID,
-			},
-			status: domain.DraftStatusEditingDate,
-			want:   true,
-		},
-		{
-			name: "same status without prompt does not reuse",
-			draft: domain.DraftSession{
-				Status: domain.DraftStatusEditingDate,
-			},
-			status: domain.DraftStatusEditingDate,
-			want:   false,
-		},
-		{
-			name: "different status does not reuse",
-			draft: domain.DraftSession{
-				Status:              domain.DraftStatusEditingName,
-				EditPromptMessageID: &promptMessageID,
-			},
-			status: domain.DraftStatusEditingDate,
-			want:   false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := shouldReuseDraftEditPrompt(tt.draft, tt.status); got != tt.want {
-				t.Fatalf("shouldReuseDraftEditPrompt() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestFinishDraftActionSchedulesReliableCleanup(t *testing.T) {
 	dashboardID := int64(500)
 	draftMessageID := int64(101)

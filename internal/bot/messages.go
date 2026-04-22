@@ -11,6 +11,8 @@ import (
 	"github.com/igor/shelfy/internal/telegram"
 )
 
+const transientInputCleanupTTL = 6 * time.Second
+
 func (s *Service) HandleMessage(ctx context.Context, msg telegram.Message) error {
 	if msg.Chat.Type != "private" {
 		return nil
@@ -136,10 +138,6 @@ func (s *Service) handleDraftEditMessage(ctx context.Context, draft domain.Draft
 	if err != nil {
 		return err
 	}
-	location, err := time.LoadLocation(settings.Timezone)
-	if err != nil {
-		location = time.UTC
-	}
 	switch draft.Status {
 	case domain.DraftStatusEditingName:
 		name := strings.TrimSpace(msg.Text)
@@ -154,7 +152,7 @@ func (s *Service) handleDraftEditMessage(ctx context.Context, draft domain.Draft
 			return err
 		}
 	case domain.DraftStatusEditingDate:
-		resolved := domain.ResolveRelativeDate(msg.Text, now.In(location))
+		resolved := domain.ResolveRelativeDate(msg.Text, domain.LocalizeTime(now, settings.Timezone))
 		if resolved.Value == nil {
 			return s.handleInvalidDraftEditMessage(ctx, draft, msg, true)
 		}
@@ -228,10 +226,7 @@ func (s *Service) handleInvalidDraftEditMessage(ctx context.Context, draft domai
 		"message_id", msg.MessageID,
 		"date_mode", dateMode,
 	)...)
-	if err := s.deleteMessagesReliably(ctx, draft.TraceID, "invalid_input", msg.Chat.ID, 0, msg.MessageID); err != nil {
-		return err
-	}
-	return s.scheduleDeleteMessagesWithOrigin(ctx, draft.TraceID, "invalid_input", msg.Chat.ID, 6*time.Second, feedback.MessageID)
+	return s.cleanupSourceMessageWithFeedback(ctx, draft.TraceID, "invalid_input", msg.Chat.ID, msg.MessageID, feedback.MessageID, transientInputCleanupTTL)
 }
 
 func (s *Service) cleanupDraftEditMessages(ctx context.Context, traceID string, chatID, userMessageID, promptMessageID int64) error {
@@ -259,8 +254,12 @@ func (s *Service) handleUnsupportedMessage(ctx context.Context, msg telegram.Mes
 	if err := s.store.SaveIngestEvent(ctx, traceID, msg.From.ID, msg.Chat.ID, msg.MessageID, domain.MessageKindUnsupported, "unsupported", "unsupported message type", nil); err != nil {
 		return err
 	}
-	if err := s.deleteMessagesReliably(ctx, traceID, "unsupported_input", msg.Chat.ID, 0, msg.MessageID); err != nil {
+	return s.cleanupSourceMessageWithFeedback(ctx, traceID, "unsupported_input", msg.Chat.ID, msg.MessageID, feedback.MessageID, transientInputCleanupTTL)
+}
+
+func (s *Service) cleanupSourceMessageWithFeedback(ctx context.Context, traceID, origin string, chatID, sourceMessageID, feedbackMessageID int64, feedbackTTL time.Duration) error {
+	if err := s.deleteMessagesReliably(ctx, traceID, origin, chatID, 0, sourceMessageID); err != nil {
 		return err
 	}
-	return s.scheduleDeleteMessagesWithOrigin(ctx, traceID, "unsupported_input", msg.Chat.ID, 6*time.Second, feedback.MessageID)
+	return s.scheduleDeleteMessagesWithOrigin(ctx, traceID, origin, chatID, feedbackTTL, feedbackMessageID)
 }
