@@ -36,7 +36,7 @@ messages:
   draft.card:
     purpose: "Transient product draft confirmation card."
     location: "Separate transient draft message."
-    trigger: "Shown when a draft session is ready and later updated in place while smart review is still allowed."
+    trigger: "Shown when a draft session is ready."
     auto_delete: true
     emojis_required: true
     max_length_hint: 500
@@ -45,12 +45,21 @@ messages:
       - expires_on
       - missing_fields
       - source_kind
-      - ai_review_block
+      - cleaner_status
     buttons:
       - draft:confirm
       - draft:edit_name
       - draft:edit_date
       - draft:cancel
+  draft.cleaner_pending:
+    purpose: "Inline pending status while background cleaner is still processing a ready draft."
+    location: "Embedded inside the transient draft card."
+    trigger: "Shown immediately after the first draft card, until cleaner finishes."
+    auto_delete: true
+    emojis_required: true
+    max_length_hint: 80
+    interpolation_fields: []
+    buttons: []
   draft.confirmed:
     purpose: "Confirmation after a draft becomes a saved product."
     location: "Transient bot message."

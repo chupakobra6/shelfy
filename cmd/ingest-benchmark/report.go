@@ -25,24 +25,26 @@ type reportPayload struct {
 }
 
 type reportSummary struct {
-	Family              string         `json:"family"`
-	Variant             string         `json:"variant"`
-	Total               int            `json:"total"`
-	Exact               int            `json:"exact"`
-	FirstExact          int            `json:"first_exact,omitempty"`
-	Failed              int            `json:"failed"`
-	TextCalls           int            `json:"text_calls"`
-	DurationMs          int64          `json:"duration_ms"`
-	Timeouts            int            `json:"timeouts"`
-	AssetErrors         int            `json:"asset_errors"`
-	ReviewApplied       int            `json:"review_applied,omitempty"`
-	ImprovedByReview    int            `json:"improved_by_review,omitempty"`
-	ReviewEligible      int            `json:"review_eligible,omitempty"`
-	CleanerReturned     int            `json:"cleaner_returned,omitempty"`
-	ReviewHelped        int            `json:"review_helped,omitempty"`
-	ReviewHurt          int            `json:"review_hurt,omitempty"`
-	NoChangeAfterReview int            `json:"no_change_after_review,omitempty"`
-	FailureKinds        map[string]int `json:"failure_kinds,omitempty"`
+	Family               string         `json:"family"`
+	Variant              string         `json:"variant"`
+	Total                int            `json:"total"`
+	Exact                int            `json:"exact"`
+	FirstExact           int            `json:"first_exact,omitempty"`
+	Failed               int            `json:"failed"`
+	TextCalls            int            `json:"text_calls"`
+	DurationMs           int64          `json:"duration_ms"`
+	Timeouts             int            `json:"timeouts"`
+	AssetErrors          int            `json:"asset_errors"`
+	CleanerEligible      int            `json:"cleaner_eligible,omitempty"`
+	CleanerCalled        int            `json:"cleaner_called,omitempty"`
+	CleanerChangedInput  int            `json:"cleaner_changed_input,omitempty"`
+	CandidateValid       int            `json:"candidate_valid,omitempty"`
+	CleanerApplied       int            `json:"cleaner_applied,omitempty"`
+	CleanerHelped        int            `json:"cleaner_helped,omitempty"`
+	CleanerHurt          int            `json:"cleaner_hurt,omitempty"`
+	CleanerNoop          int            `json:"cleaner_noop,omitempty"`
+	CleanerSameCandidate int            `json:"cleaner_same_candidate,omitempty"`
+	FailureKinds         map[string]int `json:"failure_kinds,omitempty"`
 }
 
 type auditCase struct {
@@ -93,24 +95,26 @@ func writeReport(cfg runConfig, referenceTime time.Time, summaries []variantSumm
 	flatSummary := make([]reportSummary, 0, len(payload.Summaries))
 	for _, summary := range payload.Summaries {
 		flatSummary = append(flatSummary, reportSummary{
-			Family:              summary.Family,
-			Variant:             summary.Variant,
-			Total:               summary.Total,
-			Exact:               summary.Exact,
-			FirstExact:          summary.FirstExact,
-			Failed:              summary.Failed,
-			TextCalls:           summary.TextCalls,
-			DurationMs:          summary.Duration.Milliseconds(),
-			Timeouts:            summary.Timeouts,
-			AssetErrors:         summary.AssetErrors,
-			ReviewApplied:       summary.ReviewApplied,
-			ImprovedByReview:    summary.ImprovedByReview,
-			ReviewEligible:      summary.ReviewEligible,
-			CleanerReturned:     summary.CleanerReturned,
-			ReviewHelped:        summary.ReviewHelped,
-			ReviewHurt:          summary.ReviewHurt,
-			NoChangeAfterReview: summary.NoChangeAfterReview,
-			FailureKinds:        summary.FailureKinds,
+			Family:               summary.Family,
+			Variant:              summary.Variant,
+			Total:                summary.Total,
+			Exact:                summary.Exact,
+			FirstExact:           summary.FirstExact,
+			Failed:               summary.Failed,
+			TextCalls:            summary.TextCalls,
+			DurationMs:           summary.Duration.Milliseconds(),
+			Timeouts:             summary.Timeouts,
+			AssetErrors:          summary.AssetErrors,
+			CleanerEligible:      summary.CleanerEligible,
+			CleanerCalled:        summary.CleanerCalled,
+			CleanerChangedInput:  summary.CleanerChangedInput,
+			CandidateValid:       summary.CandidateValid,
+			CleanerApplied:       summary.CleanerApplied,
+			CleanerHelped:        summary.CleanerHelped,
+			CleanerHurt:          summary.CleanerHurt,
+			CleanerNoop:          summary.CleanerNoop,
+			CleanerSameCandidate: summary.CleanerSameCandidate,
+			FailureKinds:         summary.FailureKinds,
 		})
 	}
 	summaryJSON, err := json.MarshalIndent(flatSummary, "", "  ")
@@ -224,11 +228,11 @@ func buildAuditPayload(payload reportPayload) auditPayload {
 			if !record.Exact {
 				audit.FailCases = append(audit.FailCases, item)
 			}
-			if !record.Exact || record.ReviewApplied || record.ReviewHurt || record.ReviewHelped || (record.FirstSummary != "" && record.GotSummary != "" && record.FirstSummary != record.GotSummary) {
-				if record.ReviewApplyReason != "" {
+			if !record.Exact || record.CleanerApplied || record.CleanerHurt || record.CleanerHelped || (record.FirstSummary != "" && record.GotSummary != "" && record.FirstSummary != record.GotSummary) {
+				if record.SelectionReason != "" {
 					item.Note = strings.TrimSpace(strings.Join([]string{
 						strings.TrimSpace(item.Note),
-						"apply_reason=" + strings.TrimSpace(record.ReviewApplyReason),
+						"selection_reason=" + strings.TrimSpace(record.SelectionReason),
 					}, " | "))
 				}
 				audit.Suspicious = append(audit.Suspicious, item)
@@ -259,15 +263,15 @@ func buildRefinedAuditPayload(payload reportPayload) auditPayload {
 			if !record.Exact {
 				refined.FailCases = append(refined.FailCases, item)
 			}
-			if !record.Exact || record.ReviewApplied || record.ReviewHelped || record.ReviewHurt {
+			if !record.Exact || record.CleanerApplied || record.CleanerHelped || record.CleanerHurt {
 				noteParts := make([]string, 0, 4)
 				if item.Note != "" {
 					noteParts = append(noteParts, strings.TrimSpace(item.Note))
 				}
-				if record.ReviewApplyReason != "" {
-					noteParts = append(noteParts, "apply_reason="+strings.TrimSpace(record.ReviewApplyReason))
+				if record.SelectionReason != "" {
+					noteParts = append(noteParts, "selection_reason="+strings.TrimSpace(record.SelectionReason))
 				}
-				if record.ReviewApplied {
+				if record.CleanerApplied {
 					noteParts = append(noteParts, "applied=true")
 				}
 				item.Note = strings.Join(noteParts, " | ")
@@ -469,8 +473,8 @@ const reportTemplate = `<!doctype html>
     .panel img { width:100%; border-radius:12px; display:block; background:#eee; }
     .panel audio { width:100%; }
     pre { white-space:pre-wrap; word-break:break-word; margin:0; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 12px; }
-    .judge { margin-top:14px; display:grid; gap:8px; grid-template-columns: 160px 1fr; }
-    .judge textarea { width:100%; min-height:72px; padding:10px 12px; border:1px solid var(--line); border-radius:12px; resize:vertical; font:inherit; }
+    .review-note { margin-top:14px; display:grid; gap:8px; grid-template-columns: 160px 1fr; }
+    .review-note textarea { width:100%; min-height:72px; padding:10px 12px; border:1px solid var(--line); border-radius:12px; resize:vertical; font:inherit; }
     .matrix-stack { display:grid; gap:16px; }
     .subtable h3 { margin:0 0 8px; font-size:16px; }
     .hidden { display:none !important; }
@@ -480,7 +484,7 @@ const reportTemplate = `<!doctype html>
   <div class="wrap">
     <section class="hero">
       <h1>Shelfy Ingest Benchmark</h1>
-      <p>Interactive review report for public audio assets and parser-only text cases.</p>
+      <p>Interactive benchmark audit for public audio assets and parser-only text cases.</p>
       <div class="hero-meta" id="run-meta"></div>
       <div class="summary" id="summary"></div>
     </section>
@@ -532,7 +536,7 @@ const reportTemplate = `<!doctype html>
     </section>
 
     <section class="tile">
-      <h2>Review Delta</h2>
+      <h2>Cleaner Delta</h2>
       <table id="review-delta"></table>
     </section>
 
@@ -593,13 +597,15 @@ const reportTemplate = `<!doctype html>
       const textCalls = REPORT.summaries.reduce((sum, item) => sum + item.text_calls, 0);
       const timeouts = REPORT.summaries.reduce((sum, item) => sum + (item.timeouts || 0), 0);
       const assetErrors = REPORT.summaries.reduce((sum, item) => sum + (item.asset_errors || 0), 0);
-      const reviewApplied = REPORT.summaries.reduce((sum, item) => sum + (item.review_applied || 0), 0);
-      const improvedByReview = REPORT.summaries.reduce((sum, item) => sum + (item.improved_by_review || 0), 0);
-      const reviewEligible = REPORT.summaries.reduce((sum, item) => sum + (item.review_eligible || 0), 0);
-      const cleanerReturned = REPORT.summaries.reduce((sum, item) => sum + (item.cleaner_returned || 0), 0);
-      const reviewHelped = REPORT.summaries.reduce((sum, item) => sum + (item.review_helped || 0), 0);
-      const reviewHurt = REPORT.summaries.reduce((sum, item) => sum + (item.review_hurt || 0), 0);
-      const noChangeAfterReview = REPORT.summaries.reduce((sum, item) => sum + (item.no_change_after_review || 0), 0);
+      const cleanerEligible = REPORT.summaries.reduce((sum, item) => sum + (item.cleaner_eligible || 0), 0);
+      const cleanerCalled = REPORT.summaries.reduce((sum, item) => sum + (item.cleaner_called || 0), 0);
+      const cleanerChangedInput = REPORT.summaries.reduce((sum, item) => sum + (item.cleaner_changed_input || 0), 0);
+      const candidateValid = REPORT.summaries.reduce((sum, item) => sum + (item.candidate_valid || 0), 0);
+      const cleanerApplied = REPORT.summaries.reduce((sum, item) => sum + (item.cleaner_applied || 0), 0);
+      const cleanerHelped = REPORT.summaries.reduce((sum, item) => sum + (item.cleaner_helped || 0), 0);
+      const cleanerHurt = REPORT.summaries.reduce((sum, item) => sum + (item.cleaner_hurt || 0), 0);
+      const cleanerNoop = REPORT.summaries.reduce((sum, item) => sum + (item.cleaner_noop || 0), 0);
+      const cleanerSameCandidate = REPORT.summaries.reduce((sum, item) => sum + (item.cleaner_same_candidate || 0), 0);
       const failureKinds = {};
       for (const summary of REPORT.summaries) {
         for (const [kind, count] of Object.entries(summary.failure_kinds || {})) {
@@ -625,12 +631,15 @@ const reportTemplate = `<!doctype html>
         tile('Timeouts', timeouts),
         tile('Asset Errors', assetErrors),
         tile('LLM Text Calls', textCalls),
-        tile('Review Eligible', reviewEligible),
-        tile('Cleaner Returned', cleanerReturned),
-        tile('Review Applied', reviewApplied),
-        tile('Review Helped', reviewHelped),
-        tile('Review Hurt', reviewHurt),
-        tile('Review No Change', noChangeAfterReview),
+        tile('Cleaner Eligible', cleanerEligible),
+        tile('Cleaner Called', cleanerCalled),
+        tile('Input Changed', cleanerChangedInput),
+        tile('Candidate Valid', candidateValid),
+        tile('Cleaner Applied', cleanerApplied),
+        tile('Cleaner Helped', cleanerHelped),
+        tile('Cleaner Hurt', cleanerHurt),
+        tile('Cleaner No-op', cleanerNoop),
+        tile('Same Candidate', cleanerSameCandidate),
         tile('Manual Verdicts', reviewRollup),
         tile('Generated', REPORT.generated_at.replace('T', ' ').replace('Z', ' UTC'))
       ].join('');
@@ -645,24 +654,26 @@ const reportTemplate = `<!doctype html>
           + '<td>' + (item.timeouts || 0) + '</td>'
           + '<td>' + (item.asset_errors || 0) + '</td>'
           + '<td>' + item.text_calls + '</td>'
-          + '<td>' + (item.review_eligible || 0) + '</td>'
-          + '<td>' + (item.cleaner_returned || 0) + '</td>'
-          + '<td>' + (item.review_applied || 0) + '</td>'
-          + '<td>' + (item.improved_by_review || 0) + '</td>'
-          + '<td>' + (item.review_helped || 0) + '</td>'
-          + '<td>' + (item.review_hurt || 0) + '</td>'
-          + '<td>' + (item.no_change_after_review || 0) + '</td>'
+          + '<td>' + (item.cleaner_eligible || 0) + '</td>'
+          + '<td>' + (item.cleaner_called || 0) + '</td>'
+          + '<td>' + (item.cleaner_changed_input || 0) + '</td>'
+          + '<td>' + (item.candidate_valid || 0) + '</td>'
+          + '<td>' + (item.cleaner_applied || 0) + '</td>'
+          + '<td>' + (item.cleaner_helped || 0) + '</td>'
+          + '<td>' + (item.cleaner_hurt || 0) + '</td>'
+          + '<td>' + (item.cleaner_noop || 0) + '</td>'
+          + '<td>' + (item.cleaner_same_candidate || 0) + '</td>'
           + '<td>' + escapeHTML(formatFailureKinds(item.failure_kinds || {})) + '</td>'
           + '<td>' + Math.round(item.duration_ns / 1e6) + '</td>'
           + '</tr>';
       }).join('');
       summaryTable.innerHTML = '<thead>'
-        + '<tr><th>Family</th><th>Variant</th><th>Total</th><th>First exact</th><th>Final exact</th><th>Fail</th><th>Timeout</th><th>Asset</th><th>Text</th><th>Eligible</th><th>Cleaner</th><th>Applied</th><th>Helped exact</th><th>Helped</th><th>Hurt</th><th>No change</th><th>Failure kinds</th><th>ms</th></tr>'
+        + '<tr><th>Family</th><th>Variant</th><th>Total</th><th>First exact</th><th>Final exact</th><th>Fail</th><th>Timeout</th><th>Asset</th><th>Text</th><th>Eligible</th><th>Called</th><th>Changed</th><th>Valid</th><th>Applied</th><th>Helped</th><th>Hurt</th><th>No-op</th><th>Same</th><th>Failure kinds</th><th>ms</th></tr>'
         + '</thead><tbody>' + rows + '</tbody>';
       renderScenarioMatrix();
       renderTagMatrix();
       renderDifficultyMatrix();
-      renderReviewDelta();
+      renderCleanerDelta();
       renderHardestTags();
       renderAuditQueue();
     }
@@ -749,22 +760,22 @@ const reportTemplate = `<!doctype html>
       difficultyMatrixEl.innerHTML = '<thead><tr><th>Family</th><th>Variant</th><th>Total</th><th>Medium</th><th>Hard</th></tr></thead><tbody>' + rows + '</tbody>';
     }
 
-    function renderReviewDelta() {
+    function renderCleanerDelta() {
       const rows = REPORT.summaries.map(function(summary) {
         return '<tr>'
           + '<td>' + escapeHTML(summary.family) + '</td>'
           + '<td>' + escapeHTML(summary.variant) + '</td>'
           + '<td>' + (summary.first_exact || 0) + '</td>'
           + '<td>' + summary.exact + '</td>'
-          + '<td>' + (summary.cleaner_returned || 0) + '</td>'
-          + '<td>' + (summary.review_applied || 0) + '</td>'
-          + '<td>' + (summary.improved_by_review || 0) + '</td>'
-          + '<td>' + (summary.review_helped || 0) + '</td>'
-          + '<td>' + (summary.review_hurt || 0) + '</td>'
-          + '<td>' + (summary.no_change_after_review || 0) + '</td>'
+          + '<td>' + (summary.cleaner_called || 0) + '</td>'
+          + '<td>' + (summary.cleaner_changed_input || 0) + '</td>'
+          + '<td>' + (summary.cleaner_applied || 0) + '</td>'
+          + '<td>' + (summary.cleaner_helped || 0) + '</td>'
+          + '<td>' + (summary.cleaner_hurt || 0) + '</td>'
+          + '<td>' + (summary.cleaner_noop || 0) + '</td>'
           + '</tr>';
       }).join('');
-      reviewDeltaEl.innerHTML = '<thead><tr><th>Family</th><th>Variant</th><th>First exact</th><th>Final exact</th><th>Cleaner</th><th>Applied</th><th>Helped exact</th><th>Helped</th><th>Hurt</th><th>No change</th></tr></thead><tbody>' + rows + '</tbody>';
+      reviewDeltaEl.innerHTML = '<thead><tr><th>Family</th><th>Variant</th><th>First exact</th><th>Final exact</th><th>Called</th><th>Changed</th><th>Applied</th><th>Helped</th><th>Hurt</th><th>No-op</th></tr></thead><tbody>' + rows + '</tbody>';
     }
 
     function renderHardestTags() {
@@ -801,7 +812,7 @@ const reportTemplate = `<!doctype html>
       const rows = [];
       for (const summary of REPORT.summaries) {
         for (const record of summary.cases || []) {
-          if (!record.exact || record.review_applied || record.review_helped || record.review_hurt || record.review_apply_reason) {
+          if (!record.exact || record.cleaner_applied || record.cleaner_helped || record.cleaner_hurt || record.selection_reason) {
             rows.push(record);
           }
         }
@@ -810,7 +821,7 @@ const reportTemplate = `<!doctype html>
         if (a.exact !== b.exact) return a.exact ? 1 : -1;
         return (a.family + '/' + a.id + '/' + a.variant).localeCompare(b.family + '/' + b.id + '/' + b.variant);
       });
-      auditQueueEl.innerHTML = '<thead><tr><th>Family</th><th>Case</th><th>Variant</th><th>Difficulty</th><th>Failure</th><th>Apply reason</th><th>Note</th></tr></thead><tbody>'
+      auditQueueEl.innerHTML = '<thead><tr><th>Family</th><th>Case</th><th>Variant</th><th>Difficulty</th><th>Failure</th><th>Selection</th><th>Note</th></tr></thead><tbody>'
         + rows.slice(0, 40).map(function(record) {
           return '<tr>'
             + '<td>' + escapeHTML(record.family) + '</td>'
@@ -818,7 +829,7 @@ const reportTemplate = `<!doctype html>
             + '<td>' + escapeHTML(record.variant) + '</td>'
             + '<td>' + escapeHTML(record.difficulty || '') + '</td>'
             + '<td>' + escapeHTML(record.failure_kind || '') + '</td>'
-            + '<td>' + escapeHTML(record.review_apply_reason || '') + '</td>'
+            + '<td>' + escapeHTML(record.selection_reason || '') + '</td>'
             + '<td>' + escapeHTML(record.note || '') + '</td>'
             + '</tr>';
         }).join('')
@@ -911,10 +922,10 @@ const reportTemplate = `<!doctype html>
         + (record.want_summary ? '<p><strong>Want:</strong> ' + escapeHTML(record.want_summary) + '</p>' : '')
         + (record.first_summary ? '<p><strong>First:</strong> ' + escapeHTML(record.first_summary) + '</p>' : '')
         + (record.got_summary ? '<p><strong>Got:</strong> ' + escapeHTML(record.got_summary) + '</p>' : '')
-        + ((record.review_applied || record.review_no_change) ? '<p><strong>Review:</strong> ' + escapeHTML((record.review_applied ? 'applied' : 'no change') + (record.review_apply_reason ? ' · ' + record.review_apply_reason : '')) + '</p>' : '')
+        + ((record.cleaner_called || record.cleaner_applied) ? '<p><strong>Cleaner:</strong> ' + escapeHTML((record.cleaner_applied ? 'applied' : 'kept baseline') + (record.selection_reason ? ' · ' + record.selection_reason : '')) + '</p>' : '')
         + (record.error ? '<p><strong>Error:</strong> ' + escapeHTML(record.error) + '</p>' : '')
         + '<div class="grid">' + renderInputs(record) + renderLLM(record) + '</div>'
-        + '<div class="judge"><div>'
+        + '<div class="review-note"><div>'
         + '<label class="meta" for="' + escapeAttr(reviewKey) + '">Manual verdict</label>'
         + '<select data-review-select="' + escapeAttr(reviewKey) + '">'
         + '<option value="">unset</option>'
@@ -949,13 +960,19 @@ const reportTemplate = `<!doctype html>
           + '\nfinal: ' + escapeHTML(record.got_summary || '')
           + '\nfirst_ms: ' + escapeHTML(String(record.time_to_first_ms || 0))
           + '\nfinal_ms: ' + escapeHTML(String(record.time_to_final_ms || 0))
-          + '\nreview_applied: ' + escapeHTML(String(!!record.review_applied))
-          + '\nreview_helped: ' + escapeHTML(String(!!record.review_helped))
-          + '\nreview_hurt: ' + escapeHTML(String(!!record.review_hurt))
-          + '\nreview_no_change: ' + escapeHTML(String(!!record.review_no_change))
-          + '\nreview_reason_code: ' + escapeHTML(record.review_reason_code || '')
-          + '\nreview_apply_reason: ' + escapeHTML(record.review_apply_reason || '')
-          + (record.review_cleaned_text ? '\nreview_cleaned: ' + escapeHTML(record.review_cleaned_text) : '')
+          + '\ncleaner_eligible: ' + escapeHTML(String(!!record.cleaner_eligible))
+          + '\ncleaner_called: ' + escapeHTML(String(!!record.cleaner_called))
+          + '\ncleaner_changed_input: ' + escapeHTML(String(!!record.cleaner_changed_input))
+          + '\ncandidate_valid: ' + escapeHTML(String(!!record.candidate_valid))
+          + '\ncleaner_applied: ' + escapeHTML(String(!!record.cleaner_applied))
+          + '\ncleaner_helped: ' + escapeHTML(String(!!record.cleaner_helped))
+          + '\ncleaner_hurt: ' + escapeHTML(String(!!record.cleaner_hurt))
+          + '\ncleaner_noop: ' + escapeHTML(String(!!record.cleaner_noop))
+          + '\ncleaner_same_candidate: ' + escapeHTML(String(!!record.cleaner_same_candidate))
+          + '\ncleaner_reason_code: ' + escapeHTML(record.cleaner_reason_code || '')
+          + '\nselection_reason: ' + escapeHTML(record.selection_reason || '')
+          + '\nchosen_source: ' + escapeHTML(record.chosen_source || '')
+          + (record.cleaned_input ? '\ncleaned_input: ' + escapeHTML(record.cleaned_input) : '')
           + '</pre>'));
       }
       if (record.parsed_summary) {

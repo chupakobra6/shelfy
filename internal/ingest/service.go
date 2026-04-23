@@ -46,7 +46,7 @@ func NewService(store *postgres.Store, tg *telegram.Client, copy *copycat.Loader
 }
 
 func (s *Service) AllowedTypes() []string {
-	return []string{domain.JobTypeIngestText, domain.JobTypeIngestAudio, domain.JobTypeRefineDraftAI}
+	return []string{domain.JobTypeIngestText, domain.JobTypeIngestAudio, domain.JobTypeCleanDraft}
 }
 
 func (s *Service) currentNow(ctx context.Context) (time.Time, error) {
@@ -77,82 +77,59 @@ func (s *Service) TryHandleTextFast(ctx context.Context, payload jobs.IngestPayl
 	if err != nil {
 		return false, err
 	}
-	result, err := parseFastDraft(payload.Text, localNow)
+	result, err := buildInitialDraft(payload.Text, localNow)
 	if err != nil {
 		return false, nil
 	}
 	s.logger.InfoContext(ctx, "fast_text_path_accepted", observability.LogAttrs(ctx,
-		"has_name", result.Name != "",
-		"has_expiry", result.ExpiresOn != nil,
-		"source", result.Source,
-		"confidence", result.Confidence,
+		"has_name", result.Draft.Name != "",
+		"has_expiry", result.Draft.ExpiresOn != nil,
+		"source", result.Draft.Source,
+		"confidence", result.Draft.Confidence,
 	)...)
-	meta := buildDraftPayload(nil, result, payload, "", "")
-	draft, err := s.upsertDraftCard(ctx, payload, result, meta)
+	draft, err := s.persistReadyDraft(ctx, payload, result)
 	if err != nil {
 		return false, err
 	}
-	if err := s.finishDraftReady(ctx, payload, "draft created"); err != nil {
+	if err := s.enqueueBackgroundCleaner(ctx, payload, draft, result.Trace.NormalizedInput); err != nil {
 		return false, err
 	}
-	s.startSmartReview(ctx, payload, draft, "", "")
 	return true, nil
 }
 
 func (s *Service) ProcessJob(ctx context.Context, job jobs.Envelope) error {
 	switch job.JobType {
 	case domain.JobTypeIngestText:
-		var payload jobs.IngestPayload
-		if err := json.Unmarshal(job.Payload, &payload); err != nil {
-			return err
-		}
-		ctx = observability.WithUserID(ctx, payload.UserID)
-		localNow, err := s.currentLocalNow(ctx, payload.UserID)
-		if err != nil {
-			return err
-		}
-		s.logger.InfoContext(ctx, "ingest_job_started", observability.LogAttrs(ctx,
-			"job_type", job.JobType,
-			"message_kind", payload.Kind,
-			"message_id", payload.MessageID,
-			"local_now", localNow.Format(time.RFC3339),
-		)...)
-		return s.handleText(ctx, payload, localNow)
+		return s.processIngestPayloadJob(ctx, job, s.handleText)
 	case domain.JobTypeIngestAudio:
-		var payload jobs.IngestPayload
+		return s.processIngestPayloadJob(ctx, job, s.handleAudio)
+	case domain.JobTypeCleanDraft:
+		var payload jobs.CleanDraftPayload
 		if err := json.Unmarshal(job.Payload, &payload); err != nil {
 			return err
 		}
 		ctx = observability.WithUserID(ctx, payload.UserID)
-		localNow, err := s.currentLocalNow(ctx, payload.UserID)
-		if err != nil {
-			return err
-		}
-		s.logger.InfoContext(ctx, "ingest_job_started", observability.LogAttrs(ctx,
-			"job_type", job.JobType,
-			"message_kind", payload.Kind,
-			"message_id", payload.MessageID,
-			"local_now", localNow.Format(time.RFC3339),
-		)...)
-		return s.handleAudio(ctx, payload, localNow)
-	case domain.JobTypeRefineDraftAI:
-		var payload jobs.RefineDraftAIPayload
-		if err := json.Unmarshal(job.Payload, &payload); err != nil {
-			return err
-		}
-		ctx = observability.WithUserID(ctx, payload.UserID)
-		localNow, err := s.currentLocalNow(ctx, payload.UserID)
-		if err != nil {
-			return err
-		}
-		s.logger.InfoContext(ctx, "ingest_job_started", observability.LogAttrs(ctx,
-			"job_type", job.JobType,
-			"message_kind", payload.SourceKind,
-			"trace_id", payload.TraceID,
-			"local_now", localNow.Format(time.RFC3339),
-		)...)
-		return s.handleRefineDraftAI(ctx, job.Payload, localNow)
+		return s.handleCleanDraft(ctx, payload)
 	default:
 		return fmt.Errorf("unsupported ingest job type %s", job.JobType)
 	}
+}
+
+func (s *Service) processIngestPayloadJob(ctx context.Context, job jobs.Envelope, handler func(context.Context, jobs.IngestPayload, time.Time) error) error {
+	var payload jobs.IngestPayload
+	if err := json.Unmarshal(job.Payload, &payload); err != nil {
+		return err
+	}
+	ctx = observability.WithUserID(ctx, payload.UserID)
+	localNow, err := s.currentLocalNow(ctx, payload.UserID)
+	if err != nil {
+		return err
+	}
+	s.logger.InfoContext(ctx, "ingest_job_started", observability.LogAttrs(ctx,
+		"job_type", job.JobType,
+		"message_kind", payload.Kind,
+		"message_id", payload.MessageID,
+		"local_now", localNow.Format(time.RFC3339),
+	)...)
+	return handler(ctx, payload, localNow)
 }

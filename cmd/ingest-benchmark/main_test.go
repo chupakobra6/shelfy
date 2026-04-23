@@ -18,11 +18,11 @@ func TestValidateCorpusPublicAssets(t *testing.T) {
 	if got := len(suite.Voice); got != 100 {
 		t.Fatalf("voice cases = %d, want 100", got)
 	}
-	if got := len(suite.ReviewHard.TextIDs); got == 0 {
-		t.Fatal("review_hard.text_ids should not be empty")
+	if got := len(suite.LiveHard.TextIDs); got == 0 {
+		t.Fatal("live_hard.text_ids should not be empty")
 	}
-	if got := len(suite.ReviewHard.VoiceIDs); got == 0 {
-		t.Fatal("review_hard.voice_ids should not be empty")
+	if got := len(suite.LiveHard.VoiceIDs); got == 0 {
+		t.Fatal("live_hard.voice_ids should not be empty")
 	}
 	for _, voice := range suite.Voice {
 		if voice.SourceID == "" {

@@ -15,25 +15,15 @@ import (
 const ingestFailureCleanupTTL = 8 * time.Second
 
 func (s *Service) handleText(ctx context.Context, payload jobs.IngestPayload, now time.Time) error {
-	draft, err := s.parseTextDraft(ctx, payload.Text, now)
+	result, err := buildInitialDraft(payload.Text, now)
 	if err != nil {
-		if rescued, rescueErr := s.tryReviewRescueBeforeFailure(ctx, payload, now, "", "", err); rescueErr != nil {
-			return rescueErr
-		} else if rescued {
-			return nil
-		}
 		return s.sendFailure(ctx, payload, err)
 	}
-	meta := buildDraftPayload(nil, draft, payload, "", "")
-	session, err := s.upsertDraftCard(ctx, payload, draft, meta)
+	draft, err := s.persistReadyDraft(ctx, payload, result)
 	if err != nil {
 		return err
 	}
-	if err := s.finishDraftReady(ctx, payload, "draft created"); err != nil {
-		return err
-	}
-	s.startSmartReview(ctx, payload, session, "", "")
-	return nil
+	return s.enqueueBackgroundCleaner(ctx, payload, draft, result.Trace.NormalizedInput)
 }
 
 func (s *Service) handleAudio(ctx context.Context, payload jobs.IngestPayload, now time.Time) error {
@@ -51,29 +41,87 @@ func (s *Service) handleAudio(ctx context.Context, payload jobs.IngestPayload, n
 			return s.sendFailure(ctx, payload, err)
 		}
 		normalizedTranscript := normalizeVoiceTranscript(transcript)
-		draft, fastErr := parseFastDraft(normalizedTranscript, now)
-		if fastErr != nil {
-			draft, err = s.parseTextDraft(ctx, normalizedTranscript, now)
-			if err != nil {
-				if rescued, rescueErr := s.tryReviewRescueBeforeFailure(ctx, payload, now, transcript, normalizedTranscript, err); rescueErr != nil {
-					return rescueErr
-				} else if rescued {
-					return nil
-				}
-				return s.sendFailure(ctx, payload, err)
-			}
+		result, err := buildInitialDraft(normalizedTranscript, now)
+		if err != nil {
+			return s.sendFailure(ctx, payload, err)
 		}
-		meta := buildDraftPayload(nil, draft, payload, transcript, normalizedTranscript)
-		session, err := s.upsertDraftCard(ctx, payload, draft, meta)
+		draft, err := s.persistReadyDraft(ctx, payload, result)
 		if err != nil {
 			return err
 		}
-		if err := s.finishDraftReady(ctx, payload, "draft created"); err != nil {
+		return s.enqueueBackgroundCleaner(ctx, payload, draft, result.Trace.NormalizedInput)
+	})
+}
+
+func (s *Service) handleCleanDraft(ctx context.Context, payload jobs.CleanDraftPayload) error {
+	draft, err := s.store.GetDraftSession(ctx, payload.DraftID)
+	if err != nil {
+		return err
+	}
+	if draft.Status != domain.DraftStatusReady {
+		s.logger.InfoContext(ctx, "cleaner_skipped_draft_not_ready", observability.LogAttrs(ctx,
+			"draft_id", draft.ID,
+			"status", draft.Status,
+		)...)
+		return nil
+	}
+	localNow, err := s.currentLocalNow(ctx, payload.UserID)
+	if err != nil {
+		return err
+	}
+	trace, candidate, apply := s.runCleanerPass(ctx, payload.Kind, payload.NormalizedInput, draft, localNow)
+	if !apply {
+		meta := mergeDraftPayload(draft.DraftPayload, withCleanerPending(buildDraftTracePayload(trace), false))
+		if err := s.store.UpdateDraftPayload(ctx, draft.ID, meta); err != nil {
 			return err
 		}
-		s.startSmartReview(ctx, payload, session, transcript, normalizedTranscript)
+		return s.publishDraftCard(ctx, draft.ID)
+	}
+	meta := mergeDraftPayload(draft.DraftPayload, withCleanerPending(buildDraftTracePayload(trace), false))
+	updated, err := s.store.ApplyCleanerUpdateIfReady(ctx, draft.ID, candidate.Name, candidate.ExpiresOn, candidate.RawDeadlinePhrase, meta)
+	if err != nil {
+		return err
+	}
+	if !updated {
+		s.logger.InfoContext(ctx, "cleaner_update_skipped", observability.LogAttrs(ctx,
+			"draft_id", draft.ID,
+			"reason", "not_ready_anymore",
+		)...)
 		return nil
-	})
+	}
+	return s.publishDraftCard(ctx, draft.ID)
+}
+
+func (s *Service) enqueueBackgroundCleaner(ctx context.Context, payload jobs.IngestPayload, draft domain.DraftSession, normalizedInput string) error {
+	normalizedInput = strings.TrimSpace(normalizedInput)
+	if draft.Status != domain.DraftStatusReady || normalizedInput == "" {
+		return nil
+	}
+	now, err := s.currentNow(ctx)
+	if err != nil {
+		return err
+	}
+	key := payload.TraceID + ":cleaner"
+	return s.store.EnqueueJob(ctx, payload.TraceID, domain.JobTypeCleanDraft, jobs.CleanDraftPayload{
+		TraceID:         payload.TraceID,
+		DraftID:         draft.ID,
+		UserID:          payload.UserID,
+		ChatID:          payload.ChatID,
+		Kind:            payload.Kind,
+		NormalizedInput: normalizedInput,
+	}, now, &key)
+}
+
+func (s *Service) persistReadyDraft(ctx context.Context, payload jobs.IngestPayload, result draftBuildResult) (domain.DraftSession, error) {
+	meta := withCleanerPending(buildDraftTracePayload(result.Trace), true)
+	draft, err := s.upsertDraftCard(ctx, payload, result.Draft, meta)
+	if err != nil {
+		return domain.DraftSession{}, err
+	}
+	if err := s.finishDraftReady(ctx, payload, "draft created"); err != nil {
+		return domain.DraftSession{}, err
+	}
+	return draft, nil
 }
 
 func (s *Service) upsertDraftCard(ctx context.Context, payload jobs.IngestPayload, parsed parsedDraft, payloadMeta map[string]any) (domain.DraftSession, error) {
@@ -84,7 +132,8 @@ func (s *Service) upsertDraftCard(ctx context.Context, payload jobs.IngestPayloa
 		if err := s.store.UpdateDraftFields(ctx, existing.ID, parsed.Name, parsed.ExpiresOn, parsed.RawDeadlinePhrase, domain.DraftStatusReady); err != nil {
 			return domain.DraftSession{}, err
 		}
-		if err := s.store.UpdateDraftPayload(ctx, existing.ID, mergeDraftPayload(existing.DraftPayload, payloadMeta)); err != nil {
+		mergedPayload := mergeDraftPayload(existing.DraftPayload, payloadMeta)
+		if err := s.store.UpdateDraftPayload(ctx, existing.ID, mergedPayload); err != nil {
 			return domain.DraftSession{}, err
 		}
 		if err := s.publishDraftCard(ctx, existing.ID); err != nil {
@@ -208,70 +257,6 @@ func (s *Service) sendFailure(ctx context.Context, payload jobs.IngestPayload, o
 func (s *Service) finishDraftReady(ctx context.Context, payload jobs.IngestPayload, summary string) error {
 	s.deleteFeedbackMessage(ctx, payload.ChatID, payload.FeedbackMessageID)
 	return s.store.UpdateIngestStatus(ctx, payload.TraceID, "draft_ready", summary)
-}
-
-func (s *Service) tryReviewRescueBeforeFailure(ctx context.Context, payload jobs.IngestPayload, now time.Time, rawTranscript, normalizedTranscript string, parseErr error) (bool, error) {
-	input := strings.TrimSpace(payload.Text)
-	if payload.Kind == domain.MessageKindVoice || payload.Kind == domain.MessageKindAudio {
-		input = strings.TrimSpace(normalizedTranscript)
-	}
-	if !shouldAttemptReviewRescue(payload.Kind, input, parseErr) {
-		return false, nil
-	}
-
-	baseline := heuristicParse(input, now)
-	baseline = withNormalizedDraftName(baseline)
-	if baseline.Confidence == "" {
-		baseline.Confidence = "low"
-	}
-	meta := buildDraftPayload(nil, baseline, payload, rawTranscript, normalizedTranscript)
-	reviewPayload := buildReviewPayload(payload, rawTranscript, normalizedTranscript)
-	review, err := s.runSmartReview(ctx, reviewPayload, now)
-	if err != nil {
-		s.logger.WarnContext(ctx, "smart_review_rescue_failed", observability.LogAttrs(ctx, "error", err)...)
-		return false, nil
-	}
-	if !review.CandidateOK {
-		return false, nil
-	}
-	finalized, ok := finalizeReviewRescueDraft(review.CleanedText, review.Candidate)
-	if !ok {
-		return false, nil
-	}
-	meta = reviewMetadata(meta, review.Cleaner, review.CleanedText, true, "rescue_before_card")
-	session, err := s.upsertDraftCard(ctx, payload, finalized, meta)
-	if err != nil {
-		return false, err
-	}
-	if err := s.finishDraftReady(ctx, payload, "draft rescued by review"); err != nil {
-		return false, err
-	}
-	s.logger.InfoContext(ctx, "smart_review_rescue_applied", observability.LogAttrs(ctx,
-		"draft_id", session.ID,
-		"has_name", strings.TrimSpace(finalized.Name) != "",
-		"has_expiry", finalized.ExpiresOn != nil,
-	)...)
-	return true, nil
-}
-
-func (s *Service) startSmartReview(ctx context.Context, payload jobs.IngestPayload, draft domain.DraftSession, rawTranscript, normalizedTranscript string) {
-	if !shouldRunSmartReview(payload.Kind) {
-		return
-	}
-	reviewPayload := buildReviewPayload(payload, rawTranscript, normalizedTranscript)
-	idempotencyKey := payload.TraceID + ":refine_draft_ai"
-	now, err := s.currentNow(ctx)
-	if err != nil {
-		s.logger.WarnContext(ctx, "smart_review_now_failed", observability.LogAttrs(ctx, "error", err)...)
-		return
-	}
-	if err := s.store.EnqueueJob(ctx, payload.TraceID, domain.JobTypeRefineDraftAI, reviewPayload, now, &idempotencyKey); err != nil {
-		s.logger.WarnContext(ctx, "smart_review_enqueue_failed", observability.LogAttrs(ctx, "error", err)...)
-		return
-	}
-	if err := renderReviewStatus(ctx, s, draft.ID, domain.AIReviewStatusPending, ""); err != nil {
-		s.logger.WarnContext(ctx, "smart_review_pending_render_failed", observability.LogAttrs(ctx, "draft_id", draft.ID, "error", err)...)
-	}
 }
 
 func (s *Service) deleteFeedbackMessage(ctx context.Context, chatID, messageID int64) {

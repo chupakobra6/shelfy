@@ -3647,7 +3647,7 @@
       "note": "public Golos crowd command; expanded benchmark case"
     }
   ],
-  "review_hard": {
+  "live_hard": {
     "text_ids": [
       "text-003", "text-005", "text-010", "text-012", "text-017", "text-019", "text-024", "text-026",
       "text-031", "text-033", "text-037", "text-040", "text-042", "text-045", "text-047", "text-050",

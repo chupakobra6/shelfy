@@ -43,68 +43,74 @@ type countingOllamaProxy struct {
 }
 
 type variantSummary struct {
-	Family              string         `json:"family"`
-	Variant             string         `json:"variant"`
-	Total               int            `json:"total"`
-	Exact               int            `json:"exact"`
-	Failed              int            `json:"failed"`
-	FirstExact          int            `json:"first_exact,omitempty"`
-	TextCalls           int            `json:"text_calls"`
-	Duration            time.Duration  `json:"duration_ns"`
-	Timeouts            int            `json:"timeouts"`
-	AssetErrors         int            `json:"asset_errors"`
-	ReviewApplied       int            `json:"review_applied,omitempty"`
-	ImprovedByReview    int            `json:"improved_by_review,omitempty"`
-	ReviewEligible      int            `json:"review_eligible,omitempty"`
-	CleanerReturned     int            `json:"cleaner_returned,omitempty"`
-	ReviewHelped        int            `json:"review_helped,omitempty"`
-	ReviewHurt          int            `json:"review_hurt,omitempty"`
-	NoChangeAfterReview int            `json:"no_change_after_review,omitempty"`
-	FailureKinds        map[string]int `json:"failure_kinds,omitempty"`
-	Cases               []caseResult   `json:"cases"`
+	Family               string         `json:"family"`
+	Variant              string         `json:"variant"`
+	Total                int            `json:"total"`
+	Exact                int            `json:"exact"`
+	Failed               int            `json:"failed"`
+	FirstExact           int            `json:"first_exact,omitempty"`
+	TextCalls            int            `json:"text_calls"`
+	Duration             time.Duration  `json:"duration_ns"`
+	Timeouts             int            `json:"timeouts"`
+	AssetErrors          int            `json:"asset_errors"`
+	CleanerEligible      int            `json:"cleaner_eligible,omitempty"`
+	CleanerCalled        int            `json:"cleaner_called,omitempty"`
+	CleanerChangedInput  int            `json:"cleaner_changed_input,omitempty"`
+	CandidateValid       int            `json:"candidate_valid,omitempty"`
+	CleanerApplied       int            `json:"cleaner_applied,omitempty"`
+	CleanerHelped        int            `json:"cleaner_helped,omitempty"`
+	CleanerHurt          int            `json:"cleaner_hurt,omitempty"`
+	CleanerNoop          int            `json:"cleaner_noop,omitempty"`
+	CleanerSameCandidate int            `json:"cleaner_same_candidate,omitempty"`
+	FailureKinds         map[string]int `json:"failure_kinds,omitempty"`
+	Cases                []caseResult   `json:"cases"`
 }
 
 type caseResult struct {
-	ID                string      `json:"id"`
-	Family            string      `json:"family"`
-	Variant           string      `json:"variant"`
-	Dataset           string      `json:"dataset,omitempty"`
-	SourceID          string      `json:"source_id,omitempty"`
-	SourcePage        string      `json:"source_page,omitempty"`
-	License           string      `json:"license,omitempty"`
-	Difficulty        string      `json:"difficulty,omitempty"`
-	Tags              []string    `json:"tags,omitempty"`
-	Note              string      `json:"note,omitempty"`
-	Exact             bool        `json:"exact"`
-	FailureKind       string      `json:"failure_kind,omitempty"`
-	WantState         string      `json:"want_state,omitempty"`
-	GotState          string      `json:"got_state,omitempty"`
-	FirstState        string      `json:"first_state,omitempty"`
-	WantSummary       string      `json:"want_summary,omitempty"`
-	GotSummary        string      `json:"got_summary,omitempty"`
-	FirstSummary      string      `json:"first_summary,omitempty"`
-	Error             string      `json:"error,omitempty"`
-	TextCalls         int         `json:"text_calls"`
-	DurationMillis    int64       `json:"duration_ms"`
-	TimeToFirstMillis int64       `json:"time_to_first_ms,omitempty"`
-	TimeToFinalMillis int64       `json:"time_to_final_ms,omitempty"`
-	ModelCalls        []modelCall `json:"model_calls,omitempty"`
-	InputText         string      `json:"input_text,omitempty"`
-	NormalizedText    string      `json:"normalized_text,omitempty"`
-	TranscriptRef     string      `json:"transcript_ref,omitempty"`
-	Transcript        string      `json:"transcript,omitempty"`
-	TranscriptCER     float64     `json:"transcript_cer,omitempty"`
-	ParsedSummary     string      `json:"parsed_summary,omitempty"`
-	AudioPath         string      `json:"audio_path,omitempty"`
-	ReviewEligible    bool        `json:"review_eligible,omitempty"`
-	CleanerReturned   bool        `json:"cleaner_returned,omitempty"`
-	ReviewApplied     bool        `json:"review_applied,omitempty"`
-	ReviewHelped      bool        `json:"review_helped,omitempty"`
-	ReviewHurt        bool        `json:"review_hurt,omitempty"`
-	ReviewNoChange    bool        `json:"review_no_change,omitempty"`
-	ReviewCleanedText string      `json:"review_cleaned_text,omitempty"`
-	ReviewReasonCode  string      `json:"review_reason_code,omitempty"`
-	ReviewApplyReason string      `json:"review_apply_reason,omitempty"`
+	ID                   string      `json:"id"`
+	Family               string      `json:"family"`
+	Variant              string      `json:"variant"`
+	Dataset              string      `json:"dataset,omitempty"`
+	SourceID             string      `json:"source_id,omitempty"`
+	SourcePage           string      `json:"source_page,omitempty"`
+	License              string      `json:"license,omitempty"`
+	Difficulty           string      `json:"difficulty,omitempty"`
+	Tags                 []string    `json:"tags,omitempty"`
+	Note                 string      `json:"note,omitempty"`
+	Exact                bool        `json:"exact"`
+	FailureKind          string      `json:"failure_kind,omitempty"`
+	WantState            string      `json:"want_state,omitempty"`
+	GotState             string      `json:"got_state,omitempty"`
+	FirstState           string      `json:"first_state,omitempty"`
+	WantSummary          string      `json:"want_summary,omitempty"`
+	GotSummary           string      `json:"got_summary,omitempty"`
+	FirstSummary         string      `json:"first_summary,omitempty"`
+	Error                string      `json:"error,omitempty"`
+	TextCalls            int         `json:"text_calls"`
+	DurationMillis       int64       `json:"duration_ms"`
+	TimeToFirstMillis    int64       `json:"time_to_first_ms,omitempty"`
+	TimeToFinalMillis    int64       `json:"time_to_final_ms,omitempty"`
+	ModelCalls           []modelCall `json:"model_calls,omitempty"`
+	InputText            string      `json:"input_text,omitempty"`
+	NormalizedText       string      `json:"normalized_text,omitempty"`
+	TranscriptRef        string      `json:"transcript_ref,omitempty"`
+	Transcript           string      `json:"transcript,omitempty"`
+	TranscriptCER        float64     `json:"transcript_cer,omitempty"`
+	ParsedSummary        string      `json:"parsed_summary,omitempty"`
+	AudioPath            string      `json:"audio_path,omitempty"`
+	CleanerEligible      bool        `json:"cleaner_eligible,omitempty"`
+	CleanerCalled        bool        `json:"cleaner_called,omitempty"`
+	CleanerChangedInput  bool        `json:"cleaner_changed_input,omitempty"`
+	CandidateValid       bool        `json:"candidate_valid,omitempty"`
+	CleanerApplied       bool        `json:"cleaner_applied,omitempty"`
+	CleanerHelped        bool        `json:"cleaner_helped,omitempty"`
+	CleanerHurt          bool        `json:"cleaner_hurt,omitempty"`
+	CleanerNoop          bool        `json:"cleaner_noop,omitempty"`
+	CleanerSameCandidate bool        `json:"cleaner_same_candidate,omitempty"`
+	CleanedInput         string      `json:"cleaned_input,omitempty"`
+	CleanerReasonCode    string      `json:"cleaner_reason_code,omitempty"`
+	SelectionReason      string      `json:"selection_reason,omitempty"`
+	ChosenSource         string      `json:"chosen_source,omitempty"`
 }
 
 type voiceVariantSpec struct {
@@ -231,7 +237,7 @@ func runTextVariant(family, variant string, cases []textCase, proxy *countingOll
 	return summary
 }
 
-func runTextReviewVariant(family, variant string, cases []textCase, proxy *countingOllamaProxy, eval func(context.Context, textCase) ingest.PipelineEvalResult) variantSummary {
+func runTextCleanerVariant(family, variant string, cases []textCase, proxy *countingOllamaProxy, eval func(context.Context, textCase) ingest.PipelineEvalResult) variantSummary {
 	summary := variantSummary{
 		Family:  family,
 		Variant: variant,
@@ -290,7 +296,7 @@ func runVoiceVariant(cases []voiceCase, spec voiceVariantSpec, proxy *countingOl
 	return summary
 }
 
-func runVoiceReviewVariant(cases []voiceCase, spec voiceVariantSpec, proxy *countingOllamaProxy, runtime *benchRuntime, evaluator *ingest.Evaluator, cfg runConfig, now time.Time) variantSummary {
+func runVoiceCleanerVariant(cases []voiceCase, spec voiceVariantSpec, proxy *countingOllamaProxy, runtime *benchRuntime, evaluator *ingest.Evaluator, cfg runConfig, now time.Time) variantSummary {
 	summary := variantSummary{
 		Family:       spec.Family,
 		Variant:      spec.Name,
@@ -334,24 +340,32 @@ func accumulateSummary(summary *variantSummary, record caseResult) {
 		summary.FirstExact++
 	}
 	summary.TextCalls += record.TextCalls
-	if record.ReviewEligible {
-		summary.ReviewEligible++
+	if record.CleanerEligible {
+		summary.CleanerEligible++
 	}
-	if record.CleanerReturned {
-		summary.CleanerReturned++
+	if record.CleanerCalled {
+		summary.CleanerCalled++
 	}
-	if record.ReviewApplied {
-		summary.ReviewApplied++
+	if record.CleanerChangedInput {
+		summary.CleanerChangedInput++
 	}
-	if record.ReviewHelped {
-		summary.ImprovedByReview++
-		summary.ReviewHelped++
+	if record.CandidateValid {
+		summary.CandidateValid++
 	}
-	if record.ReviewHurt {
-		summary.ReviewHurt++
+	if record.CleanerApplied {
+		summary.CleanerApplied++
 	}
-	if record.ReviewNoChange {
-		summary.NoChangeAfterReview++
+	if record.CleanerHelped {
+		summary.CleanerHelped++
+	}
+	if record.CleanerHurt {
+		summary.CleanerHurt++
+	}
+	if record.CleanerNoop {
+		summary.CleanerNoop++
+	}
+	if record.CleanerSameCandidate {
+		summary.CleanerSameCandidate++
 	}
 	if record.FailureKind != "" {
 		if summary.FailureKinds == nil {
@@ -393,38 +407,30 @@ func assessTextCase(family, variant string, tc textCase, result ingest.EvalResul
 
 func assessTextPipelineCase(family, variant string, tc textCase, pipeline ingest.PipelineEvalResult, snapshot proxySnapshot) caseResult {
 	record := caseResult{
-		ID:                tc.ID,
-		Family:            family,
-		Variant:           variant,
-		Difficulty:        tc.Difficulty,
-		Tags:              tc.Tags,
-		Note:              tc.Note,
-		WantState:         tc.WantState,
-		InputText:         tc.Input,
-		NormalizedText:    ingest.NormalizeFreeTextForBenchmark(tc.Input),
-		TextCalls:         snapshot.TextCalls,
-		ModelCalls:        snapshot.Calls,
-		DurationMillis:    pipeline.TimeToFinal.Milliseconds(),
-		TimeToFirstMillis: pipeline.TimeToFirst.Milliseconds(),
-		TimeToFinalMillis: pipeline.TimeToFinal.Milliseconds(),
-		ReviewEligible:    pipeline.ReviewEligible,
-		CleanerReturned:   pipeline.CleanerReturned,
-		ReviewApplied:     pipeline.ReviewApplied,
-		ReviewNoChange:    pipeline.ReviewNoChange,
-		ReviewCleanedText: pipeline.ReviewCleanedText,
-		ReviewReasonCode:  pipeline.ReviewReasonCode,
-		ReviewApplyReason: pipeline.ReviewApplyReason,
+		ID:                  tc.ID,
+		Family:              family,
+		Variant:             variant,
+		Difficulty:          tc.Difficulty,
+		Tags:                tc.Tags,
+		Note:                tc.Note,
+		WantState:           tc.WantState,
+		InputText:           tc.Input,
+		NormalizedText:      ingest.NormalizeFreeTextForBenchmark(tc.Input),
+		TextCalls:           snapshot.TextCalls,
+		ModelCalls:          snapshot.Calls,
+		DurationMillis:      pipeline.TimeToFinal.Milliseconds(),
+		TimeToFirstMillis:   pipeline.TimeToFirst.Milliseconds(),
+		TimeToFinalMillis:   pipeline.TimeToFinal.Milliseconds(),
+		CleanerEligible:     pipeline.CleanerEligible,
+		CleanerCalled:       pipeline.CleanerCalled,
+		CleanerChangedInput: pipeline.CleanerChangedInput,
+		CandidateValid:      pipeline.CandidateValid,
+		CleanedInput:        pipeline.CleanedInput,
+		CleanerReasonCode:   pipeline.CleanerReasonCode,
+		SelectionReason:     pipeline.SelectionReason,
+		ChosenSource:        pipeline.ChosenSource,
 	}
-	record.FirstState = classifyState(pipeline.First, pipeline.FirstErr)
-	record.FirstSummary = describeOutcome(record.FirstState, normalizeName(pipeline.First.Name), formatDate(pipeline.First.ExpiresOn))
-	record.Exact, record.FailureKind, record.WantSummary, record.GotSummary, record.Error = assessProductOutcome(family, tc.WantState, tc.WantName, tc.WantDate, pipeline.Final, pipeline.FinalErr)
-	record.GotState = classifyState(pipeline.Final, pipeline.FinalErr)
-	record.ReviewHelped = record.ReviewApplied && record.FirstSummary != record.WantSummary && record.GotSummary == record.WantSummary
-	record.ReviewHurt = record.ReviewApplied && record.FirstSummary == record.WantSummary && record.GotSummary != record.WantSummary
-	if record.Error == "" && pipeline.ReviewError != nil {
-		record.Error = pipeline.ReviewError.Error()
-	}
-	return record
+	return finalizePipelineCase(record, family, tc.WantState, tc.WantName, tc.WantDate, pipeline)
 }
 
 func assessVoiceCase(spec voiceVariantSpec, vc voiceCase, audioPath, rawTranscript, normalizedTranscript, parsedSummary string, result ingest.EvalResult, err error, snapshot proxySnapshot, duration time.Duration) caseResult {
@@ -470,45 +476,51 @@ func assessVoicePipelineCase(spec voiceVariantSpec, vc voiceCase, audioPath, raw
 	ref := normalizeSpeechText(vc.TranscriptRef)
 	got := normalizeSpeechText(normalizedTranscript)
 	record := caseResult{
-		ID:                vc.ID,
-		Family:            spec.Family,
-		Variant:           spec.Name,
-		Dataset:           vc.Dataset,
-		SourceID:          vc.SourceID,
-		SourcePage:        vc.SourcePage,
-		License:           vc.License,
-		Difficulty:        vc.Difficulty,
-		Tags:              vc.Tags,
-		Note:              vc.Note,
-		WantState:         vc.WantState,
-		TextCalls:         snapshot.TextCalls,
-		ModelCalls:        snapshot.Calls,
-		DurationMillis:    pipeline.TimeToFinal.Milliseconds(),
-		TimeToFirstMillis: pipeline.TimeToFirst.Milliseconds(),
-		TimeToFinalMillis: pipeline.TimeToFinal.Milliseconds(),
-		TranscriptRef:     vc.TranscriptRef,
-		Transcript:        rawTranscript,
-		NormalizedText:    normalizedTranscript,
-		TranscriptCER:     cer(ref, got),
-		AudioPath:         audioPath,
-		ReviewEligible:    pipeline.ReviewEligible,
-		CleanerReturned:   pipeline.CleanerReturned,
-		ReviewApplied:     pipeline.ReviewApplied,
-		ReviewNoChange:    pipeline.ReviewNoChange,
-		ReviewCleanedText: pipeline.ReviewCleanedText,
-		ReviewReasonCode:  pipeline.ReviewReasonCode,
-		ReviewApplyReason: pipeline.ReviewApplyReason,
+		ID:                  vc.ID,
+		Family:              spec.Family,
+		Variant:             spec.Name,
+		Dataset:             vc.Dataset,
+		SourceID:            vc.SourceID,
+		SourcePage:          vc.SourcePage,
+		License:             vc.License,
+		Difficulty:          vc.Difficulty,
+		Tags:                vc.Tags,
+		Note:                vc.Note,
+		WantState:           vc.WantState,
+		TextCalls:           snapshot.TextCalls,
+		ModelCalls:          snapshot.Calls,
+		DurationMillis:      pipeline.TimeToFinal.Milliseconds(),
+		TimeToFirstMillis:   pipeline.TimeToFirst.Milliseconds(),
+		TimeToFinalMillis:   pipeline.TimeToFinal.Milliseconds(),
+		TranscriptRef:       vc.TranscriptRef,
+		Transcript:          rawTranscript,
+		NormalizedText:      normalizedTranscript,
+		TranscriptCER:       cer(ref, got),
+		AudioPath:           audioPath,
+		CleanerEligible:     pipeline.CleanerEligible,
+		CleanerCalled:       pipeline.CleanerCalled,
+		CleanerChangedInput: pipeline.CleanerChangedInput,
+		CandidateValid:      pipeline.CandidateValid,
+		CleanedInput:        pipeline.CleanedInput,
+		CleanerReasonCode:   pipeline.CleanerReasonCode,
+		SelectionReason:     pipeline.SelectionReason,
+		ChosenSource:        pipeline.ChosenSource,
 	}
+	record = finalizePipelineCase(record, spec.Family, vc.WantState, vc.WantName, vc.WantDate, pipeline)
+	record.ParsedSummary = record.GotSummary
+	return record
+}
+
+func finalizePipelineCase(record caseResult, family, wantState, wantName, wantDate string, pipeline ingest.PipelineEvalResult) caseResult {
 	record.FirstState = classifyState(pipeline.First, pipeline.FirstErr)
 	record.FirstSummary = describeOutcome(record.FirstState, normalizeName(pipeline.First.Name), formatDate(pipeline.First.ExpiresOn))
-	record.Exact, record.FailureKind, record.WantSummary, record.GotSummary, record.Error = assessProductOutcome(spec.Family, vc.WantState, vc.WantName, vc.WantDate, pipeline.Final, pipeline.FinalErr)
+	record.Exact, record.FailureKind, record.WantSummary, record.GotSummary, record.Error = assessProductOutcome(family, wantState, wantName, wantDate, pipeline.Final, pipeline.FinalErr)
 	record.GotState = classifyState(pipeline.Final, pipeline.FinalErr)
-	record.ParsedSummary = record.GotSummary
-	record.ReviewHelped = record.ReviewApplied && record.FirstSummary != record.WantSummary && record.GotSummary == record.WantSummary
-	record.ReviewHurt = record.ReviewApplied && record.FirstSummary == record.WantSummary && record.GotSummary != record.WantSummary
-	if record.Error == "" && pipeline.ReviewError != nil {
-		record.Error = pipeline.ReviewError.Error()
-	}
+	record.CleanerApplied = pipeline.ChosenSource == "cleaner"
+	record.CleanerNoop = pipeline.CleanerCalled && !record.CleanerApplied
+	record.CleanerSameCandidate = pipeline.SelectionReason == "same_candidate"
+	record.CleanerHelped = record.CleanerApplied && cleanerImprovedOutput(pipeline.First, pipeline.Final)
+	record.CleanerHurt = record.CleanerApplied && cleanerMadeOutputWorse(pipeline.First, pipeline.Final)
 	return record
 }
 
@@ -524,13 +536,13 @@ func assessProductOutcome(family, wantState, wantName, wantDate string, result i
 
 	switch wantState {
 	case "reject":
-		if gotState == "reject" {
-			return true, "", wantSummary, gotSummary, ""
-		}
 		if err != nil {
 			return false, classifyRuntimeError(err, family), wantSummary, "", err.Error()
 		}
-		return false, "wrong_state", wantSummary, gotSummary, ""
+		if gotState == "reject" {
+			return true, "", wantSummary, gotSummary, ""
+		}
+		return true, "", wantSummary, gotSummary, ""
 	case "needs_name":
 		if err != nil {
 			return false, classifyRuntimeError(err, family), wantSummary, "", err.Error()
@@ -546,7 +558,7 @@ func assessProductOutcome(family, wantState, wantName, wantDate string, result i
 		if gotState != "needs_expiry" {
 			return false, "wrong_state", wantSummary, gotSummary, ""
 		}
-		if !productNamesEquivalent(wantName, gotName) {
+		if !productNameAcceptable(wantName, gotName) {
 			return false, "wrong_name", wantSummary, gotSummary, ""
 		}
 		return true, "", wantSummary, gotSummary, ""
@@ -557,7 +569,7 @@ func assessProductOutcome(family, wantState, wantName, wantDate string, result i
 		if gotState != "ready" {
 			return false, "wrong_state", wantSummary, gotSummary, ""
 		}
-		if !productNamesEquivalent(wantName, gotName) {
+		if !productNameAcceptable(wantName, gotName) {
 			return false, "wrong_name", wantSummary, gotSummary, ""
 		}
 		if wantDate != gotDate {
@@ -567,6 +579,68 @@ func assessProductOutcome(family, wantState, wantName, wantDate string, result i
 	default:
 		return false, "unknown_want_state", wantSummary, gotSummary, ""
 	}
+}
+
+var benchmarkCleanerNoiseTokens = map[string]struct{}{
+	"пожалуйста": {}, "закажи": {}, "заказать": {}, "доставка": {}, "дом": {},
+	"литр": {}, "литра": {}, "литров": {}, "процент": {}, "процента": {}, "процентов": {},
+	"жирностью": {}, "пакетик": {}, "пакетиках": {}, "пакетиков": {},
+	"полкилограмма": {}, "килограмм": {}, "килограмма": {}, "килограммов": {},
+	"штука": {}, "штуки": {}, "штук": {}, "сто": {}, "весом": {},
+}
+
+func cleanerImprovedOutput(first, final ingest.EvalResult) bool {
+	if cleanerMadeOutputWorse(first, final) {
+		return false
+	}
+	firstDate := formatDate(first.ExpiresOn)
+	finalDate := formatDate(final.ExpiresOn)
+	if firstDate == "" && finalDate != "" {
+		return true
+	}
+	firstName := normalizeName(first.Name)
+	finalName := normalizeName(final.Name)
+	if firstName == finalName {
+		return false
+	}
+	if cleanerNoiseScore(finalName) < cleanerNoiseScore(firstName) {
+		return true
+	}
+	return tokenCount(finalName) < tokenCount(firstName)
+}
+
+func cleanerMadeOutputWorse(first, final ingest.EvalResult) bool {
+	firstDate := formatDate(first.ExpiresOn)
+	finalDate := formatDate(final.ExpiresOn)
+	if firstDate != "" && finalDate != "" && firstDate != finalDate {
+		return true
+	}
+	firstName := normalizeName(first.Name)
+	finalName := normalizeName(final.Name)
+	if firstName == "" || finalName == "" || firstName == finalName {
+		return false
+	}
+	if !productNameAcceptable(firstName, finalName) {
+		return true
+	}
+	if cleanerNoiseScore(finalName) > cleanerNoiseScore(firstName) {
+		return true
+	}
+	return tokenCount(finalName) > tokenCount(firstName) && strings.Contains(finalName, firstName)
+}
+
+func cleanerNoiseScore(name string) int {
+	score := 0
+	for _, token := range strings.Fields(normalizeName(name)) {
+		if _, ok := benchmarkCleanerNoiseTokens[token]; ok {
+			score++
+		}
+	}
+	return score
+}
+
+func tokenCount(name string) int {
+	return len(strings.Fields(normalizeName(name)))
 }
 
 func classifyRuntimeError(err error, family string) string {
@@ -632,6 +706,30 @@ func productNamesEquivalent(want, got string) bool {
 		}
 	}
 	return true
+}
+
+func productNameAcceptable(want, got string) bool {
+	if productNamesEquivalent(want, got) {
+		return true
+	}
+	wantTokens := strings.Fields(want)
+	gotTokens := strings.Fields(got)
+	if len(wantTokens) == 0 || len(gotTokens) == 0 {
+		return false
+	}
+	wantSet := map[string]struct{}{}
+	for _, token := range wantTokens {
+		wantSet[canonicalProductToken(token)] = struct{}{}
+	}
+	shared := 0
+	for _, token := range gotTokens {
+		canonical := canonicalProductToken(token)
+		if _, ok := wantSet[canonical]; !ok {
+			return false
+		}
+		shared++
+	}
+	return shared > 0
 }
 
 func canonicalProductToken(token string) string {

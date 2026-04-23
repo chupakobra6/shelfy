@@ -38,7 +38,7 @@ The bot is built around one pinned dashboard, transient draft cards, and backgro
 - `telegram-api`
   Receives Telegram updates, handles `/start`, dashboard callbacks, and enqueues background jobs.
 - `pipeline-worker`
-  Processes text/audio ingestion jobs, ASR/model parsing, and creates draft sessions.
+  Processes text/audio ingestion jobs, runs ASR plus deterministic parsing, creates draft sessions, and applies background cleaner updates.
 - `scheduler-worker`
   Handles morning digests, staged cleanup, transient message deletion, and non-production control endpoints.
 - `postgres`

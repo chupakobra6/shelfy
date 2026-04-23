@@ -141,7 +141,7 @@ func (s *Store) UpdateDraftPayload(ctx context.Context, draftID int64, payload m
 	return err
 }
 
-func (s *Store) ApplyDraftAIReviewIfReady(ctx context.Context, draftID int64, name string, expiresOn *time.Time, rawDeadline string, payload map[string]any) (bool, error) {
+func (s *Store) ApplyCleanerUpdateIfReady(ctx context.Context, draftID int64, name string, expiresOn *time.Time, rawDeadline string, payload map[string]any) (bool, error) {
 	if payload == nil {
 		payload = map[string]any{}
 	}
@@ -149,18 +149,21 @@ func (s *Store) ApplyDraftAIReviewIfReady(ctx context.Context, draftID int64, na
 	if err != nil {
 		return false, err
 	}
-	rowsAffected, err := s.queries.ApplyDraftAIReviewIfReady(ctx, sqlcgen.ApplyDraftAIReviewIfReadyParams{
-		ID:                draftID,
-		DraftName:         emptyToNil(name),
-		DraftExpiresOn:    pgDateFromTimePtr(expiresOn),
-		RawDeadlinePhrase: emptyToNil(rawDeadline),
-		DraftPayload:      encoded,
-	})
+	tag, err := s.pool.Exec(ctx, `
+UPDATE draft_sessions
+SET draft_name = $2,
+    draft_expires_on = $3,
+    raw_deadline_phrase = $4,
+    draft_payload = $5,
+    updated_at = NOW()
+WHERE id = $1
+  AND status = 'ready'
+`, draftID, emptyToNil(name), pgDateFromTimePtr(expiresOn), emptyToNil(rawDeadline), encoded)
 	if err != nil {
 		return false, err
 	}
-	if rowsAffected > 0 {
-		s.logger.DebugContext(ctx, "draft_ai_review_applied", observability.LogAttrs(ctx, "draft_id", draftID)...)
+	if tag.RowsAffected() > 0 {
+		s.logger.DebugContext(ctx, "cleaner_update_applied", observability.LogAttrs(ctx, "draft_id", draftID)...)
 		return true, nil
 	}
 	return false, nil

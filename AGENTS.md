@@ -42,7 +42,12 @@
   - `go test ./...`
 - If runtime startup, Docker wiring, or local commands changed, also check:
   - `make help`
+- Before concluding that live bot behavior is "missing" or that current-head code is not working, verify the running local stack is actually fresh:
+  - check container/process age,
+  - check expected job or payload markers,
+  - and prefer log/DB evidence over chat-only impressions.
 - After cross-repo Shelfy/e2e contract changes, prefer one current-head integrated rerun of the relevant end-to-end path instead of stopping at package-only greens.
+- If Telegram UI copy, button labels/order, dashboard flows, or control API behavior changes, sync the sibling `telegram-bot-e2e-test-tool` suite/docs in the same pass and finish with one live `make run-suite` there.
 
 ## Documentation boundaries
 - Keep tracked docs in English unless the user explicitly wants another language.

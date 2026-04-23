@@ -9,32 +9,6 @@ import (
 	"github.com/igor/shelfy/internal/domain"
 )
 
-func applyTextIntentGate(cleaned string, draft parsedDraft) (parsedDraft, string) {
-	normalized := normalizeIntentInput(cleaned)
-	if normalized == "" {
-		return draft, ""
-	}
-	if isGenericContainerName(draft.Name) && looksLikeMultiItemFoodInput(normalized) {
-		return parsedDraft{}, "multi_item"
-	}
-	if draft.Name == "" && draft.ExpiresOn != nil {
-		if looksLikeMultiItemFoodInput(normalized) {
-			return parsedDraft{}, "multi_item"
-		}
-		if looksLikeRejectTaskInput(normalized, draft) {
-			return parsedDraft{}, "non_food"
-		}
-		return draft, ""
-	}
-	if looksLikeMultiItemFoodInput(normalized) {
-		return parsedDraft{}, "multi_item"
-	}
-	if looksLikeRejectTaskInput(normalized, draft) {
-		return parsedDraft{}, "non_food"
-	}
-	return draft, ""
-}
-
 func normalizeVoiceTranscript(input string) string {
 	normalized := normalizedPolicyText(input)
 	if normalized == "" {
@@ -85,36 +59,6 @@ func normalizeIntentInput(input string) string {
 	return strings.Join(strings.Fields(normalized), " ")
 }
 
-func shouldRepairVoiceTranscript(input string, now time.Time) bool {
-	normalized := normalizeVoiceTranscript(input)
-	if normalized == "" {
-		return false
-	}
-	rawTokens := strings.Fields(normalizedPolicyText(input))
-	singleRuneTokens := 0
-	repeatedTokens := map[string]int{}
-	hasLatinNoise := false
-	for _, token := range rawTokens {
-		repeatedTokens[token]++
-		if repeatedTokens[token] >= 3 && letterRuneCount(token) <= 3 {
-			return true
-		}
-		if letterRuneCount(token) == 1 {
-			singleRuneTokens++
-		}
-		if isLatinOnlyName(token) && !containsFoodLexiconSignal(token) {
-			hasLatinNoise = true
-		}
-	}
-	if hasLatinNoise || singleRuneTokens > 0 {
-		return true
-	}
-	if containsFoodLexiconSignal(normalized) || hasDateSignal(normalized, now) {
-		return false
-	}
-	return true
-}
-
 func normalizedPolicyText(input string) string {
 	value := strings.ToLower(normalizeFreeText(input))
 	value = strings.ReplaceAll(value, "ё", "е")
@@ -135,14 +79,6 @@ func containsFoodLexiconSignal(input string) bool {
 		return false
 	}
 	return len(foodLexiconMatchesNormalized(normalized)) > 0
-}
-
-func countFoodLexiconHits(input string) int {
-	normalized := normalizedPolicyText(input)
-	if normalized == "" {
-		return 0
-	}
-	return len(foodLexiconMatchesNormalized(normalized))
 }
 
 func foodLexiconMatchesNormalized(normalized string) []string {
@@ -179,40 +115,6 @@ func foodLexiconMatchesNormalized(normalized string) []string {
 		i += bestLen
 	}
 	return uniqueStrings(matches)
-}
-
-func looksLikeMultiItemFoodInput(normalized string) bool {
-	normalized = normalizeIntentInput(normalized)
-	if strings.TrimSpace(normalized) == "" {
-		return false
-	}
-	padded := " " + normalized + " "
-	if looksLikeIngredientStackAmbiguity(normalized) {
-		return true
-	}
-	if looksLikeFlavorStackInput(normalized) {
-		return true
-	}
-	if strings.Contains(padded, " яблок ") && strings.Contains(padded, " бананы ") {
-		return true
-	}
-	if isGenericContainerName(normalized) && (strings.Contains(padded, " яблок ") || strings.Contains(padded, " яйца ")) {
-		return true
-	}
-	if countFoodLexiconHits(normalized) < 2 {
-		return false
-	}
-	for _, separator := range []string{" и ", ",", ";", " / "} {
-		if strings.Contains(normalized, separator) {
-			return true
-		}
-	}
-	for _, marker := range []string{" пакет ", " пакета ", " пачка ", " бутыл", " килограмм ", " килограмма ", " килограммов ", " десяток ", " булки "} {
-		if strings.Contains(" "+normalized+" ", marker) {
-			return true
-		}
-	}
-	return false
 }
 
 func looksLikeRejectTaskInput(normalized string, draft parsedDraft) bool {
@@ -253,32 +155,6 @@ func containsRejectIntentPhrase(normalized string) bool {
 		}
 	}
 	return false
-}
-
-func looksLikeIngredientStackAmbiguity(normalized string) bool {
-	padded := " " + normalizeIntentInput(normalized) + " "
-	if !strings.Contains(padded, " и ") || !containsAnyToken(normalized, quantityNoiseTokens) {
-		return false
-	}
-	return countFlavorMarkers(padded) >= 2
-}
-
-func looksLikeFlavorStackInput(normalized string) bool {
-	padded := " " + normalizeIntentInput(normalized) + " "
-	if !containsAnyToken(normalized, quantityNoiseTokens) {
-		return false
-	}
-	return countFlavorMarkers(padded) >= 2
-}
-
-func countFlavorMarkers(padded string) int {
-	markers := 0
-	for _, token := range []string{"вишней", "миндаля", "корицей", "кусочками"} {
-		if strings.Contains(padded, " "+token+" ") {
-			markers++
-		}
-	}
-	return markers
 }
 
 func hasDateSignal(input string, now time.Time) bool {

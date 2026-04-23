@@ -46,28 +46,18 @@ const (
 const (
 	JobTypeIngestText        = "ingest_text"
 	JobTypeIngestAudio       = "ingest_audio"
-	JobTypeRefineDraftAI     = "refine_draft_ai"
+	JobTypeCleanDraft        = "clean_draft"
 	JobTypeDeleteMessages    = "delete_messages"
 	JobTypeSendMorningDigest = "send_morning_digest"
 )
 
 const (
-	DraftPayloadKeyAIReviewStatus       = "ai_review_status"
-	DraftPayloadKeyFastSource           = "fast_source"
-	DraftPayloadKeyFastConfidence       = "fast_confidence"
-	DraftPayloadKeySmartReviewAttempted = "smart_review_attempted"
-	DraftPayloadKeyRawTranscript        = "raw_transcript"
-	DraftPayloadKeyNormalizedTranscript = "normalized_transcript"
-	DraftPayloadKeyOriginalText         = "original_text"
-	DraftPayloadKeyReviewCleanedText    = "review_cleaned_text"
-	DraftPayloadKeyReviewReasonCode     = "review_reason_code"
-	DraftPayloadKeyReviewApplyReason    = "review_apply_reason"
-	DraftPayloadKeyReviewApplied        = "review_applied"
-)
-
-const (
-	AIReviewStatusPending  = "pending"
-	AIReviewStatusImproved = "improved"
+	DraftPayloadKeyNormalizedInput = "normalized_input"
+	DraftPayloadKeyCleanerCalled   = "cleaner_called"
+	DraftPayloadKeyCleanedInput    = "cleaned_input"
+	DraftPayloadKeySelectionReason = "selection_reason"
+	DraftPayloadKeyChosenSource    = "chosen_source"
+	DraftPayloadKeyCleanerPending  = "cleaner_pending"
 )
 
 type Product struct {

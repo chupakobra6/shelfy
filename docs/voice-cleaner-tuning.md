@@ -1,6 +1,6 @@
-# Voice Review Tuning
+# Voice Cleaner Tuning
 
-This repo now uses a cleaner-only LLM review path:
+This repo now uses a cleaner-only LLM path:
 
 - fast parser creates the first draft
 - `cleaner` receives normalized text only
@@ -69,4 +69,4 @@ Then the next pass is:
 1. convert the JSONL into cleaner training pairs
 2. run prompt eval on the same set first
 3. if prompt-only is still weak, fine-tune Gemma on those cleaner pairs
-4. rerun `review_hard` plus live dogfood cases
+4. rerun `live_hard` plus live dogfood cases

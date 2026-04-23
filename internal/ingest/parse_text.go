@@ -1,13 +1,11 @@
 package ingest
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/igor/shelfy/internal/domain"
-	"github.com/igor/shelfy/internal/observability"
 )
 
 type parsedDraft struct {
@@ -19,81 +17,11 @@ type parsedDraft struct {
 	Source            string
 }
 
-func (s *Service) parseTextDraft(ctx context.Context, text string, now time.Time) (parsedDraft, error) {
-	cleaned := normalizeFreeText(text)
-	s.logger.InfoContext(ctx, "draft_text_input_prepared", observability.LogAttrs(ctx,
-		"text_len", len(cleaned),
-		"text_excerpt", excerptForLog(cleaned, 280),
-	)...)
-	result := heuristicParse(cleaned, now)
-	if result.Name != "" && result.ExpiresOn != nil {
-		if finalized, err := finalizeParsedTextDraft(cleaned, result); err == nil {
-			result = finalized
-		} else {
-			return parsedDraft{}, err
-		}
-		s.logger.InfoContext(ctx, "draft_parse_completed", observability.LogAttrs(ctx, "source", result.Source, "confidence", result.Confidence, "has_name", true, "has_expiry", true)...)
-		return result, nil
-	}
-	if !shouldTryTextModel(cleaned, result) {
-		finalized, err := finalizeParsedTextDraft(cleaned, result)
-		if err != nil {
-			return parsedDraft{}, err
-		}
-		result = finalized
-		s.logger.InfoContext(ctx, "draft_parse_completed", observability.LogAttrs(ctx,
-			"source", result.Source,
-			"confidence", result.Confidence,
-			"has_name", result.Name != "",
-			"has_expiry", result.ExpiresOn != nil,
-			"fast_path", true,
-		)...)
-		return result, nil
-	}
-	if structured, err := s.callOllamaText(ctx, cleaned); err == nil {
-		if structured.Name != "" && strings.TrimSpace(result.Name) == "" {
-			result.Name = structured.Name
-		}
-		if structured.RawDeadlinePhrase != "" && strings.TrimSpace(result.RawDeadlinePhrase) == "" {
-			result.RawDeadlinePhrase = structured.RawDeadlinePhrase
-		}
-		if result.ExpiresOn == nil && structured.RawDeadlinePhrase != "" {
-			resolvedPhrase, resolved := resolveDraftDeadlinePhrase(structured.RawDeadlinePhrase, now)
-			result.RawDeadlinePhrase = resolvedPhrase
-			result.ExpiresOn = resolved.Value
-			result.LockedExpiry = resolved.Absolute
-		}
-		if result.Name != "" || result.ExpiresOn != nil {
-			result.Confidence = "model"
-			result.Source = "ollama-text"
-		}
-	} else {
-		s.logger.WarnContext(ctx, "ollama_text_failed", observability.LogAttrs(ctx, "error", err)...)
-	}
-	finalized, err := finalizeParsedTextDraft(cleaned, result)
-	if err != nil {
-		return parsedDraft{}, err
-	}
-	result = finalized
-	s.logger.InfoContext(ctx, "draft_parse_completed", observability.LogAttrs(ctx,
-		"source", result.Source,
-		"confidence", result.Confidence,
-		"has_name", result.Name != "",
-		"has_expiry", result.ExpiresOn != nil,
-	)...)
-	return result, nil
-}
-
 func finalizeParsedTextDraft(cleaned string, result parsedDraft) (parsedDraft, error) {
 	if result.Name == "" && result.ExpiresOn == nil {
 		return parsedDraft{}, fmt.Errorf("unable to extract any draft fields")
 	}
 	result.Name = normalizeDraftName(result.Name)
-	if gated, reason := applyTextIntentGate(cleaned, result); reason != "" {
-		return parsedDraft{}, fmt.Errorf("text rejected by intent gate: %s", reason)
-	} else {
-		result = gated
-	}
 	if result.Name == "" && result.ExpiresOn == nil {
 		return parsedDraft{}, fmt.Errorf("unable to extract any draft fields")
 	}
@@ -268,46 +196,6 @@ func normalizeDraftName(input string) string {
 func withNormalizedDraftName(draft parsedDraft) parsedDraft {
 	draft.Name = normalizeDraftName(draft.Name)
 	return draft
-}
-
-func shouldTryTextModel(cleaned string, current parsedDraft) bool {
-	if strings.TrimSpace(cleaned) == "" {
-		return false
-	}
-	if current.Name != "" && current.ExpiresOn != nil {
-		return false
-	}
-	if current.Name != "" && current.ExpiresOn == nil && looksLikePlainProductName(cleaned) {
-		return false
-	}
-	if current.Name == "" && current.ExpiresOn != nil {
-		return false
-	}
-	return true
-}
-
-func looksLikePlainProductName(cleaned string) bool {
-	lower := strings.ToLower(strings.TrimSpace(cleaned))
-	if lower == "" {
-		return false
-	}
-	if len(strings.Fields(lower)) > 4 {
-		return false
-	}
-	for _, marker := range []string{
-		"до ", " by ", "expires", "exp ", "сегодня", "завтра",
-		"янв", "фев", "мар", "апр", "мая", "июн", "июл", "авг", "сен", "окт", "ноя", "дек",
-		"пн", "вт", "ср", "чт", "пт", "сб", "вс",
-		"закаж", "слушай", "алиса", "джой", "салют", "пожалуйста", "доставк", "домой", "на дом",
-	} {
-		if strings.Contains(lower, marker) {
-			return false
-		}
-	}
-	if strings.ContainsAny(lower, "0123456789./-") {
-		return false
-	}
-	return true
 }
 
 func splitTrailingDatePhrase(cleaned string, now time.Time) (name string, phrase string, resolved domain.ResolvedDate, ok bool) {

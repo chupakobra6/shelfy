@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,18 +14,26 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	runtime, err := bootstrap.Load(ctx, true)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer runtime.Close()
 	cfg := runtime.Config
 	tg := telegram.NewClient(cfg.BotToken, runtime.Logger)
 	service := ingest.NewService(runtime.Store, tg, runtime.Copy, runtime.Logger, cfg.TmpDir, cfg.OllamaBaseURL, cfg.OllamaModel, cfg.VoskCommand, cfg.VoskModelPath, cfg.VoskGrammarPath)
 	if err := worker.Run(ctx, runtime.Logger, runtime.Store, cfg.JobPollInterval, "pipeline-worker", service); err != nil && err != context.Canceled {
-		panic(err)
+		return err
 	}
+	return nil
 }

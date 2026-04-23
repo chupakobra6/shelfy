@@ -21,8 +21,6 @@ labels:
   draft.button.edit_date: "📅 Срок"
   draft.button.cancel: "↩️ Отмена"
   draft.value.missing: "не указан"
-  draft.ai_review.pending: "🤖 Умное распознавание: уточняю карточку."
-  draft.ai_review.improved: "🤖 Умное распознавание: уточнил карточку."
   source_kind.text: "текст"
   source_kind.voice: "голосовое"
   source_kind.audio: "аудио"
@@ -49,7 +47,9 @@ messages:
     Срок: <b>{{expires_on}}</b>
     Источник: <b>{{source_kind}}</b>
     
-    {{ai_review_block}}{{missing_fields}}
+    {{missing_fields}}
+    {{cleaner_status}}
+  draft.cleaner_pending: "🧠 Идёт умное распознавание..."
   draft.confirmed: "✅ Запомнил: <b>{{name}}</b> до <b>{{expires_on}}</b>."
   ingest.failed: "⚠️ Не смог разобрать продукт или срок. Попробуй еще раз или напиши текстом."
   draft.edit_name_prompt: "📝 Пришли следующим сообщением только название продукта."

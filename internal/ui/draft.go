@@ -26,12 +26,19 @@ func (r *Renderer) DraftCard(draft domain.DraftSession) (string, *telegram.Inlin
 	if err != nil {
 		return "", nil, err
 	}
+	cleanerStatus := ""
+	if draftCleanerPending(draft) {
+		cleanerStatus, err = r.copy.Render("draft.cleaner_pending", nil)
+		if err != nil {
+			return "", nil, err
+		}
+	}
 	text, err := r.copy.Render("draft.card", map[string]any{
-		"name":            escapeHTML(name),
-		"expires_on":      r.formatOptionalDate(draft.DraftExpiresOn),
-		"missing_fields":  missing,
-		"source_kind":     sourceLabel,
-		"ai_review_block": r.aiReviewBlock(draft),
+		"name":           escapeHTML(name),
+		"expires_on":     r.formatOptionalDate(draft.DraftExpiresOn),
+		"missing_fields": missing,
+		"source_kind":    sourceLabel,
+		"cleaner_status": cleanerStatus,
 	})
 	if err != nil {
 		return "", nil, err
@@ -55,12 +62,12 @@ func (r *Renderer) DraftCard(draft domain.DraftSession) (string, *telegram.Inlin
 	return text, &telegram.InlineKeyboardMarkup{
 		InlineKeyboard: [][]telegram.InlineKeyboardButton{
 			{
-				{Text: confirmLabel, CallbackData: fmt.Sprintf("draft:confirm:%d", draft.ID)},
 				{Text: editNameLabel, CallbackData: fmt.Sprintf("draft:edit_name:%d", draft.ID)},
+				{Text: editDateLabel, CallbackData: fmt.Sprintf("draft:edit_date:%d", draft.ID)},
 			},
 			{
-				{Text: editDateLabel, CallbackData: fmt.Sprintf("draft:edit_date:%d", draft.ID)},
 				{Text: cancelLabel, CallbackData: fmt.Sprintf("draft:cancel:%d", draft.ID)},
+				{Text: confirmLabel, CallbackData: fmt.Sprintf("draft:confirm:%d", draft.ID)},
 			},
 		},
 	}, nil
@@ -137,16 +144,14 @@ func (r *Renderer) formatOptionalDate(value *time.Time) string {
 	return value.Format("2006-01-02")
 }
 
-func (r *Renderer) aiReviewBlock(draft domain.DraftSession) string {
-	status, _ := draft.DraftPayload[domain.DraftPayloadKeyAIReviewStatus].(string)
-	status = strings.TrimSpace(status)
-	if status == "" {
-		return ""
+func draftCleanerPending(draft domain.DraftSession) bool {
+	if draft.DraftPayload == nil {
+		return false
 	}
-	labelID := "draft.ai_review." + status
-	text, err := r.copy.Label(labelID)
-	if err != nil {
-		return ""
+	value, ok := draft.DraftPayload[domain.DraftPayloadKeyCleanerPending]
+	if !ok {
+		return false
 	}
-	return text + "\n\n"
+	pending, ok := value.(bool)
+	return ok && pending
 }

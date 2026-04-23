@@ -21,12 +21,19 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	runtime, err := bootstrap.Load(ctx, true)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer runtime.Close()
 	tg := telegram.NewClient(runtime.Config.BotToken, runtime.Logger)
@@ -59,14 +66,14 @@ func main() {
 		updates, err := tg.PollUpdates(ctx, offset, runtime.Config.PollTimeoutSeconds)
 		if err != nil {
 			if errors.Is(err, context.Canceled) {
-				return
+				return nil
 			}
 			pollErrorStreak++
 			logPollError(runtime.Logger, ctx, err, pollErrorStreak)
 			select {
 			case <-time.After(pollRetryDelay(pollErrorStreak)):
 			case <-ctx.Done():
-				return
+				return nil
 			}
 			continue
 		}
@@ -101,7 +108,7 @@ func main() {
 				handleUpdate(jobCtx, runtime.Logger, service, update)
 			}); err != nil {
 				if errors.Is(err, dispatcher.ErrDispatcherClosed) || errors.Is(err, context.Canceled) {
-					return
+					return nil
 				}
 				runtime.Logger.ErrorContext(updateCtx, "dispatch_update_failed", "update_id", update.UpdateID, "error", err)
 			}

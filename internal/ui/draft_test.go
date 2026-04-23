@@ -23,24 +23,7 @@ func loadDraftTestRenderer(t *testing.T) *Renderer {
 	return New(loader)
 }
 
-func TestDraftCardRendersPendingAIReviewLine(t *testing.T) {
-	renderer := loadDraftTestRenderer(t)
-	text, _, err := renderer.DraftCard(domain.DraftSession{
-		SourceKind: domain.MessageKindText,
-		DraftName:  "молоко",
-		DraftPayload: map[string]any{
-			domain.DraftPayloadKeyAIReviewStatus: domain.AIReviewStatusPending,
-		},
-	})
-	if err != nil {
-		t.Fatalf("DraftCard() error = %v", err)
-	}
-	if !strings.Contains(text, "Умное распознавание: уточняю карточку.") {
-		t.Fatalf("draft card is missing pending ai review line: %q", text)
-	}
-}
-
-func TestDraftCardOmitsAIReviewLineWhenStatusEmpty(t *testing.T) {
+func TestDraftCardOmitsCleanerPendingByDefault(t *testing.T) {
 	renderer := loadDraftTestRenderer(t)
 	text, _, err := renderer.DraftCard(domain.DraftSession{
 		SourceKind: domain.MessageKindText,
@@ -50,11 +33,28 @@ func TestDraftCardOmitsAIReviewLineWhenStatusEmpty(t *testing.T) {
 		t.Fatalf("DraftCard() error = %v", err)
 	}
 	if strings.Contains(text, "Умное распознавание") {
-		t.Fatalf("draft card unexpectedly contains ai review line: %q", text)
+		t.Fatalf("draft card unexpectedly contains cleaner pending line: %q", text)
 	}
 }
 
-func TestDraftCardRendersSingleCloseAction(t *testing.T) {
+func TestDraftCardShowsCleanerPending(t *testing.T) {
+	renderer := loadDraftTestRenderer(t)
+	text, _, err := renderer.DraftCard(domain.DraftSession{
+		SourceKind: domain.MessageKindText,
+		DraftName:  "молоко",
+		DraftPayload: map[string]any{
+			domain.DraftPayloadKeyCleanerPending: true,
+		},
+	})
+	if err != nil {
+		t.Fatalf("DraftCard() error = %v", err)
+	}
+	if !strings.Contains(text, "Идёт умное распознавание") {
+		t.Fatalf("draft card does not contain cleaner pending line: %q", text)
+	}
+}
+
+func TestDraftCardButtonOrder(t *testing.T) {
 	renderer := loadDraftTestRenderer(t)
 	_, markup, err := renderer.DraftCard(domain.DraftSession{
 		ID:         42,
@@ -70,15 +70,25 @@ func TestDraftCardRendersSingleCloseAction(t *testing.T) {
 	if len(markup.InlineKeyboard) != 2 {
 		t.Fatalf("keyboard rows = %d, want 2", len(markup.InlineKeyboard))
 	}
+	firstRow := markup.InlineKeyboard[0]
+	if len(firstRow) != 2 {
+		t.Fatalf("first row buttons = %d, want 2", len(firstRow))
+	}
+	if firstRow[0].CallbackData != "draft:edit_name:42" {
+		t.Fatalf("first row first callback = %q, want draft:edit_name:42", firstRow[0].CallbackData)
+	}
+	if firstRow[1].CallbackData != "draft:edit_date:42" {
+		t.Fatalf("first row second callback = %q, want draft:edit_date:42", firstRow[1].CallbackData)
+	}
 	lastRow := markup.InlineKeyboard[len(markup.InlineKeyboard)-1]
 	if len(lastRow) != 2 {
 		t.Fatalf("last row buttons = %d, want 2", len(lastRow))
 	}
-	if lastRow[0].CallbackData != "draft:edit_date:42" {
-		t.Fatalf("last row first callback = %q, want draft:edit_date:42", lastRow[0].CallbackData)
+	if lastRow[0].CallbackData != "draft:cancel:42" {
+		t.Fatalf("last row first callback = %q, want draft:cancel:42", lastRow[0].CallbackData)
 	}
-	if lastRow[1].CallbackData != "draft:cancel:42" {
-		t.Fatalf("last row second callback = %q, want draft:cancel:42", lastRow[1].CallbackData)
+	if lastRow[1].CallbackData != "draft:confirm:42" {
+		t.Fatalf("last row second callback = %q, want draft:confirm:42", lastRow[1].CallbackData)
 	}
 	for _, row := range markup.InlineKeyboard {
 		for _, button := range row {

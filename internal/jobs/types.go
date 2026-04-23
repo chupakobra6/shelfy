@@ -30,14 +30,13 @@ type IngestPayload struct {
 	Kind              domain.MessageKind `json:"kind"`
 }
 
-type RefineDraftAIPayload struct {
-	TraceID              string             `json:"trace_id"`
-	UserID               int64              `json:"user_id"`
-	ChatID               int64              `json:"chat_id"`
-	SourceKind           domain.MessageKind `json:"source_kind"`
-	OriginalText         string             `json:"original_text,omitempty"`
-	RawTranscript        string             `json:"raw_transcript,omitempty"`
-	NormalizedTranscript string             `json:"normalized_transcript,omitempty"`
+type CleanDraftPayload struct {
+	TraceID         string             `json:"trace_id"`
+	DraftID         int64              `json:"draft_id"`
+	UserID          int64              `json:"user_id"`
+	ChatID          int64              `json:"chat_id"`
+	Kind            domain.MessageKind `json:"kind"`
+	NormalizedInput string             `json:"normalized_input"`
 }
 
 type DeleteMessagesPayload struct {

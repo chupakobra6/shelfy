@@ -94,21 +94,6 @@ func TestExtractNaturalDateOnlyFromText(t *testing.T) {
 	}
 }
 
-func TestShouldTryTextModelSkipsPlainProductName(t *testing.T) {
-	if !looksLikePlainProductName("молоко") {
-		t.Fatalf("expected plain product name to be detected")
-	}
-	if shouldTryTextModel("молоко", parsedDraft{Name: "молоко", Confidence: "low", Source: "heuristic_name_only"}) {
-		t.Fatalf("expected plain product name to skip text model")
-	}
-}
-
-func TestShouldTryTextModelKeepsModelFallbackForUnresolvedMixedText(t *testing.T) {
-	if !shouldTryTextModel("очень странная фраза про молоко когда-нибудь", parsedDraft{Name: "очень странная фраза про молоко когда-нибудь", Confidence: "low", Source: "heuristic_name_only"}) {
-		t.Fatalf("expected unresolved mixed text to keep model fallback")
-	}
-}
-
 func TestNormalizeDraftNameStripsActionPrefix(t *testing.T) {
 	if got := normalizeDraftName("нужно добавить молоко"); got != "молоко" {
 		t.Fatalf("normalizeDraftName() = %q, want молоко", got)
@@ -162,8 +147,12 @@ func TestParseFastDraftVoiceRegressionCases(t *testing.T) {
 		t.Fatalf("draft = %#v, want name-only пельмени лукович", draft)
 	}
 
-	if _, err := parseFastDraft("так мне нужны огурцы помидоры болгарский красный перец десяток яиц и молоко обезжиренное литр", now); err == nil {
-		t.Fatal("expected multi-item input to be rejected")
+	multiItem, err := parseFastDraft("так мне нужны огурцы помидоры болгарский красный перец десяток яиц и молоко обезжиренное литр", now)
+	if err != nil {
+		t.Fatalf("parseFastDraft() on multi-item input error = %v", err)
+	}
+	if multiItem.Name == "" {
+		t.Fatalf("multiItem = %#v, want non-empty entity", multiItem)
 	}
 
 	voiceDate, err := parseFastDraft(normalizeVoiceTranscript("фарш до второго число"), now)

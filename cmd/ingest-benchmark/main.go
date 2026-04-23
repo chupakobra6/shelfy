@@ -25,10 +25,10 @@ type corpus struct {
 	ReferenceTime string      `json:"reference_time"`
 	Text          []textCase  `json:"text"`
 	Voice         []voiceCase `json:"voice"`
-	ReviewHard    reviewHard  `json:"review_hard"`
+	LiveHard      liveHard    `json:"live_hard"`
 }
 
-type reviewHard struct {
+type liveHard struct {
 	TextIDs  []string `json:"text_ids"`
 	VoiceIDs []string `json:"voice_ids"`
 }
@@ -88,7 +88,7 @@ func main() {
 		corpusPath          = flag.String("corpus", "internal/ingest/testdata/benchmark_corpus.json", "path to benchmark corpus")
 		ollamaBaseURL       = flag.String("ollama-base-url", "http://127.0.0.1:11434", "Ollama base URL")
 		ollamaModel         = flag.String("ollama-model", "gemma3:4b", "Ollama model")
-		include             = flag.String("include", "text,voice,review_hard", "comma-separated families to run: text,voice,review_hard")
+		include             = flag.String("include", "text,voice,live_hard", "comma-separated families to run: text,voice,live_hard")
 		limit               = flag.Int("limit", 0, "optional per-family case limit for faster smoke runs")
 		runtimeBaseImage    = flag.String("runtime-base-image", defaultString(os.Getenv("SHELFY_RUNTIME_BASE_IMAGE"), defaultRuntimeBaseImage), "shared runtime image for docker-backed benchmark helpers")
 		pipelineWorkerImage = flag.String("pipeline-worker-image", defaultString(os.Getenv("SHELFY_PIPELINE_WORKER_IMAGE"), defaultPipelineWorkerImage), "docker image with vosk-transcribe installed")
@@ -97,7 +97,7 @@ func main() {
 		voskModelPath       = flag.String("vosk-model-path", "/models/vosk-model-small-ru-0.22", "container path to the Vosk model directory")
 		voskGrammarPath     = flag.String("vosk-grammar-path", "assets/asr/vosk-grammar.ru.json", "host path to optional Vosk grammar JSON file")
 		cacheDir            = flag.String("cache-dir", "tmp/ingest-benchmark", "cache directory for downloaded public assets and generated reports")
-		emitReport          = flag.Bool("emit-report", false, "write a local HTML review report")
+		emitReport          = flag.Bool("emit-report", false, "write a local HTML audit report")
 		reportDir           = flag.String("report-dir", "", "directory for the HTML benchmark report")
 		copyArtifacts       = flag.Bool("copy-artifacts", true, "copy images/audio artifacts into the report directory")
 		caseFilter          = flag.String("case-filter", "", "substring filter applied to case ids")
@@ -140,8 +140,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	reviewHardText := filterTextCases(resolveReviewHardText(suite), cfg.caseFilter, cfg.tagFilter, cfg.limit)
-	reviewHardVoice := filterVoiceCases(resolveReviewHardVoice(suite), cfg.caseFilter, cfg.tagFilter, cfg.limit)
+	liveHardText := filterTextCases(resolveLiveHardText(suite), cfg.caseFilter, cfg.tagFilter, cfg.limit)
+	liveHardVoice := filterVoiceCases(resolveLiveHardVoice(suite), cfg.caseFilter, cfg.tagFilter, cfg.limit)
 	suite.Text = filterTextCases(suite.Text, cfg.caseFilter, cfg.tagFilter, cfg.limit)
 	suite.Voice = filterVoiceCases(suite.Voice, cfg.caseFilter, cfg.tagFilter, cfg.limit)
 	if !cfg.include["voice"] {
@@ -150,9 +150,9 @@ func main() {
 	if !cfg.include["text"] {
 		suite.Text = nil
 	}
-	if !cfg.include["review_hard"] {
-		reviewHardText = nil
-		reviewHardVoice = nil
+	if !cfg.include["live_hard"] {
+		liveHardText = nil
+		liveHardVoice = nil
 	}
 
 	referenceTime, err := time.Parse(time.RFC3339, suite.ReferenceTime)
@@ -168,7 +168,7 @@ func main() {
 		log.Fatal(err)
 	}
 	if cfg.datasetSetup {
-		prefetchSuite := corpus{Voice: append(append([]voiceCase(nil), suite.Voice...), reviewHardVoice...)}
+		prefetchSuite := corpus{Voice: append(append([]voiceCase(nil), suite.Voice...), liveHardVoice...)}
 		prefetchSuite.Voice = dedupeVoiceCases(prefetchSuite.Voice)
 		if err := runtime.prefetchAssets(context.Background(), prefetchSuite); err != nil {
 			log.Fatal(err)
@@ -184,10 +184,10 @@ func main() {
 	var summaries []variantSummary
 	if cfg.include["text"] {
 		summaries = append(summaries,
-			runTextVariant("text", "text_fast_first", suite.Text, proxy, func(ctx context.Context, tc textCase) (ingest.EvalResult, error) {
+			runTextVariant("text", "text_fast_only", suite.Text, proxy, func(ctx context.Context, tc textCase) (ingest.EvalResult, error) {
 				return evaluator.FirstTextCard(ctx, tc.Input, referenceTime)
 			}),
-			runTextReviewVariant("text", "text_fast_plus_review", suite.Text, proxy, func(ctx context.Context, tc textCase) ingest.PipelineEvalResult {
+			runTextCleanerVariant("text", "text_fast_plus_cleaner", suite.Text, proxy, func(ctx context.Context, tc textCase) ingest.PipelineEvalResult {
 				return evaluator.TextPipeline(ctx, tc.Input, referenceTime)
 			}),
 		)
@@ -196,29 +196,29 @@ func main() {
 		summaries = append(summaries,
 			runVoiceVariant(suite.Voice, voiceVariantSpec{
 				Family: "voice",
-				Name:   "voice_vosk_fast_first",
+				Name:   "voice_vosk_fast_only",
 			}, proxy, runtime, evaluator, cfg, referenceTime),
-			runVoiceReviewVariant(suite.Voice, voiceVariantSpec{
+			runVoiceCleanerVariant(suite.Voice, voiceVariantSpec{
 				Family: "voice",
-				Name:   "voice_vosk_fast_plus_review",
+				Name:   "voice_vosk_fast_plus_cleaner",
 			}, proxy, runtime, evaluator, cfg, referenceTime),
 		)
 	}
-	if cfg.include["review_hard"] {
+	if cfg.include["live_hard"] {
 		summaries = append(summaries,
-			runTextVariant("review_hard_text", "text_fast_first", reviewHardText, proxy, func(ctx context.Context, tc textCase) (ingest.EvalResult, error) {
+			runTextVariant("live_hard_text", "text_fast_only", liveHardText, proxy, func(ctx context.Context, tc textCase) (ingest.EvalResult, error) {
 				return evaluator.FirstTextCard(ctx, tc.Input, referenceTime)
 			}),
-			runTextReviewVariant("review_hard_text", "text_fast_plus_cleaner_judge", reviewHardText, proxy, func(ctx context.Context, tc textCase) ingest.PipelineEvalResult {
+			runTextCleanerVariant("live_hard_text", "text_fast_plus_cleaner", liveHardText, proxy, func(ctx context.Context, tc textCase) ingest.PipelineEvalResult {
 				return evaluator.TextPipeline(ctx, tc.Input, referenceTime)
 			}),
-			runVoiceVariant(reviewHardVoice, voiceVariantSpec{
-				Family: "review_hard_voice",
-				Name:   "voice_vosk_fast_first",
+			runVoiceVariant(liveHardVoice, voiceVariantSpec{
+				Family: "live_hard_voice",
+				Name:   "voice_vosk_fast_only",
 			}, proxy, runtime, evaluator, cfg, referenceTime),
-			runVoiceReviewVariant(reviewHardVoice, voiceVariantSpec{
-				Family: "review_hard_voice",
-				Name:   "voice_vosk_fast_plus_cleaner_judge",
+			runVoiceCleanerVariant(liveHardVoice, voiceVariantSpec{
+				Family: "live_hard_voice",
+				Name:   "voice_vosk_fast_plus_cleaner",
 			}, proxy, runtime, evaluator, cfg, referenceTime),
 		)
 	}
@@ -291,18 +291,18 @@ func validateCorpus(suite corpus) error {
 	for _, tc := range suite.Text {
 		textIndex[tc.ID] = true
 	}
-	for _, id := range suite.ReviewHard.TextIDs {
+	for _, id := range suite.LiveHard.TextIDs {
 		if !textIndex[id] {
-			return fmt.Errorf("review_hard text id %s not found in text corpus", id)
+			return fmt.Errorf("live_hard text id %s not found in text corpus", id)
 		}
 	}
 	voiceIndex := map[string]bool{}
 	for _, vc := range suite.Voice {
 		voiceIndex[vc.ID] = true
 	}
-	for _, id := range suite.ReviewHard.VoiceIDs {
+	for _, id := range suite.LiveHard.VoiceIDs {
 		if !voiceIndex[id] {
-			return fmt.Errorf("review_hard voice id %s not found in voice corpus", id)
+			return fmt.Errorf("live_hard voice id %s not found in voice corpus", id)
 		}
 	}
 	return nil
@@ -336,21 +336,21 @@ func printSummaries(cfg runConfig, referenceTime time.Time, summaries []variantS
 	fmt.Printf("Reference time: %s\n", referenceTime.Format(time.RFC3339))
 	fmt.Printf("Corpus: %s\n", cfg.corpusPath)
 	fmt.Printf("Model: %s via %s\n\n", cfg.ollamaModel, cfg.ollamaBaseURL)
-	fmt.Printf("%-8s %-28s %5s %5s %5s %8s %8s %8s %9s\n", "family", "variant", "total", "exact", "fail", "llm_txt", "applied", "helped", "avg_ms")
+	fmt.Printf("%-8s %-30s %5s %5s %5s %8s %8s %8s %9s\n", "family", "variant", "total", "exact", "fail", "llm_txt", "applied", "helped", "avg_ms")
 	for _, summary := range summaries {
 		avgMs := 0.0
 		if summary.Total > 0 {
 			avgMs = float64(summary.Duration.Milliseconds()) / float64(summary.Total)
 		}
-		fmt.Printf("%-8s %-28s %5d %5d %5d %8d %8d %8d %9.1f\n",
+		fmt.Printf("%-8s %-30s %5d %5d %5d %8d %8d %8d %9.1f\n",
 			summary.Family,
 			summary.Variant,
 			summary.Total,
 			summary.Exact,
 			summary.Failed,
 			summary.TextCalls,
-			summary.ReviewApplied,
-			summary.ImprovedByReview,
+			summary.CleanerApplied,
+			summary.CleanerHelped,
 			avgMs,
 		)
 	}
@@ -413,16 +413,16 @@ func filterVoiceCases(cases []voiceCase, caseFilter string, tagFilter map[string
 	return out
 }
 
-func resolveReviewHardText(suite corpus) []textCase {
-	if len(suite.ReviewHard.TextIDs) == 0 {
+func resolveLiveHardText(suite corpus) []textCase {
+	if len(suite.LiveHard.TextIDs) == 0 {
 		return nil
 	}
 	index := make(map[string]textCase, len(suite.Text))
 	for _, tc := range suite.Text {
 		index[tc.ID] = tc
 	}
-	out := make([]textCase, 0, len(suite.ReviewHard.TextIDs))
-	for _, id := range suite.ReviewHard.TextIDs {
+	out := make([]textCase, 0, len(suite.LiveHard.TextIDs))
+	for _, id := range suite.LiveHard.TextIDs {
 		if tc, ok := index[id]; ok {
 			out = append(out, tc)
 		}
@@ -430,16 +430,16 @@ func resolveReviewHardText(suite corpus) []textCase {
 	return out
 }
 
-func resolveReviewHardVoice(suite corpus) []voiceCase {
-	if len(suite.ReviewHard.VoiceIDs) == 0 {
+func resolveLiveHardVoice(suite corpus) []voiceCase {
+	if len(suite.LiveHard.VoiceIDs) == 0 {
 		return nil
 	}
 	index := make(map[string]voiceCase, len(suite.Voice))
 	for _, vc := range suite.Voice {
 		index[vc.ID] = vc
 	}
-	out := make([]voiceCase, 0, len(suite.ReviewHard.VoiceIDs))
-	for _, id := range suite.ReviewHard.VoiceIDs {
+	out := make([]voiceCase, 0, len(suite.LiveHard.VoiceIDs))
+	for _, id := range suite.LiveHard.VoiceIDs {
 		if vc, ok := index[id]; ok {
 			out = append(out, vc)
 		}

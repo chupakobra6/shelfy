@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,12 +17,19 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	runtime, err := bootstrap.Load(ctx, false)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer runtime.Close()
 	cfg := runtime.Config
@@ -66,6 +74,7 @@ func main() {
 	}()
 
 	if err := worker.Run(ctx, runtime.Logger, runtime.Store, cfg.JobPollInterval, "scheduler-worker", service); err != nil && err != context.Canceled {
-		panic(err)
+		return err
 	}
+	return nil
 }

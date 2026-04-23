@@ -13,9 +13,10 @@
   - enqueues background work into `jobs`
 - `pipeline-worker`
   - consumes text/audio ingest jobs
-  - runs ASR and text/model parsing
+  - runs ASR and deterministic parsing
   - creates `draft_sessions`
   - sends transient draft cards
+  - runs one background cleaner pass while a draft is still `ready`
 - `scheduler-worker`
   - enqueues due morning digests
   - sends digest messages
