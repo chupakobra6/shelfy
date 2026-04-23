@@ -6,7 +6,6 @@ type MessageKind string
 
 const (
 	MessageKindText        MessageKind = "text"
-	MessageKindPhoto       MessageKind = "photo"
 	MessageKindVoice       MessageKind = "voice"
 	MessageKindAudio       MessageKind = "audio"
 	MessageKindUnsupported MessageKind = "unsupported"
@@ -46,10 +45,29 @@ const (
 
 const (
 	JobTypeIngestText        = "ingest_text"
-	JobTypeIngestPhoto       = "ingest_photo"
 	JobTypeIngestAudio       = "ingest_audio"
+	JobTypeRefineDraftAI     = "refine_draft_ai"
 	JobTypeDeleteMessages    = "delete_messages"
 	JobTypeSendMorningDigest = "send_morning_digest"
+)
+
+const (
+	DraftPayloadKeyAIReviewStatus       = "ai_review_status"
+	DraftPayloadKeyFastSource           = "fast_source"
+	DraftPayloadKeyFastConfidence       = "fast_confidence"
+	DraftPayloadKeySmartReviewAttempted = "smart_review_attempted"
+	DraftPayloadKeyRawTranscript        = "raw_transcript"
+	DraftPayloadKeyNormalizedTranscript = "normalized_transcript"
+	DraftPayloadKeyOriginalText         = "original_text"
+	DraftPayloadKeyReviewCleanedText    = "review_cleaned_text"
+	DraftPayloadKeyReviewReasonCode     = "review_reason_code"
+	DraftPayloadKeyReviewApplyReason    = "review_apply_reason"
+	DraftPayloadKeyReviewApplied        = "review_applied"
+)
+
+const (
+	AIReviewStatusPending  = "pending"
+	AIReviewStatusImproved = "improved"
 )
 
 type Product struct {

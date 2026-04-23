@@ -27,10 +27,11 @@ func (r *Renderer) DraftCard(draft domain.DraftSession) (string, *telegram.Inlin
 		return "", nil, err
 	}
 	text, err := r.copy.Render("draft.card", map[string]any{
-		"name":           escapeHTML(name),
-		"expires_on":     r.formatOptionalDate(draft.DraftExpiresOn),
-		"missing_fields": missing,
-		"source_kind":    sourceLabel,
+		"name":            escapeHTML(name),
+		"expires_on":      r.formatOptionalDate(draft.DraftExpiresOn),
+		"missing_fields":  missing,
+		"source_kind":     sourceLabel,
+		"ai_review_block": r.aiReviewBlock(draft),
 	})
 	if err != nil {
 		return "", nil, err
@@ -47,10 +48,6 @@ func (r *Renderer) DraftCard(draft domain.DraftSession) (string, *telegram.Inlin
 	if err != nil {
 		return "", nil, err
 	}
-	deleteLabel, err := r.copy.Label("draft.button.delete")
-	if err != nil {
-		return "", nil, err
-	}
 	cancelLabel, err := r.copy.Label("draft.button.cancel")
 	if err != nil {
 		return "", nil, err
@@ -63,9 +60,8 @@ func (r *Renderer) DraftCard(draft domain.DraftSession) (string, *telegram.Inlin
 			},
 			{
 				{Text: editDateLabel, CallbackData: fmt.Sprintf("draft:edit_date:%d", draft.ID)},
-				{Text: deleteLabel, CallbackData: fmt.Sprintf("draft:delete:%d", draft.ID)},
+				{Text: cancelLabel, CallbackData: fmt.Sprintf("draft:cancel:%d", draft.ID)},
 			},
-			{{Text: cancelLabel, CallbackData: fmt.Sprintf("draft:cancel:%d", draft.ID)}},
 		},
 	}, nil
 }
@@ -83,10 +79,6 @@ func (r *Renderer) DraftConfirmed(name string, expiresOn time.Time) (string, err
 		"name":       escapeHTML(name),
 		"expires_on": expiresOn.Format("2006-01-02"),
 	})
-}
-
-func (r *Renderer) DraftCanceled() (string, error) {
-	return r.copy.Render("draft.canceled", nil)
 }
 
 func (r *Renderer) DraftIncomplete() (string, error) {
@@ -143,4 +135,18 @@ func (r *Renderer) formatOptionalDate(value *time.Time) string {
 		return ""
 	}
 	return value.Format("2006-01-02")
+}
+
+func (r *Renderer) aiReviewBlock(draft domain.DraftSession) string {
+	status, _ := draft.DraftPayload[domain.DraftPayloadKeyAIReviewStatus].(string)
+	status = strings.TrimSpace(status)
+	if status == "" {
+		return ""
+	}
+	labelID := "draft.ai_review." + status
+	text, err := r.copy.Label(labelID)
+	if err != nil {
+		return ""
+	}
+	return text + "\n\n"
 }

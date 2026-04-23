@@ -11,6 +11,39 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const applyDraftAIReviewIfReady = `-- name: ApplyDraftAIReviewIfReady :execrows
+UPDATE draft_sessions
+SET draft_name = $2,
+    draft_expires_on = $3,
+    raw_deadline_phrase = $4,
+    draft_payload = $5,
+    updated_at = NOW()
+WHERE id = $1
+  AND status = 'ready'
+`
+
+type ApplyDraftAIReviewIfReadyParams struct {
+	ID                int64
+	DraftName         *string
+	DraftExpiresOn    pgtype.Date
+	RawDeadlinePhrase *string
+	DraftPayload      []byte
+}
+
+func (q *Queries) ApplyDraftAIReviewIfReady(ctx context.Context, arg ApplyDraftAIReviewIfReadyParams) (int64, error) {
+	result, err := q.db.Exec(ctx, applyDraftAIReviewIfReady,
+		arg.ID,
+		arg.DraftName,
+		arg.DraftExpiresOn,
+		arg.RawDeadlinePhrase,
+		arg.DraftPayload,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const createDraftSession = `-- name: CreateDraftSession :one
 INSERT INTO draft_sessions (
     trace_id, user_id, chat_id, source_kind, status, source_message_id, feedback_message_id,
@@ -327,6 +360,23 @@ func (q *Queries) UpdateDraftFields(ctx context.Context, arg UpdateDraftFieldsPa
 		arg.RawDeadlinePhrase,
 		arg.Status,
 	)
+	return err
+}
+
+const updateDraftPayload = `-- name: UpdateDraftPayload :exec
+UPDATE draft_sessions
+SET draft_payload = $2,
+    updated_at = NOW()
+WHERE id = $1
+`
+
+type UpdateDraftPayloadParams struct {
+	ID           int64
+	DraftPayload []byte
+}
+
+func (q *Queries) UpdateDraftPayload(ctx context.Context, arg UpdateDraftPayloadParams) error {
+	_, err := q.db.Exec(ctx, updateDraftPayload, arg.ID, arg.DraftPayload)
 	return err
 }
 

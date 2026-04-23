@@ -27,8 +27,17 @@ type IngestPayload struct {
 	FeedbackMessageID int64              `json:"feedback_message_id,omitempty"`
 	FileID            string             `json:"file_id,omitempty"`
 	Text              string             `json:"text,omitempty"`
-	Caption           string             `json:"caption,omitempty"`
 	Kind              domain.MessageKind `json:"kind"`
+}
+
+type RefineDraftAIPayload struct {
+	TraceID              string             `json:"trace_id"`
+	UserID               int64              `json:"user_id"`
+	ChatID               int64              `json:"chat_id"`
+	SourceKind           domain.MessageKind `json:"source_kind"`
+	OriginalText         string             `json:"original_text,omitempty"`
+	RawTranscript        string             `json:"raw_transcript,omitempty"`
+	NormalizedTranscript string             `json:"normalized_transcript,omitempty"`
 }
 
 type DeleteMessagesPayload struct {

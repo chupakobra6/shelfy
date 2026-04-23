@@ -1,8 +1,0 @@
-# Covers photo upload and the bot's first visible media-processing reaction.
-{"id":"select_chat","action":"select_chat","chat":"@your_bot_username"}
-{"id":"send_photo","action":"send_photo","path":"@fixtures/e2e-photo.png"}
-{"id":"wait_photo_processing","action":"wait","timeout_ms":30000}
-{"id":"wait_photo_result","action":"wait","timeout_ms":30000}
-{"id":"dump_photo_result","action":"dump_state"}
-{"id":"cancel_photo_draft","action":"click_button","button_text":"↩️ Отмена"}
-{"id":"wait_photo_home","action":"wait","timeout_ms":30000}

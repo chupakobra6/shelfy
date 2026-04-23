@@ -200,13 +200,15 @@ type fakeTelegram struct {
 	sendRequests   []telegram.SendMessageRequest
 	editRequests   []telegram.EditMessageTextRequest
 	deleteRequests []int64
+	deleteBatches  [][]int64
 	pinRequests    []int64
 
-	sendResponses []telegram.Message
-	sendErrs      []error
-	editErrs      []error
-	pinErrs       []error
-	deleteErrs    []error
+	sendResponses  []telegram.Message
+	sendErrs       []error
+	editErrs       []error
+	pinErrs        []error
+	deleteErrs     []error
+	deleteBatchErr error
 }
 
 func (t *fakeTelegram) SendMessage(_ context.Context, request telegram.SendMessageRequest) (telegram.Message, error) {
@@ -244,6 +246,12 @@ func (t *fakeTelegram) DeleteMessage(_ context.Context, _ int64, messageID int64
 		return err
 	}
 	return nil
+}
+
+func (t *fakeTelegram) DeleteMessages(_ context.Context, _ int64, messageIDs []int64) error {
+	copied := append([]int64(nil), messageIDs...)
+	t.deleteBatches = append(t.deleteBatches, copied)
+	return t.deleteBatchErr
 }
 
 func (t *fakeTelegram) PinMessage(_ context.Context, _ int64, messageID int64) error {

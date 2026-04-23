@@ -39,9 +39,9 @@ func main() {
 		runtime.Config.TmpDir,
 		runtime.Config.OllamaBaseURL,
 		runtime.Config.OllamaModel,
-		runtime.Config.TesseractCommand,
 		runtime.Config.VoskCommand,
 		runtime.Config.VoskModelPath,
+		runtime.Config.VoskGrammarPath,
 	)
 	service := bot.NewService(runtime.Store, tg, runtime.Copy, runtime.Logger, runtime.Config.DefaultTimezone, runtime.Config.DigestLocalTime, fastText)
 	updateDispatcher := dispatcher.New(32, 5*time.Minute)

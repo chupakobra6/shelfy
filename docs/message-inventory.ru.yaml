@@ -36,7 +36,7 @@ messages:
   draft.card:
     purpose: "Transient product draft confirmation card."
     location: "Separate transient draft message."
-    trigger: "Shown when a draft session is ready."
+    trigger: "Shown when a draft session is ready and later updated in place while smart review is still allowed."
     auto_delete: true
     emojis_required: true
     max_length_hint: 500
@@ -45,11 +45,11 @@ messages:
       - expires_on
       - missing_fields
       - source_kind
+      - ai_review_block
     buttons:
       - draft:confirm
       - draft:edit_name
       - draft:edit_date
-      - draft:delete
       - draft:cancel
   draft.confirmed:
     purpose: "Confirmation after a draft becomes a saved product."
@@ -62,19 +62,10 @@ messages:
       - name
       - expires_on
     buttons: []
-  draft.canceled:
-    purpose: "Confirmation after a draft is canceled."
-    location: "Transient bot message."
-    trigger: "Draft was canceled by the user."
-    auto_delete: true
-    emojis_required: true
-    max_length_hint: 140
-    interpolation_fields: []
-    buttons: []
   ingest.failed:
     purpose: "Background pipeline failed to produce a draft."
     location: "Transient bot message."
-    trigger: "OCR, ASR, parsing, or other ingest stage failed."
+    trigger: "ASR, text parsing, or other supported ingest stage failed."
     auto_delete: true
     emojis_required: true
     max_length_hint: 180

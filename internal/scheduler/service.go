@@ -18,6 +18,7 @@ import (
 
 type TelegramAPI interface {
 	DeleteMessage(ctx context.Context, chatID, messageID int64) error
+	DeleteMessages(ctx context.Context, chatID int64, messageIDs []int64) error
 	SendMessage(ctx context.Context, request telegram.SendMessageRequest) (telegram.Message, error)
 }
 
@@ -81,6 +82,24 @@ func (s *Service) ProcessJob(ctx context.Context, job jobs.Envelope) error {
 		var payload jobs.DeleteMessagesPayload
 		if err := json.Unmarshal(job.Payload, &payload); err != nil {
 			return err
+		}
+		if len(payload.MessageIDs) > 1 {
+			if err := s.tg.DeleteMessages(ctx, payload.ChatID, payload.MessageIDs); err == nil {
+				s.logger.DebugContext(ctx, "delete_message_job_completed", observability.LogAttrs(ctx,
+					"origin", payload.Origin,
+					"chat_id", payload.ChatID,
+					"message_count", len(payload.MessageIDs),
+					"mode", "batch",
+				)...)
+				return nil
+			} else {
+				s.logger.WarnContext(ctx, "delete_message_job_batch_failed", observability.LogAttrs(ctx,
+					"origin", payload.Origin,
+					"chat_id", payload.ChatID,
+					"message_ids", payload.MessageIDs,
+					"error", err,
+				)...)
+			}
 		}
 		var firstErr error
 		var failedMessageIDs []int64

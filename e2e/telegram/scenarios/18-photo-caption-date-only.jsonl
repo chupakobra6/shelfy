@@ -1,8 +1,0 @@
-# Covers caption-provided date hint on a photo message; the final draft should still be created as one multimodal intake.
-{"id":"select_chat","action":"select_chat","chat":"@your_bot_username"}
-{"id":"send_photo_caption_date_only","action":"send_photo","path":"@fixtures/e2e-photo.png","caption":"до завтра"}
-{"id":"wait_photo_caption_date_only_processing","action":"wait","timeout_ms":30000}
-{"id":"wait_photo_caption_date_only_result","action":"wait","timeout_ms":30000}
-{"id":"dump_photo_caption_date_only_result","action":"dump_state"}
-{"id":"cancel_photo_caption_date_only_draft","action":"click_button","button_text":"↩️ Отмена"}
-{"id":"wait_photo_caption_date_only_home","action":"wait","timeout_ms":30000}

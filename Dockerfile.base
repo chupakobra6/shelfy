@@ -24,7 +24,7 @@ RUN apt-get update \
 FROM debian:bookworm-slim
 
 RUN apt-get update \
-	&& apt-get install -y --no-install-recommends ca-certificates ffmpeg libatomic1 libstdc++6 tesseract-ocr tesseract-ocr-rus \
+	&& apt-get install -y --no-install-recommends ca-certificates ffmpeg libatomic1 libstdc++6 \
 	&& rm -rf /var/lib/apt/lists/*
 
 COPY --from=vosk-lib /opt/vosk/libvosk.so /usr/local/lib/libvosk.so

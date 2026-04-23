@@ -15,6 +15,7 @@ import (
 type ResolvedDate struct {
 	Value      *time.Time
 	Confidence string
+	Absolute   bool
 }
 
 type ExtractedDate struct {
@@ -22,6 +23,7 @@ type ExtractedDate struct {
 	Value      *time.Time
 	Confidence string
 	Source     string
+	Absolute   bool
 }
 
 var weekdayMap = map[string]time.Weekday{
@@ -66,6 +68,7 @@ var weekdayMap = map[string]time.Weekday{
 }
 
 var monthMap = map[string]time.Month{
+	"jan":      time.January,
 	"янв":      time.January,
 	"январь":   time.January,
 	"января":   time.January,
@@ -73,47 +76,102 @@ var monthMap = map[string]time.Month{
 	"фев":      time.February,
 	"февраль":  time.February,
 	"февраля":  time.February,
+	"mar":      time.March,
 	"мар":      time.March,
 	"март":     time.March,
 	"марта":    time.March,
+	"apr":      time.April,
 	"апр":      time.April,
 	"апрель":   time.April,
 	"апреля":   time.April,
+	"may":      time.May,
 	"май":      time.May,
 	"мая":      time.May,
+	"jun":      time.June,
 	"июн":      time.June,
 	"июнь":     time.June,
 	"июня":     time.June,
+	"jul":      time.July,
 	"июл":      time.July,
 	"июль":     time.July,
 	"июля":     time.July,
+	"aug":      time.August,
 	"авг":      time.August,
 	"август":   time.August,
 	"августа":  time.August,
+	"sep":      time.September,
 	"сен":      time.September,
 	"сент":     time.September,
 	"сентябрь": time.September,
 	"сентября": time.September,
+	"oct":      time.October,
 	"окт":      time.October,
 	"октябрь":  time.October,
 	"октября":  time.October,
+	"nov":      time.November,
 	"ноя":      time.November,
 	"ноябрь":   time.November,
 	"ноября":   time.November,
+	"dec":      time.December,
 	"дек":      time.December,
 	"декабрь":  time.December,
 	"декабря":  time.December,
 }
 
+var spokenOrdinalDayWords = map[string]int{
+	"первого":        1,
+	"второго":        2,
+	"третьего":       3,
+	"четвертого":     4,
+	"пятого":         5,
+	"шестого":        6,
+	"седьмого":       7,
+	"восьмого":       8,
+	"девятого":       9,
+	"десятого":       10,
+	"одиннадцатого":  11,
+	"двенадцатого":   12,
+	"тринадцатого":   13,
+	"четырнадцатого": 14,
+	"пятнадцатого":   15,
+	"шестнадцатого":  16,
+	"семнадцатого":   17,
+	"восемнадцатого": 18,
+	"девятнадцатого": 19,
+	"двадцатого":     20,
+	"тридцатого":     30,
+}
+
+var spokenOrdinalUnitWords = map[string]int{
+	"первого":    1,
+	"второго":    2,
+	"третьего":   3,
+	"четвертого": 4,
+	"пятого":     5,
+	"шестого":    6,
+	"седьмого":   7,
+	"восьмого":   8,
+	"девятого":   9,
+}
+
+var spokenOrdinalTensWords = map[string]int{
+	"двадцать": 20,
+	"тридцать": 30,
+}
+
 var (
-	absoluteDatePattern   = regexp.MustCompile(`^(\d{1,2})[./-](\d{1,2})(?:[./-](\d{2,4}))?$`)
-	namedMonthPattern     = regexp.MustCompile(`^(\d{1,2})\s+([\p{L}]+)(?:\s+(\d{2,4}))?$`)
-	numericDayPattern     = regexp.MustCompile(`^\d{1,2}$`)
-	relativeUnitsPattern  = regexp.MustCompile(`^(?:через\s+)?(\d{1,2})\s+(день|дня|днеи|дней|неделю|недели|недель|месяц|месяца|месяцев)$`)
-	singleRelativePattern = regexp.MustCompile(`^через\s+(неделю|месяц)$`)
-	whenOnce              sync.Once
-	whenParser            *when.Parser
-	whenInitErr           error
+	yearFirstDatePattern   = regexp.MustCompile(`^(\d{4})(?:[./-]|\s+)(\d{1,2})(?:[./-]|\s+)(\d{1,2})$`)
+	shortYearDashPattern   = regexp.MustCompile(`^(\d{2})-(\d{1,2})-(\d{1,2})$`)
+	usSlashDatePattern     = regexp.MustCompile(`^(\d{1,2})/(\d{1,2})/(\d{2,4})$`)
+	absoluteDatePattern    = regexp.MustCompile(`^(\d{1,2})(?:[./-]|\s+)(\d{1,2})(?:(?:[./-]|\s+)(\d{2,4}))?$`)
+	namedMonthPattern      = regexp.MustCompile(`^(\d{1,2})(?:\s+|/)([\p{L}]+)(?:(?:\s+|/)(\d{2,4}))?$`)
+	monthFirstNamedPattern = regexp.MustCompile(`^([\p{L}]+)\s+(\d{1,2})(?:\s+(\d{2,4}))?$`)
+	numericDayPattern      = regexp.MustCompile(`^\d{1,2}$`)
+	relativeUnitsPattern   = regexp.MustCompile(`^(?:через\s+)?(\d{1,2})\s+(день|дня|днеи|дней|неделю|недели|недель|месяц|месяца|месяцев)$`)
+	singleRelativePattern  = regexp.MustCompile(`^через\s+(неделю|месяц)$`)
+	whenOnce               sync.Once
+	whenParser             *when.Parser
+	whenInitErr            error
 )
 
 var dateVocabulary = []string{
@@ -121,6 +179,10 @@ var dateVocabulary = []string{
 	"через", "день", "дня", "днеи", "дней", "неделю", "недели", "недель", "месяц", "месяца", "месяцев",
 	"до", "к", "на", "в", "во", "by",
 	"следующий", "следующую", "следующей", "следующее",
+	"ноль", "двадцать", "тридцать",
+	"первого", "второго", "третьего", "четвертого", "пятого", "шестого", "седьмого", "восьмого", "девятого", "десятого",
+	"одиннадцатого", "двенадцатого", "тринадцатого", "четырнадцатого", "пятнадцатого",
+	"шестнадцатого", "семнадцатого", "восемнадцатого", "девятнадцатого", "двадцатого", "тридцатого",
 	"понедельник", "понедельника", "понедельнику", "пн",
 	"вторник", "вторника", "вторнику", "вт",
 	"среда", "среды", "среду", "среде", "ср",
@@ -128,6 +190,7 @@ var dateVocabulary = []string{
 	"пятница", "пятницы", "пятницу", "пятнице", "пт",
 	"суббота", "субботы", "субботу", "субботе", "сб",
 	"воскресенье", "воскресенья", "воскресенью", "вс",
+	"jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec",
 	"янв", "январь", "января", "фев", "февраль", "февраля",
 	"мар", "март", "марта", "апр", "апрель", "апреля",
 	"май", "мая", "июн", "июнь", "июня",
@@ -138,11 +201,15 @@ var dateVocabulary = []string{
 }
 
 var dateTokenOverrides = map[string]string{
-	"пятницаы": "пятницы",
-	"субота":   "суббота",
-	"суботы":   "субботы",
-	"суботу":   "субботу",
-	"днеи":     "дней",
+	"пятницаы":   "пятницы",
+	"субота":     "суббота",
+	"суботы":     "субботы",
+	"суботу":     "субботу",
+	"днеи":       "дней",
+	"двацадить":  "двадцать",
+	"двадцадить": "двадцать",
+	"тридцадого": "тридцатого",
+	"шистого":    "шестого",
 }
 
 var datePhraseLeadingTokens = map[string]struct{}{
@@ -158,6 +225,21 @@ var datePhraseLeadingTokens = map[string]struct{}{
 	"следующее": {},
 }
 
+var strictDateLeadingPhrases = []string{
+	"best before",
+	"use by",
+	"used by",
+	"sell by",
+	"exp date",
+	"exp",
+	"expires",
+	"expiry",
+	"before",
+	"годен до",
+	"срок годности",
+	"срок годен до",
+}
+
 func ResolveRelativeDate(raw string, now time.Time) ResolvedDate {
 	raw = normalizeDateInput(raw)
 	if raw == "" {
@@ -167,7 +249,7 @@ func ResolveRelativeDate(raw string, now time.Time) ResolvedDate {
 		return resolved
 	}
 	if extracted, ok := extractDateWithWhen(raw, now); ok {
-		return ResolvedDate{Value: extracted.Value, Confidence: extracted.Confidence}
+		return ResolvedDate{Value: extracted.Value, Confidence: extracted.Confidence, Absolute: extracted.Absolute}
 	}
 	return ResolvedDate{Confidence: "unknown"}
 }
@@ -183,12 +265,17 @@ func ExtractDateFromText(raw string, now time.Time) (ExtractedDate, bool) {
 			Value:      resolved.Value,
 			Confidence: resolved.Confidence,
 			Source:     "strict",
+			Absolute:   resolved.Absolute,
 		}, true
 	}
-	return extractDateWithWhen(raw, now)
+	if extracted, ok := extractDateWithWhen(raw, now); ok {
+		return extracted, true
+	}
+	return extractStrictDatePhrase(raw, now)
 }
 
 func resolveStrictDate(raw string, now time.Time) (ResolvedDate, bool) {
+	raw = trimStrictDateDecorators(raw)
 	switch raw {
 	case "today", "сегодня":
 		value := truncateToDate(now)
@@ -200,15 +287,37 @@ func resolveStrictDate(raw string, now time.Time) (ResolvedDate, bool) {
 		value := truncateToDate(now).AddDate(0, 0, 2)
 		return ResolvedDate{Value: &value, Confidence: "high"}, true
 	}
+	if matches := yearFirstDatePattern.FindStringSubmatch(raw); len(matches) == 4 {
+		month, day := mustInt(matches[2]), mustInt(matches[3])
+		return resolveCalendarDate(day, time.Month(month), matches[1], now, true), true
+	}
+	if matches := shortYearDashPattern.FindStringSubmatch(raw); len(matches) == 4 {
+		month, day := mustInt(matches[2]), mustInt(matches[3])
+		return resolveCalendarDate(day, time.Month(month), matches[1], now, true), true
+	}
+	if matches := usSlashDatePattern.FindStringSubmatch(raw); len(matches) == 4 {
+		month, day := mustInt(matches[1]), mustInt(matches[2])
+		if day > 12 {
+			return resolveCalendarDate(day, time.Month(month), matches[3], now, true), true
+		}
+	}
 	if matches := absoluteDatePattern.FindStringSubmatch(raw); len(matches) == 4 {
 		day, month := mustInt(matches[1]), mustInt(matches[2])
-		return resolveCalendarDate(day, time.Month(month), matches[3], now), true
+		return resolveCalendarDate(day, time.Month(month), matches[3], now, true), true
 	}
 	if matches := namedMonthPattern.FindStringSubmatch(raw); len(matches) == 4 {
 		day := mustInt(matches[1])
 		monthToken := normalizeDateInput(matches[2])
 		if month, ok := resolveMonthToken(monthToken); ok {
-			return resolveCalendarDate(day, month, matches[3], now), true
+			return resolveCalendarDate(day, month, matches[3], now, true), true
+		}
+		return ResolvedDate{Confidence: "unknown"}, true
+	}
+	if matches := monthFirstNamedPattern.FindStringSubmatch(raw); len(matches) == 4 {
+		day := mustInt(matches[2])
+		monthToken := normalizeDateInput(matches[1])
+		if month, ok := resolveMonthToken(monthToken); ok {
+			return resolveCalendarDate(day, month, matches[3], now, true), true
 		}
 		return ResolvedDate{Confidence: "unknown"}, true
 	}
@@ -226,6 +335,9 @@ func resolveStrictDate(raw string, now time.Time) (ResolvedDate, bool) {
 		}
 		return ResolvedDate{Value: value, Confidence: "high"}, true
 	}
+	if resolved, handled := resolveSpokenOrdinalDate(raw, now); handled {
+		return resolved, true
+	}
 	if numericDayPattern.MatchString(raw) {
 		day := mustInt(raw)
 		value := nextFutureDayOfMonth(now, day)
@@ -240,6 +352,135 @@ func resolveStrictDate(raw string, now time.Time) (ResolvedDate, bool) {
 		return ResolvedDate{Value: &value, Confidence: "medium"}, true
 	}
 	return ResolvedDate{}, false
+}
+
+func resolveSpokenOrdinalDate(raw string, now time.Time) (ResolvedDate, bool) {
+	trimmed := trimDatePrefixes(raw)
+	tokens := strings.Fields(trimmed)
+	if len(tokens) == 0 {
+		return ResolvedDate{}, false
+	}
+	day, usedDay := parseSpokenOrdinalDay(tokens)
+	if usedDay == 0 {
+		return ResolvedDate{}, false
+	}
+	rest := tokens[usedDay:]
+	if len(rest) == 0 {
+		value := nextFutureDayOfMonth(now, day)
+		if value == nil {
+			return ResolvedDate{Confidence: "unknown"}, true
+		}
+		return ResolvedDate{Value: value, Confidence: "medium"}, true
+	}
+	month, usedMonth := parseSpokenOrdinalMonth(rest)
+	if usedMonth == 0 {
+		if resolvedMonth, ok := resolveMonthToken(rest[0]); ok {
+			month = resolvedMonth
+			usedMonth = 1
+		}
+	}
+	if usedMonth == 0 {
+		return ResolvedDate{}, false
+	}
+	rest = rest[usedMonth:]
+	if len(rest) > 0 {
+		return ResolvedDate{}, false
+	}
+	return resolveCalendarDate(day, month, "", now, true), true
+}
+
+func parseSpokenOrdinalDay(tokens []string) (int, int) {
+	if len(tokens) == 0 {
+		return 0, 0
+	}
+	if value, ok := spokenOrdinalDayWords[tokens[0]]; ok {
+		return value, 1
+	}
+	if len(tokens) < 2 {
+		return 0, 0
+	}
+	tens, ok := spokenOrdinalTensWords[tokens[0]]
+	if !ok {
+		return 0, 0
+	}
+	unit, ok := spokenOrdinalUnitWords[tokens[1]]
+	if !ok {
+		return 0, 0
+	}
+	value := tens + unit
+	if value <= 0 || value > 31 {
+		return 0, 0
+	}
+	return value, 2
+}
+
+func parseSpokenOrdinalMonth(tokens []string) (time.Month, int) {
+	if len(tokens) == 0 {
+		return 0, 0
+	}
+	if tokens[0] == "ноль" && len(tokens) >= 2 {
+		if value, ok := spokenOrdinalDayWords[tokens[1]]; ok && value >= 1 && value <= 9 {
+			return time.Month(value), 2
+		}
+	}
+	if value, ok := spokenOrdinalDayWords[tokens[0]]; ok && value >= 1 && value <= 12 {
+		return time.Month(value), 1
+	}
+	return 0, 0
+}
+
+func extractStrictDatePhrase(raw string, now time.Time) (ExtractedDate, bool) {
+	tokens := strings.Fields(raw)
+	if len(tokens) == 0 {
+		return ExtractedDate{}, false
+	}
+	for start := 0; start < len(tokens); start++ {
+		if !looksLikeDateLeadToken(tokens[start]) {
+			continue
+		}
+		maxEnd := start + 5
+		if maxEnd > len(tokens) {
+			maxEnd = len(tokens)
+		}
+		for end := maxEnd; end > start; end-- {
+			phrase := strings.Join(tokens[start:end], " ")
+			resolved, handled := resolveStrictDate(phrase, now)
+			if !handled || resolved.Value == nil {
+				continue
+			}
+			return ExtractedDate{
+				Phrase:     phrase,
+				Value:      resolved.Value,
+				Confidence: resolved.Confidence,
+				Source:     "strict_phrase",
+				Absolute:   resolved.Absolute,
+			}, true
+		}
+	}
+	return ExtractedDate{}, false
+}
+
+func looksLikeDateLeadToken(token string) bool {
+	switch token {
+	case "до", "к", "на", "в", "во", "через":
+		return true
+	}
+	if hasDigits(token) {
+		return true
+	}
+	if _, ok := resolveWeekdayToken(token); ok {
+		return true
+	}
+	if _, ok := resolveMonthToken(token); ok {
+		return true
+	}
+	if _, ok := spokenOrdinalDayWords[token]; ok {
+		return true
+	}
+	if _, ok := spokenOrdinalTensWords[token]; ok {
+		return true
+	}
+	return token == "ноль"
 }
 
 func extractDateWithWhen(raw string, now time.Time) (ExtractedDate, bool) {
@@ -261,6 +502,7 @@ func extractDateWithWhen(raw string, now time.Time) (ExtractedDate, bool) {
 		Value:      &value,
 		Confidence: "medium",
 		Source:     "when",
+		Absolute:   false,
 	}, true
 }
 
@@ -337,7 +579,43 @@ func normalizeDateInput(raw string) string {
 	return strings.Join(tokens, " ")
 }
 
+func trimStrictDateDecorators(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	for {
+		changed := false
+		for _, prefix := range strictDateLeadingPhrases {
+			if raw == prefix || strings.HasPrefix(raw, prefix+" ") {
+				raw = strings.TrimSpace(strings.TrimPrefix(raw, prefix))
+				changed = true
+				break
+			}
+		}
+		if !changed {
+			break
+		}
+	}
+	fields := strings.Fields(raw)
+	for len(fields) > 1 {
+		last := fields[len(fields)-1]
+		if !hasDigits(last) && utf8.RuneCountInString(last) <= 1 {
+			fields = fields[:len(fields)-1]
+			continue
+		}
+		break
+	}
+	return strings.Join(fields, " ")
+}
+
 func normalizeDateToken(token string) string {
+	if token == "" {
+		return token
+	}
+	if !hasDigits(token) {
+		token = strings.Trim(token, ".")
+	}
 	if token == "" || hasDigits(token) {
 		return token
 	}
@@ -412,6 +690,9 @@ func resolveWeekdayToken(raw string) (time.Weekday, bool) {
 	var best time.Weekday
 	found := false
 	for token, weekday := range weekdayMap {
+		if utf8.RuneCountInString(token) <= 2 {
+			continue
+		}
 		if firstRune(raw) != firstRune(token) {
 			continue
 		}
@@ -452,7 +733,7 @@ func resolveMonthToken(raw string) (time.Month, bool) {
 	return 0, false
 }
 
-func resolveCalendarDate(day int, month time.Month, yearToken string, now time.Time) ResolvedDate {
+func resolveCalendarDate(day int, month time.Month, yearToken string, now time.Time, absolute bool) ResolvedDate {
 	if day <= 0 || day > 31 || month < time.January || month > time.December {
 		return ResolvedDate{Confidence: "unknown"}
 	}
@@ -474,7 +755,7 @@ func resolveCalendarDate(day int, month time.Month, yearToken string, now time.T
 	if strings.TrimSpace(yearToken) == "" {
 		confidence = "medium"
 	}
-	return ResolvedDate{Value: &value, Confidence: confidence}
+	return ResolvedDate{Value: &value, Confidence: confidence, Absolute: absolute}
 }
 
 func addRelativeDuration(base time.Time, amount int, unit string) *time.Time {

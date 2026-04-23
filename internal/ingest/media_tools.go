@@ -11,34 +11,6 @@ import (
 	"github.com/igor/shelfy/internal/observability"
 )
 
-func (s *Service) runTesseract(ctx context.Context, imagePath string) (string, error) {
-	startedAt := time.Now()
-	cmd := exec.CommandContext(ctx, s.tesseractCommand, imagePath, "stdout", "-l", "rus+eng", "--psm", "6")
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	stdoutText := strings.TrimSpace(stdout.String())
-	stderrText := strings.TrimSpace(stderr.String())
-	cleaned := cleanOCRText(stdoutText)
-	s.logger.InfoContext(ctx, "tesseract_completed", observability.LogAttrs(ctx,
-		"duration_ms", time.Since(startedAt).Milliseconds(),
-		"stdout_len", len(stdoutText),
-		"stderr_len", len(stderrText),
-		"text_len", len(cleaned),
-		"text_excerpt", excerptForLog(cleaned, 320),
-		"stderr_excerpt", excerptForLog(stderrText, 320),
-	)...)
-	if err != nil {
-		return cleaned, fmt.Errorf("tesseract: %w: %s", err, stderrText)
-	}
-	if cleaned == "" && stderrText != "" {
-		return "", fmt.Errorf("tesseract produced no OCR text: %s", stderrText)
-	}
-	return cleaned, nil
-}
-
 func (s *Service) runFFmpeg(ctx context.Context, inputPath, outputPath string) error {
 	startedAt := time.Now()
 	cmd := exec.CommandContext(ctx, "ffmpeg", "-y", "-i", inputPath, outputPath)
@@ -58,7 +30,11 @@ func (s *Service) runVosk(ctx context.Context, wavPath string) (string, error) {
 		return "", fmt.Errorf("vosk command is empty")
 	}
 	startedAt := time.Now()
-	cmd := exec.CommandContext(ctx, s.voskCommand, s.voskModelPath, wavPath)
+	args := []string{s.voskModelPath, wavPath}
+	if grammarPath := strings.TrimSpace(s.voskGrammarPath); grammarPath != "" {
+		args = append(args, grammarPath)
+	}
+	cmd := exec.CommandContext(ctx, s.voskCommand, args...)
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -72,6 +48,7 @@ func (s *Service) runVosk(ctx context.Context, wavPath string) (string, error) {
 		"duration_ms", time.Since(startedAt).Milliseconds(),
 		"text_len", len(text),
 		"model_path", s.voskModelPath,
+		"grammar_path", s.voskGrammarPath,
 		"text_excerpt", excerptForLog(text, 320),
 		"stderr_excerpt", excerptForLog(strings.TrimSpace(stderr.String()), 320),
 	)...)

@@ -10,7 +10,7 @@
 - Treat these files as the canonical entrypoints for behavior:
   - `cmd/telegram-api/main.go` for the main bot process
   - `internal/bot` for Telegram UX flow, callbacks, and dashboard behavior
-  - `internal/ingest` for text/photo/audio parsing and draft creation
+  - `internal/ingest` for text/audio parsing and draft creation
   - `internal/scheduler` for digests, cleanup, and dev control endpoints
   - `internal/storage/postgres` for persisted behavior and query contracts
 - Treat `assets/copy/runtime.ru.yaml` as the canonical runtime copy catalog.

@@ -29,11 +29,15 @@ func main() {
 }
 
 func run() int {
-	if len(os.Args) != 3 {
-		fmt.Fprintln(os.Stderr, "usage: vosk-transcribe <model-dir> <wav-path>")
+	if len(os.Args) != 3 && len(os.Args) != 4 {
+		fmt.Fprintln(os.Stderr, "usage: vosk-transcribe <model-dir> <wav-path> [grammar-json-path]")
 		return 2
 	}
-	text, err := transcribe(os.Args[1], os.Args[2])
+	grammarPath := ""
+	if len(os.Args) == 4 {
+		grammarPath = os.Args[3]
+	}
+	text, err := transcribe(os.Args[1], os.Args[2], grammarPath)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
@@ -42,7 +46,7 @@ func run() int {
 	return 0
 }
 
-func transcribe(modelDir, wavPath string) (string, error) {
+func transcribe(modelDir, wavPath, grammarPath string) (string, error) {
 	reader, err := openPCM16MonoWAV(wavPath)
 	if err != nil {
 		return "", err
@@ -58,7 +62,22 @@ func transcribe(modelDir, wavPath string) (string, error) {
 	}
 	defer C.vosk_model_free(model)
 
-	recognizer := C.vosk_recognizer_new(model, C.float(reader.SampleRate()))
+	var recognizer *C.VoskRecognizer
+	if strings.TrimSpace(grammarPath) != "" {
+		grammarBytes, err := os.ReadFile(grammarPath)
+		if err != nil {
+			return "", fmt.Errorf("read grammar: %w", err)
+		}
+		grammar := strings.TrimSpace(string(grammarBytes))
+		if grammar == "" {
+			return "", fmt.Errorf("vosk grammar file is empty: %s", grammarPath)
+		}
+		cGrammar := C.CString(grammar)
+		defer C.free(unsafe.Pointer(cGrammar))
+		recognizer = C.vosk_recognizer_new_grm(model, C.float(reader.SampleRate()), cGrammar)
+	} else {
+		recognizer = C.vosk_recognizer_new(model, C.float(reader.SampleRate()))
+	}
 	if recognizer == nil {
 		return "", errors.New("failed to create vosk recognizer")
 	}

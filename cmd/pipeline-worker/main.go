@@ -23,7 +23,7 @@ func main() {
 	defer runtime.Close()
 	cfg := runtime.Config
 	tg := telegram.NewClient(cfg.BotToken, runtime.Logger)
-	service := ingest.NewService(runtime.Store, tg, runtime.Copy, runtime.Logger, cfg.TmpDir, cfg.OllamaBaseURL, cfg.OllamaModel, cfg.TesseractCommand, cfg.VoskCommand, cfg.VoskModelPath)
+	service := ingest.NewService(runtime.Store, tg, runtime.Copy, runtime.Logger, cfg.TmpDir, cfg.OllamaBaseURL, cfg.OllamaModel, cfg.VoskCommand, cfg.VoskModelPath, cfg.VoskGrammarPath)
 	if err := worker.Run(ctx, runtime.Logger, runtime.Store, cfg.JobPollInterval, "pipeline-worker", service); err != nil && err != context.Canceled {
 		panic(err)
 	}

@@ -5,7 +5,7 @@ E2E_TRIAGE := go run ./cmd/e2e-triage
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup prepare runtime-base runtime-base-rebuild ensure-runtime-base generate dev api worker-pipeline worker-scheduler migrate test lint fmt fmt-check tidy up down logs logs-all logs-db e2e-last-failure e2e-trace-logs
+.PHONY: help setup prepare runtime-base runtime-base-rebuild ensure-runtime-base generate dev api worker-pipeline worker-scheduler migrate test lint fmt fmt-check tidy up down logs logs-all logs-db e2e-last-failure e2e-trace-logs benchmark-ingest benchmark-ingest-smoke benchmark-ingest-prod
 
 help:
 	@printf "Available commands:\n"
@@ -18,6 +18,9 @@ help:
 	@printf "  make logs-db          # follow postgres logs only\n"
 	@printf "  make e2e-last-failure # build a compact failure pack from the latest tool failure\n"
 	@printf "  make e2e-trace-logs   # slice recent logs by TRACE_ID/UPDATE_ID/JOB_ID/SCENARIO_LABEL\n"
+	@printf "  make benchmark-ingest # run the full public ingest benchmark corpus against local Ollama\n"
+	@printf "  make benchmark-ingest-smoke # run a small benchmark smoke report with local artifacts copied\n"
+	@printf "  make benchmark-ingest-prod # rebuild docker runtime image and run production-like public ingest benchmark\n"
 	@printf "  make test             # go test ./...\n"
 	@printf "  make lint             # fail on gofmt drift under cmd/ and internal/\n"
 	@printf "  make generate         # regenerate sqlc code\n"
@@ -103,3 +106,13 @@ e2e-last-failure:
 
 e2e-trace-logs:
 	TOOL_ROOT="$(TOOL_ROOT)" MAX_LINES="$(MAX_LINES)" $(E2E_TRIAGE) trace-logs $(if $(TRACE_ID),--trace-id $(TRACE_ID),) $(if $(UPDATE_ID),--update-id $(UPDATE_ID),) $(if $(JOB_ID),--job-id $(JOB_ID),) $(if $(SCENARIO_LABEL),--scenario-label $(SCENARIO_LABEL),) $(if $(SERVICE),--service $(SERVICE),) $(if $(SINCE),--since $(SINCE),) $(if $(UNTIL),--until $(UNTIL),)
+
+benchmark-ingest:
+	go run ./cmd/ingest-benchmark $(ARGS)
+
+benchmark-ingest-smoke:
+	go run ./cmd/ingest-benchmark -limit 1 -emit-report $(ARGS)
+
+benchmark-ingest-prod: ensure-runtime-base
+	docker build -t shelfy-pipeline-worker:latest .
+	go run ./cmd/ingest-benchmark -runtime-base-image $(RUNTIME_BASE_IMAGE) -pipeline-worker-image shelfy-pipeline-worker:latest $(ARGS)

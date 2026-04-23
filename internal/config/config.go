@@ -22,9 +22,9 @@ type Config struct {
 	TmpDir             string
 	OllamaBaseURL      string
 	OllamaModel        string
-	TesseractCommand   string
 	VoskCommand        string
 	VoskModelPath      string
+	VoskGrammarPath    string
 	EnableDevControl   bool
 	DevControlAddr     string
 	E2ETestUserID      int64
@@ -40,14 +40,14 @@ func Load() (Config, error) {
 		DefaultTimezone:    defaultString(os.Getenv("SHELFY_DEFAULT_TIMEZONE"), "Europe/Moscow"),
 		DigestLocalTime:    defaultString(os.Getenv("SHELFY_DIGEST_LOCAL_TIME"), "09:00"),
 		PollTimeoutSeconds: defaultInt(os.Getenv("SHELFY_POLL_TIMEOUT_SECONDS"), 30),
-		JobPollInterval:    defaultDuration(os.Getenv("SHELFY_JOB_POLL_INTERVAL"), 2*time.Second),
+		JobPollInterval:    defaultDuration(os.Getenv("SHELFY_JOB_POLL_INTERVAL"), 500*time.Millisecond),
 		SchedulerInterval:  defaultDuration(os.Getenv("SHELFY_SCHEDULER_INTERVAL"), 30*time.Second),
 		TmpDir:             defaultString(os.Getenv("SHELFY_TMP_DIR"), "/tmp/shelfy"),
 		OllamaBaseURL:      strings.TrimRight(defaultString(os.Getenv("SHELFY_OLLAMA_BASE_URL"), "http://127.0.0.1:11434"), "/"),
 		OllamaModel:        defaultString(os.Getenv("SHELFY_OLLAMA_MODEL"), "gemma3:4b"),
-		TesseractCommand:   defaultString(os.Getenv("SHELFY_TESSERACT_COMMAND"), "tesseract"),
 		VoskCommand:        defaultString(os.Getenv("SHELFY_VOSK_COMMAND"), "/usr/local/bin/vosk-transcribe"),
 		VoskModelPath:      defaultString(os.Getenv("SHELFY_VOSK_MODEL_PATH"), "/models/vosk-model-small-ru-0.22"),
+		VoskGrammarPath:    defaultString(os.Getenv("SHELFY_VOSK_GRAMMAR_PATH"), "assets/asr/vosk-grammar.ru.json"),
 		EnableDevControl:   defaultBool(os.Getenv("SHELFY_ENABLE_DEV_CONTROL_API"), true),
 		DevControlAddr:     defaultString(os.Getenv("SHELFY_DEV_CONTROL_LISTEN_ADDR"), ":8081"),
 		E2ETestUserID:      defaultInt64(os.Getenv("SHELFY_E2E_TEST_USER_ID"), 0),

@@ -20,7 +20,6 @@ type Message struct {
 	Chat            Chat        `json:"chat"`
 	Text            string      `json:"text,omitempty"`
 	Caption         string      `json:"caption,omitempty"`
-	Photo           []Photo     `json:"photo,omitempty"`
 	Voice           *Voice      `json:"voice,omitempty"`
 	Audio           *Audio      `json:"audio,omitempty"`
 	Sticker         *Sticker    `json:"sticker,omitempty"`
@@ -41,13 +40,6 @@ type User struct {
 type Chat struct {
 	ID   int64  `json:"id"`
 	Type string `json:"type"`
-}
-
-type Photo struct {
-	FileID   string `json:"file_id"`
-	FileSize int    `json:"file_size,omitempty"`
-	Width    int    `json:"width,omitempty"`
-	Height   int    `json:"height,omitempty"`
 }
 
 type Voice struct {
@@ -103,6 +95,11 @@ type AnswerCallbackQueryRequest struct {
 
 type SetMyCommandsRequest struct {
 	Commands []BotCommand `json:"commands"`
+}
+
+type DeleteMessagesRequest struct {
+	ChatID     int64   `json:"chat_id"`
+	MessageIDs []int64 `json:"message_ids"`
 }
 
 type GetUpdatesResponse struct {

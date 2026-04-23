@@ -1,23 +1,54 @@
 package ingest
 
-import "strings"
+import "unicode"
 
-func normalizeFreeText(input string) string {
-	fields := strings.Fields(strings.TrimSpace(input))
-	return strings.Join(fields, " ")
-}
-
-func excerptForLog(input string, limit int) string {
-	value := normalizeFreeText(input)
-	if limit <= 0 || len(value) <= limit {
-		return value
+func tokenHasLetters(value string) bool {
+	for _, r := range value {
+		if unicode.IsLetter(r) {
+			return true
+		}
 	}
-	return value[:limit]
+	return false
 }
 
-func int64Ptr(v int64) *int64 {
-	if v == 0 {
+func letterRuneCount(value string) int {
+	count := 0
+	for _, r := range value {
+		if unicode.IsLetter(r) {
+			count++
+		}
+	}
+	return count
+}
+
+func isLatinOnlyName(value string) bool {
+	if value == "" || !tokenHasLetters(value) {
+		return false
+	}
+	hasLatin := false
+	for _, r := range value {
+		switch {
+		case !unicode.IsLetter(r):
+			continue
+		case unicode.In(r, unicode.Latin):
+			hasLatin = true
+		default:
+			return false
+		}
+	}
+	return hasLatin
+}
+
+func int64Ptr(value int64) *int64 {
+	if value == 0 {
 		return nil
 	}
-	return &v
+	return &value
+}
+
+func ptrValue(value *int64) int64 {
+	if value == nil {
+		return 0
+	}
+	return *value
 }

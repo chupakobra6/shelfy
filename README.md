@@ -2,14 +2,13 @@
 
 Shelfy is a personal Telegram bot for tracking product expiration dates with a low-noise UX.
 
-The bot is built around one pinned dashboard, transient draft cards, and background pipelines for text, photo, and audio ingestion. The goal is to keep the chat clean while still making parsing, edits, digests, and cleanup observable and testable.
+The bot is built around one pinned dashboard, transient draft cards, and background pipelines for text and audio ingestion. The goal is to keep the chat clean while still making parsing, edits, digests, and cleanup observable and testable.
 
 ## Highlights
 
 - one pinned dashboard instead of a command-heavy chat UI
 - paginated dashboard product lists instead of unbounded keyboards
-- text, photo, voice, and audio ingestion
-- multimodal photo intake where a photo caption can complement OCR/image parsing
+- text, voice, and audio ingestion
 - transient drafts before save, with cleanup-first UX
 - morning digests and deterministic timed testing through dev controls
 - real Telegram E2E scenarios kept next to the product
@@ -19,7 +18,7 @@ The bot is built around one pinned dashboard, transient draft cards, and backgro
 - keeps one pinned dashboard as the main control surface
 - accepts new products from normal incoming messages, not slash commands
 - builds transient draft cards before saving products
-- parses text, photos, voice messages, and audio in background workers
+- parses text, voice messages, and audio in background workers
 - sends morning digests and cleans up transient chat noise over time
 - supports deterministic timed testing through non-production dev controls
 
@@ -29,9 +28,8 @@ The bot is built around one pinned dashboard, transient draft cards, and backgro
 - PostgreSQL
 - Docker Compose for local runtime
 - Ollama on the host for LLM inference
-- Tesseract for OCR
 - Vosk `small-ru-0.22` for speech-to-text
-- shared runtime base image so app rebuilds do not reinstall OCR/ASR dependencies
+- shared runtime base image so app rebuilds do not reinstall ASR/runtime dependencies
 
 ## Architecture
 
@@ -40,7 +38,7 @@ The bot is built around one pinned dashboard, transient draft cards, and backgro
 - `telegram-api`
   Receives Telegram updates, handles `/start`, dashboard callbacks, and enqueues background jobs.
 - `pipeline-worker`
-  Processes text/photo/audio ingestion jobs, OCR/ASR/model parsing, and creates draft sessions.
+  Processes text/audio ingestion jobs, ASR/model parsing, and creates draft sessions.
 - `scheduler-worker`
   Handles morning digests, staged cleanup, transient message deletion, and non-production control endpoints.
 - `postgres`
@@ -75,14 +73,13 @@ For local development the bot expects a native Ollama server on the host, reacha
 For Russian voice input the pipeline worker expects a Vosk model directory at `./models/vosk-model-small-ru-0.22`, mounted into the container as `/models/vosk-model-small-ru-0.22`.
 The heavy runtime layer is split out into `shelfy-runtime-base:vosk-lib-0.3.45-small-ru-0.22`.
 `make dev` and `make up` now only ensure that base image exists; they no longer force a rebuild of the heavy runtime layer on every loop.
-Use `make runtime-base-rebuild` only when you intentionally change OCR/ASR/runtime dependencies.
+Use `make runtime-base-rebuild` only when you intentionally change ASR/runtime dependencies.
 If you run raw `docker compose` commands instead of `make`, build the base image once first with `make runtime-base`.
 If outbound network access requires a proxy, add standard `HTTP_PROXY` / `HTTPS_PROXY` / `ALL_PROXY` / `NO_PROXY` variables to `.env` so the containers inherit them.
 
 Current runtime dependencies are already close to the minimum safe set for existing flows:
 
 - `ffmpeg` for voice/audio transcoding
-- `tesseract-ocr` + `tesseract-ocr-rus` for photo OCR
 - `libvosk.so` for offline speech-to-text
 - `libatomic1` because `libvosk.so` needs it on this platform
 - `libstdc++6` because upstream `libvosk.so` links against it

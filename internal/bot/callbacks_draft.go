@@ -116,9 +116,5 @@ func (s *Service) closeDraftWithStatus(ctx context.Context, draftID int64, draft
 		"state_from", draft.Status,
 		"state_to", nextStatus,
 	)...)
-	text, err := s.ui.DraftCanceled()
-	if err != nil {
-		return err
-	}
-	return s.finishDraftAction(ctx, draft, chatID, text)
+	return s.finishDraftActionSilently(ctx, draft, chatID)
 }

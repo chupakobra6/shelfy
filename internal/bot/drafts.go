@@ -83,6 +83,9 @@ func (s *Service) finishDraftAction(ctx context.Context, draft domain.DraftSessi
 	if err != nil {
 		return err
 	}
+	if err := s.RefreshDashboardHome(ctx, draft.UserID, draft.ChatID); err != nil {
+		return err
+	}
 	if err := s.deleteMessagesReliably(ctx, draft.TraceID, "draft_finish", chatID, 0,
 		ptrValue(draft.DraftMessageID),
 		ptrValue(draft.EditPromptMessageID),
@@ -94,7 +97,19 @@ func (s *Service) finishDraftAction(ctx context.Context, draft domain.DraftSessi
 	if err := s.scheduleDraftCleanup(ctx, draft, chatID, confirm.MessageID); err != nil {
 		return err
 	}
-	return s.RefreshDashboardHome(ctx, draft.UserID, draft.ChatID)
+	return nil
+}
+
+func (s *Service) finishDraftActionSilently(ctx context.Context, draft domain.DraftSession, chatID int64) error {
+	if err := s.RefreshDashboardHome(ctx, draft.UserID, draft.ChatID); err != nil {
+		return err
+	}
+	return s.deleteMessagesReliably(ctx, draft.TraceID, "draft_finish", chatID, 0,
+		ptrValue(draft.DraftMessageID),
+		ptrValue(draft.EditPromptMessageID),
+		ptrValue(draft.SourceMessageID),
+		ptrValue(draft.FeedbackMessageID),
+	)
 }
 
 func ptrValue(v *int64) int64 {

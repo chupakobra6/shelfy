@@ -65,8 +65,8 @@ func TestResolveWindowFromArtifactsFallsBackToSummary(t *testing.T) {
 	finishedAt := time.Date(2026, 4, 22, 10, 11, 12, 0, time.UTC)
 	summaryJSON := `[
 		{
-			"scenario_path":"/tmp/19-photo-receipt-caption.jsonl",
-			"transcript_label":"19-photo-receipt-caption",
+			"scenario_path":"/tmp/05-voice-date-phrases.jsonl",
+			"transcript_label":"05-voice-date-phrases",
 			"finished_at":"` + finishedAt.Format(time.RFC3339) + `"
 		}
 	]`
@@ -74,7 +74,7 @@ func TestResolveWindowFromArtifactsFallsBackToSummary(t *testing.T) {
 		t.Fatalf("WriteFile(last-run-summary.json) error = %v", err)
 	}
 
-	since, until, err := ResolveWindowFromArtifacts(root, "19-photo-receipt-caption", time.Now().UTC())
+	since, until, err := ResolveWindowFromArtifacts(root, "05-voice-date-phrases", time.Now().UTC())
 	if err != nil {
 		t.Fatalf("ResolveWindowFromArtifacts() error = %v", err)
 	}

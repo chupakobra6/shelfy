@@ -1,6 +1,0 @@
-# Covers fail-closed behavior for a blank/low-signal photo without a helpful caption.
-{"id":"select_chat","action":"select_chat","chat":"@your_bot_username"}
-{"id":"send_blank_photo","action":"send_photo","path":"@fixtures/e2e-blank-photo.png"}
-{"id":"wait_blank_processing","action":"wait","timeout_ms":30000}
-{"id":"wait_blank_result","action":"wait","timeout_ms":30000}
-{"id":"dump_blank_result","action":"dump_state"}

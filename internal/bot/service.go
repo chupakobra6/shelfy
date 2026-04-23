@@ -44,6 +44,7 @@ type TelegramAPI interface {
 	SendMessage(ctx context.Context, request telegram.SendMessageRequest) (telegram.Message, error)
 	EditMessageText(ctx context.Context, request telegram.EditMessageTextRequest) error
 	DeleteMessage(ctx context.Context, chatID, messageID int64) error
+	DeleteMessages(ctx context.Context, chatID int64, messageIDs []int64) error
 	PinMessage(ctx context.Context, chatID, messageID int64) error
 	AnswerCallbackQuery(ctx context.Context, request telegram.AnswerCallbackQueryRequest) error
 }
@@ -116,11 +117,26 @@ func (s *Service) scheduleDeleteMessagesWithOrigin(ctx context.Context, traceID,
 }
 
 func (s *Service) deleteMessagesNow(ctx context.Context, origin string, chatID int64, messageIDs ...int64) {
-	for _, messageID := range jobs.CompactMessageIDs(messageIDs...) {
-		if err := s.tg.DeleteMessage(ctx, chatID, messageID); err != nil {
-			if telegram.IsMissingMessageTargetError(err) {
-				continue
-			}
+	compactIDs := jobs.CompactMessageIDs(messageIDs...)
+	if len(compactIDs) == 0 {
+		return
+	}
+	if len(compactIDs) > 1 {
+		if err := s.tg.DeleteMessages(ctx, chatID, compactIDs); err == nil {
+			return
+		} else {
+			s.logger.WarnContext(ctx, "cleanup_delete_batch_now_failed", observability.LogAttrs(ctx,
+				"origin", origin,
+				"chat_id", chatID,
+				"message_ids", compactIDs,
+				"error", err,
+			)...)
+		}
+	}
+	for _, messageID := range compactIDs {
+		if err := s.tg.DeleteMessage(ctx, chatID, messageID); err == nil || telegram.IsMissingMessageTargetError(err) {
+			continue
+		} else {
 			s.logger.WarnContext(ctx, "cleanup_delete_now_failed", observability.LogAttrs(ctx,
 				"origin", origin,
 				"chat_id", chatID,

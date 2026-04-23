@@ -15,7 +15,9 @@ import (
 
 type fakeTelegram struct {
 	deleteErrs     []error
+	deleteBatchErr error
 	deleteRequests []int64
+	deleteBatches  [][]int64
 	sendResponses  []telegram.Message
 	sendRequests   []telegram.SendMessageRequest
 }
@@ -28,6 +30,12 @@ func (t *fakeTelegram) DeleteMessage(_ context.Context, _ int64, messageID int64
 	err := t.deleteErrs[0]
 	t.deleteErrs = t.deleteErrs[1:]
 	return err
+}
+
+func (t *fakeTelegram) DeleteMessages(_ context.Context, _ int64, messageIDs []int64) error {
+	copied := append([]int64(nil), messageIDs...)
+	t.deleteBatches = append(t.deleteBatches, copied)
+	return t.deleteBatchErr
 }
 
 func (t *fakeTelegram) SendMessage(_ context.Context, request telegram.SendMessageRequest) (telegram.Message, error) {
@@ -99,6 +107,7 @@ func TestProcessJobDeleteMessagesReturnsRetryableError(t *testing.T) {
 
 func TestProcessJobDeleteMessagesMixedBatchRetries(t *testing.T) {
 	tg := &fakeTelegram{
+		deleteBatchErr: errors.New("write tcp timeout"),
 		deleteErrs: []error{
 			errors.New("telegram deleteMessage not ok: Bad Request: message to delete not found"),
 			errors.New("write tcp timeout"),
@@ -125,6 +134,35 @@ func TestProcessJobDeleteMessagesMixedBatchRetries(t *testing.T) {
 	}
 	if len(tg.deleteRequests) != 2 {
 		t.Fatalf("delete requests = %v, want 2 attempts", tg.deleteRequests)
+	}
+}
+
+func TestProcessJobDeleteMessagesUsesBatchWhenAvailable(t *testing.T) {
+	tg := &fakeTelegram{}
+	service := newTestService(tg)
+	payload, err := json.Marshal(jobs.DeleteMessagesPayload{
+		TraceID:    "trace-4",
+		Origin:     "draft_finish",
+		ChatID:     1,
+		MessageIDs: []int64{201, 202},
+	})
+	if err != nil {
+		t.Fatalf("json.Marshal() error = %v", err)
+	}
+
+	err = service.ProcessJob(context.Background(), jobs.Envelope{
+		TraceID: "trace-4",
+		JobType: domain.JobTypeDeleteMessages,
+		Payload: payload,
+	})
+	if err != nil {
+		t.Fatalf("ProcessJob() error = %v", err)
+	}
+	if len(tg.deleteBatches) != 1 {
+		t.Fatalf("delete batches = %v, want 1 batch", tg.deleteBatches)
+	}
+	if len(tg.deleteRequests) != 0 {
+		t.Fatalf("delete requests = %v, want no per-message fallback", tg.deleteRequests)
 	}
 }
 

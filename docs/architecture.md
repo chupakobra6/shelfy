@@ -12,8 +12,8 @@
   - handles inline callback actions
   - enqueues background work into `jobs`
 - `pipeline-worker`
-  - consumes text/photo/audio ingest jobs
-  - runs OCR, ASR, model parsing, and vision fallback
+  - consumes text/audio ingest jobs
+  - runs ASR and text/model parsing
   - creates `draft_sessions`
   - sends transient draft cards
 - `scheduler-worker`
@@ -51,4 +51,4 @@
 
 - structured JSON logging
 - every update/job should carry `trace_id`, and where applicable `update_id`, `job_id`, `user_id`, `draft_id`
-- failures in OCR/ASR/LLM, queue state transitions, and Telegram side-effects should be visible in logs
+- failures in ASR/text parsing, queue state transitions, and Telegram side-effects should be visible in logs

@@ -1,8 +1,0 @@
-# Covers photo + full caption working as one multimodal intake without depending on OCR/vision.
-{"id":"select_chat","action":"select_chat","chat":"@your_bot_username"}
-{"id":"send_photo_caption_full","action":"send_photo","path":"@fixtures/e2e-photo.png","caption":"молоко до завтра"}
-{"id":"wait_photo_caption_full_processing","action":"wait","timeout_ms":30000}
-{"id":"wait_photo_caption_full_result","action":"wait","timeout_ms":30000}
-{"id":"dump_photo_caption_full_result","action":"dump_state"}
-{"id":"cancel_photo_caption_full_draft","action":"click_button","button_text":"↩️ Отмена"}
-{"id":"wait_photo_caption_full_home","action":"wait","timeout_ms":30000}

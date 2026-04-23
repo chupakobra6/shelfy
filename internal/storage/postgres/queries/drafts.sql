@@ -64,6 +64,22 @@ SET draft_name = $2,
     updated_at = NOW()
 WHERE id = $1;
 
+-- name: UpdateDraftPayload :exec
+UPDATE draft_sessions
+SET draft_payload = $2,
+    updated_at = NOW()
+WHERE id = $1;
+
+-- name: ApplyDraftAIReviewIfReady :execrows
+UPDATE draft_sessions
+SET draft_name = $2,
+    draft_expires_on = $3,
+    raw_deadline_phrase = $4,
+    draft_payload = $5,
+    updated_at = NOW()
+WHERE id = $1
+  AND status = 'ready';
+
 -- name: ListStaleDraftSessions :many
 SELECT id, trace_id, user_id, chat_id, source_kind, status, source_message_id, draft_message_id, feedback_message_id,
        draft_name, draft_expires_on, raw_deadline_phrase, draft_payload, cleanup_after, created_at, updated_at,

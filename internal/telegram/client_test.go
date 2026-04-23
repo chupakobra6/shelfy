@@ -25,6 +25,9 @@ func TestRequestTimeout(t *testing.T) {
 	if got := client.requestTimeout("sendMessage"); got != 60*time.Second {
 		t.Fatalf("sendMessage timeout = %s, want %s", got, 60*time.Second)
 	}
+	if got := client.requestTimeout("deleteMessages"); got != 20*time.Second {
+		t.Fatalf("deleteMessages timeout = %s, want %s", got, 20*time.Second)
+	}
 
 	if got := client.requestTimeout("getFile"); got != 30*time.Second {
 		t.Fatalf("getFile timeout = %s, want %s", got, 30*time.Second)
@@ -132,6 +135,7 @@ func TestShouldUseFreshConnection(t *testing.T) {
 		"sendMessage":         true,
 		"editMessageText":     true,
 		"deleteMessage":       true,
+		"deleteMessages":      true,
 		"pinChatMessage":      true,
 		"answerCallbackQuery": true,
 		"getUpdates":          false,
@@ -198,5 +202,33 @@ func jsonResponse(body string) *http.Response {
 		StatusCode: http.StatusOK,
 		Header:     make(http.Header),
 		Body:       io.NopCloser(strings.NewReader(body)),
+	}
+}
+
+func TestDeleteMessagesChunksLargeBatches(t *testing.T) {
+	requests := 0
+	client := &Client{
+		token:  "test-token",
+		logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
+		http: &http.Client{
+			Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+				requests++
+				if !strings.Contains(req.URL.String(), "/deleteMessages") {
+					t.Fatalf("unexpected URL: %s", req.URL.String())
+				}
+				return jsonResponse(`{"ok":true}`), nil
+			}),
+		},
+	}
+
+	ids := make([]int64, 0, 205)
+	for i := 1; i <= 205; i++ {
+		ids = append(ids, int64(i))
+	}
+	if err := client.DeleteMessages(context.Background(), 1, ids); err != nil {
+		t.Fatalf("DeleteMessages() error = %v", err)
+	}
+	if requests != 3 {
+		t.Fatalf("requests = %d, want 3", requests)
 	}
 }

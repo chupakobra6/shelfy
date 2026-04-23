@@ -123,6 +123,49 @@ func (s *Store) UpdateDraftFields(ctx context.Context, draftID int64, name strin
 	return err
 }
 
+func (s *Store) UpdateDraftPayload(ctx context.Context, draftID int64, payload map[string]any) error {
+	if payload == nil {
+		payload = map[string]any{}
+	}
+	encoded, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	err = s.queries.UpdateDraftPayload(ctx, sqlcgen.UpdateDraftPayloadParams{
+		ID:           draftID,
+		DraftPayload: encoded,
+	})
+	if err == nil {
+		s.logger.DebugContext(ctx, "draft_payload_updated", observability.LogAttrs(ctx, "draft_id", draftID)...)
+	}
+	return err
+}
+
+func (s *Store) ApplyDraftAIReviewIfReady(ctx context.Context, draftID int64, name string, expiresOn *time.Time, rawDeadline string, payload map[string]any) (bool, error) {
+	if payload == nil {
+		payload = map[string]any{}
+	}
+	encoded, err := json.Marshal(payload)
+	if err != nil {
+		return false, err
+	}
+	rowsAffected, err := s.queries.ApplyDraftAIReviewIfReady(ctx, sqlcgen.ApplyDraftAIReviewIfReadyParams{
+		ID:                draftID,
+		DraftName:         emptyToNil(name),
+		DraftExpiresOn:    pgDateFromTimePtr(expiresOn),
+		RawDeadlinePhrase: emptyToNil(rawDeadline),
+		DraftPayload:      encoded,
+	})
+	if err != nil {
+		return false, err
+	}
+	if rowsAffected > 0 {
+		s.logger.DebugContext(ctx, "draft_ai_review_applied", observability.LogAttrs(ctx, "draft_id", draftID)...)
+		return true, nil
+	}
+	return false, nil
+}
+
 func (s *Store) ListStaleDrafts(ctx context.Context, now time.Time) ([]domain.DraftSession, error) {
 	rows, err := s.queries.ListStaleDraftSessions(ctx, pgTimestamptzFromTime(now.Add(-12*time.Hour)))
 	if err != nil {

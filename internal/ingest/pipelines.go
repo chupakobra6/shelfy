@@ -3,7 +3,7 @@ package ingest
 import (
 	"context"
 	"os"
-	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/igor/shelfy/internal/domain"
@@ -17,36 +17,32 @@ const ingestFailureCleanupTTL = 8 * time.Second
 func (s *Service) handleText(ctx context.Context, payload jobs.IngestPayload, now time.Time) error {
 	draft, err := s.parseTextDraft(ctx, payload.Text, now)
 	if err != nil {
+		if rescued, rescueErr := s.tryReviewRescueBeforeFailure(ctx, payload, now, "", "", err); rescueErr != nil {
+			return rescueErr
+		} else if rescued {
+			return nil
+		}
 		return s.sendFailure(ctx, payload, err)
 	}
-	return s.createDraftCard(ctx, payload, draft)
-}
-
-func (s *Service) handlePhoto(ctx context.Context, payload jobs.IngestPayload, now time.Time) error {
-	return s.withPipelineWorkspace(ctx, "photo-*", "photo_pipeline_started", func(dir string) error {
-		imagePath := filepath.Join(dir, "input.jpg")
-		if err := s.tg.DownloadFile(ctx, payload.FileID, imagePath); err != nil {
-			return s.sendFailure(ctx, payload, err)
-		}
-		ocrText, err := s.runTesseract(ctx, imagePath)
-		if err != nil {
-			s.logger.WarnContext(ctx, "tesseract_failed", observability.LogAttrs(ctx, "error", err)...)
-		}
-		draft, err := s.parsePhotoDraft(ctx, payload.Caption, ocrText, now, imagePath)
-		if err != nil {
-			return s.sendFailure(ctx, payload, err)
-		}
-		return s.createDraftCard(ctx, payload, draft)
-	})
+	meta := buildDraftPayload(nil, draft, payload, "", "")
+	session, err := s.upsertDraftCard(ctx, payload, draft, meta)
+	if err != nil {
+		return err
+	}
+	if err := s.finishDraftReady(ctx, payload, "draft created"); err != nil {
+		return err
+	}
+	s.startSmartReview(ctx, payload, session, "", "")
+	return nil
 }
 
 func (s *Service) handleAudio(ctx context.Context, payload jobs.IngestPayload, now time.Time) error {
 	return s.withPipelineWorkspace(ctx, "audio-*", "audio_pipeline_started", func(dir string) error {
-		inputPath := filepath.Join(dir, "input")
+		inputPath := dir + "/input"
 		if err := s.tg.DownloadFile(ctx, payload.FileID, inputPath); err != nil {
 			return s.sendFailure(ctx, payload, err)
 		}
-		wavPath := filepath.Join(dir, "input.wav")
+		wavPath := dir + "/input.wav"
 		if err := s.runFFmpeg(ctx, inputPath, wavPath); err != nil {
 			return s.sendFailure(ctx, payload, err)
 		}
@@ -54,30 +50,58 @@ func (s *Service) handleAudio(ctx context.Context, payload jobs.IngestPayload, n
 		if err != nil {
 			return s.sendFailure(ctx, payload, err)
 		}
-		draft, err := s.parseTextDraft(ctx, transcript, now)
-		if err != nil {
-			return s.sendFailure(ctx, payload, err)
+		normalizedTranscript := normalizeVoiceTranscript(transcript)
+		draft, fastErr := parseFastDraft(normalizedTranscript, now)
+		if fastErr != nil {
+			draft, err = s.parseTextDraft(ctx, normalizedTranscript, now)
+			if err != nil {
+				if rescued, rescueErr := s.tryReviewRescueBeforeFailure(ctx, payload, now, transcript, normalizedTranscript, err); rescueErr != nil {
+					return rescueErr
+				} else if rescued {
+					return nil
+				}
+				return s.sendFailure(ctx, payload, err)
+			}
 		}
-		return s.createDraftCard(ctx, payload, draft)
+		meta := buildDraftPayload(nil, draft, payload, transcript, normalizedTranscript)
+		session, err := s.upsertDraftCard(ctx, payload, draft, meta)
+		if err != nil {
+			return err
+		}
+		if err := s.finishDraftReady(ctx, payload, "draft created"); err != nil {
+			return err
+		}
+		s.startSmartReview(ctx, payload, session, transcript, normalizedTranscript)
+		return nil
 	})
 }
 
-func (s *Service) createDraftCard(ctx context.Context, payload jobs.IngestPayload, parsed parsedDraft) error {
-	var draftID int64
+func (s *Service) upsertDraftCard(ctx context.Context, payload jobs.IngestPayload, parsed parsedDraft, payloadMeta map[string]any) (domain.DraftSession, error) {
 	if existing, ok, err := s.store.FindDraftSessionByTraceID(ctx, payload.TraceID); err != nil {
-		return err
+		return domain.DraftSession{}, err
 	} else if ok {
-		draftID = existing.ID
-		if err := s.store.UpdateDraftFields(ctx, draftID, parsed.Name, parsed.ExpiresOn, parsed.RawDeadlinePhrase, domain.DraftStatusReady); err != nil {
-			return err
+		ctx = observability.WithDraftID(ctx, existing.ID)
+		if err := s.store.UpdateDraftFields(ctx, existing.ID, parsed.Name, parsed.ExpiresOn, parsed.RawDeadlinePhrase, domain.DraftStatusReady); err != nil {
+			return domain.DraftSession{}, err
 		}
-		if existing.DraftMessageID != nil {
-			s.logger.InfoContext(ctx, "draft_card_reused_existing", observability.LogAttrs(ctx,
-				"draft_id", existing.ID,
-				"draft_message_id", *existing.DraftMessageID,
-			)...)
-			return s.finishDraftReady(ctx, payload, "draft reused")
+		if err := s.store.UpdateDraftPayload(ctx, existing.ID, mergeDraftPayload(existing.DraftPayload, payloadMeta)); err != nil {
+			return domain.DraftSession{}, err
 		}
+		if err := s.publishDraftCard(ctx, existing.ID); err != nil {
+			return domain.DraftSession{}, err
+		}
+		draft, err := s.store.GetDraftSession(ctx, existing.ID)
+		if err != nil {
+			return domain.DraftSession{}, err
+		}
+		s.logger.InfoContext(ctx, "draft_card_upserted_existing", observability.LogAttrs(ctx,
+			"draft_id", existing.ID,
+			"draft_message_id", ptrValue(draft.DraftMessageID),
+			"source_kind", payload.Kind,
+			"confidence", parsed.Confidence,
+			"source", parsed.Source,
+		)...)
+		return draft, nil
 	} else {
 		session := domain.DraftSession{
 			TraceID:           payload.TraceID,
@@ -90,18 +114,31 @@ func (s *Service) createDraftCard(ctx context.Context, payload jobs.IngestPayloa
 			DraftName:         parsed.Name,
 			DraftExpiresOn:    parsed.ExpiresOn,
 			RawDeadlinePhrase: parsed.RawDeadlinePhrase,
-			DraftPayload: map[string]any{
-				"confidence": parsed.Confidence,
-				"source":     parsed.Source,
-			},
+			DraftPayload:      payloadMeta,
 		}
-		var err error
-		draftID, err = s.store.CreateDraftSession(ctx, session)
+		draftID, err := s.store.CreateDraftSession(ctx, session)
 		if err != nil {
-			return err
+			return domain.DraftSession{}, err
 		}
+		ctx = observability.WithDraftID(ctx, draftID)
+		if err := s.publishDraftCard(ctx, draftID); err != nil {
+			return domain.DraftSession{}, err
+		}
+		draft, err := s.store.GetDraftSession(ctx, draftID)
+		if err != nil {
+			return domain.DraftSession{}, err
+		}
+		s.logger.InfoContext(ctx, "draft_card_created", observability.LogAttrs(ctx,
+			"draft_message_id", ptrValue(draft.DraftMessageID),
+			"source_kind", payload.Kind,
+			"confidence", parsed.Confidence,
+			"source", parsed.Source,
+		)...)
+		return draft, nil
 	}
-	ctx = observability.WithDraftID(ctx, draftID)
+}
+
+func (s *Service) publishDraftCard(ctx context.Context, draftID int64) error {
 	draft, err := s.store.GetDraftSession(ctx, draftID)
 	if err != nil {
 		return err
@@ -110,25 +147,41 @@ func (s *Service) createDraftCard(ctx context.Context, payload jobs.IngestPayloa
 	if err != nil {
 		return err
 	}
-	message, err := s.tg.SendMessage(ctx, telegram.SendMessageRequest{
-		ChatID:      payload.ChatID,
+	if draft.DraftMessageID == nil {
+		message, err := s.tg.SendMessage(ctx, telegram.SendMessageRequest{
+			ChatID:      draft.ChatID,
+			Text:        text,
+			ParseMode:   "HTML",
+			ReplyMarkup: markup,
+		})
+		if err != nil {
+			return err
+		}
+		return s.store.SetDraftMessageID(ctx, draftID, message.MessageID)
+	}
+	err = s.tg.EditMessageText(ctx, telegram.EditMessageTextRequest{
+		ChatID:      draft.ChatID,
+		MessageID:   *draft.DraftMessageID,
 		Text:        text,
 		ParseMode:   "HTML",
 		ReplyMarkup: markup,
 	})
-	if err != nil {
+	if err == nil {
+		return nil
+	}
+	if !telegram.IsMissingMessageTargetError(err) {
 		return err
 	}
-	if err := s.store.SetDraftMessageID(ctx, draftID, message.MessageID); err != nil {
-		return err
+	message, sendErr := s.tg.SendMessage(ctx, telegram.SendMessageRequest{
+		ChatID:      draft.ChatID,
+		Text:        text,
+		ParseMode:   "HTML",
+		ReplyMarkup: markup,
+	})
+	if sendErr != nil {
+		return sendErr
 	}
-	s.logger.InfoContext(ctx, "draft_card_created", observability.LogAttrs(ctx,
-		"draft_message_id", message.MessageID,
-		"source_kind", payload.Kind,
-		"confidence", parsed.Confidence,
-		"source", parsed.Source,
-	)...)
-	return s.finishDraftReady(ctx, payload, "draft created")
+	return s.store.SetDraftMessageID(ctx, draftID, message.MessageID)
 }
 
 func (s *Service) sendFailure(ctx context.Context, payload jobs.IngestPayload, originalErr error) error {
@@ -155,6 +208,70 @@ func (s *Service) sendFailure(ctx context.Context, payload jobs.IngestPayload, o
 func (s *Service) finishDraftReady(ctx context.Context, payload jobs.IngestPayload, summary string) error {
 	s.deleteFeedbackMessage(ctx, payload.ChatID, payload.FeedbackMessageID)
 	return s.store.UpdateIngestStatus(ctx, payload.TraceID, "draft_ready", summary)
+}
+
+func (s *Service) tryReviewRescueBeforeFailure(ctx context.Context, payload jobs.IngestPayload, now time.Time, rawTranscript, normalizedTranscript string, parseErr error) (bool, error) {
+	input := strings.TrimSpace(payload.Text)
+	if payload.Kind == domain.MessageKindVoice || payload.Kind == domain.MessageKindAudio {
+		input = strings.TrimSpace(normalizedTranscript)
+	}
+	if !shouldAttemptReviewRescue(payload.Kind, input, parseErr) {
+		return false, nil
+	}
+
+	baseline := heuristicParse(input, now)
+	baseline = withNormalizedDraftName(baseline)
+	if baseline.Confidence == "" {
+		baseline.Confidence = "low"
+	}
+	meta := buildDraftPayload(nil, baseline, payload, rawTranscript, normalizedTranscript)
+	reviewPayload := buildReviewPayload(payload, rawTranscript, normalizedTranscript)
+	review, err := s.runSmartReview(ctx, reviewPayload, now)
+	if err != nil {
+		s.logger.WarnContext(ctx, "smart_review_rescue_failed", observability.LogAttrs(ctx, "error", err)...)
+		return false, nil
+	}
+	if !review.CandidateOK {
+		return false, nil
+	}
+	finalized, ok := finalizeReviewRescueDraft(review.CleanedText, review.Candidate)
+	if !ok {
+		return false, nil
+	}
+	meta = reviewMetadata(meta, review.Cleaner, review.CleanedText, true, "rescue_before_card")
+	session, err := s.upsertDraftCard(ctx, payload, finalized, meta)
+	if err != nil {
+		return false, err
+	}
+	if err := s.finishDraftReady(ctx, payload, "draft rescued by review"); err != nil {
+		return false, err
+	}
+	s.logger.InfoContext(ctx, "smart_review_rescue_applied", observability.LogAttrs(ctx,
+		"draft_id", session.ID,
+		"has_name", strings.TrimSpace(finalized.Name) != "",
+		"has_expiry", finalized.ExpiresOn != nil,
+	)...)
+	return true, nil
+}
+
+func (s *Service) startSmartReview(ctx context.Context, payload jobs.IngestPayload, draft domain.DraftSession, rawTranscript, normalizedTranscript string) {
+	if !shouldRunSmartReview(payload.Kind) {
+		return
+	}
+	reviewPayload := buildReviewPayload(payload, rawTranscript, normalizedTranscript)
+	idempotencyKey := payload.TraceID + ":refine_draft_ai"
+	now, err := s.currentNow(ctx)
+	if err != nil {
+		s.logger.WarnContext(ctx, "smart_review_now_failed", observability.LogAttrs(ctx, "error", err)...)
+		return
+	}
+	if err := s.store.EnqueueJob(ctx, payload.TraceID, domain.JobTypeRefineDraftAI, reviewPayload, now, &idempotencyKey); err != nil {
+		s.logger.WarnContext(ctx, "smart_review_enqueue_failed", observability.LogAttrs(ctx, "error", err)...)
+		return
+	}
+	if err := renderReviewStatus(ctx, s, draft.ID, domain.AIReviewStatusPending, ""); err != nil {
+		s.logger.WarnContext(ctx, "smart_review_pending_render_failed", observability.LogAttrs(ctx, "draft_id", draft.ID, "error", err)...)
+	}
 }
 
 func (s *Service) deleteFeedbackMessage(ctx context.Context, chatID, messageID int64) {

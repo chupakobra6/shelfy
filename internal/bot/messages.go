@@ -73,7 +73,6 @@ func (s *Service) HandleMessage(ctx context.Context, msg telegram.Message) error
 		MessageID: msg.MessageID,
 		FileID:    fileID,
 		Text:      msg.Text,
-		Caption:   msg.Caption,
 		Kind:      kind,
 	}
 

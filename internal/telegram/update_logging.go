@@ -30,7 +30,6 @@ func (c *Client) logIncomingMessage(ctx context.Context, message Message) {
 		"text", truncateLogString(message.Text, 2000),
 		"caption", truncateLogString(message.Caption, 2000),
 		"content_type", contentType,
-		"photo_count", len(message.Photo),
 		"voice_file_id", voiceFileID(message.Voice),
 		"audio_file_id", audioFileID(message.Audio),
 		"document_file_id", documentFileID(message.Document),
@@ -68,15 +67,11 @@ func incomingContentType(message Message) string {
 		return "text"
 	case strings.TrimSpace(message.Caption) != "":
 		switch {
-		case len(message.Photo) > 0:
-			return "photo_caption"
 		case message.Document != nil:
 			return "document_caption"
 		default:
 			return "caption_only"
 		}
-	case len(message.Photo) > 0:
-		return "photo"
 	case message.Voice != nil:
 		return "voice"
 	case message.Audio != nil:

@@ -1,0 +1,3668 @@
+{
+  "reference_time": "2026-04-20T12:00:00+03:00",
+  "text": [
+    {
+      "id": "text-001",
+      "input": "слушай добавь молоко домик в деревне до пятницы",
+      "want_state": "ready",
+      "want_name": "молоко домик в деревне",
+      "want_date": "2026-04-24",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "date_phrase",
+        "polite",
+        "single_product"
+      ],
+      "note": "voice-like weekday date"
+    },
+    {
+      "id": "text-002",
+      "input": "нужно купить молоко простоквашино 26.04",
+      "want_state": "ready",
+      "want_name": "молоко простоквашино",
+      "want_date": "2026-04-26",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "voice_like",
+        "single_product"
+      ],
+      "note": "numeric date with action prefix"
+    },
+    {
+      "id": "text-003",
+      "input": "короче молоко рогачевское до двадцать шестого апреля",
+      "want_state": "ready",
+      "want_name": "молоко рогачевское",
+      "want_date": "2026-04-26",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "date_phrase",
+        "asr_noise",
+        "single_product"
+      ],
+      "note": "spoken month date"
+    },
+    {
+      "id": "text-004",
+      "input": "пожалуйста молоко ильинское через 2 недели",
+      "want_state": "ready",
+      "want_name": "молоко ильинское",
+      "want_date": "2026-05-04",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "polite",
+        "date_phrase",
+        "single_product"
+      ],
+      "note": "relative weeks date"
+    },
+    {
+      "id": "text-005",
+      "input": "мне нужна пельмени мираторг до десятого ноль третьего",
+      "want_state": "ready",
+      "want_name": "пельмени мираторг",
+      "want_date": "2027-03-10",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "date_phrase",
+        "asr_noise",
+        "single_product"
+      ],
+      "note": "spoken ordinal numeric month date"
+    },
+    {
+      "id": "text-006",
+      "input": "закажи пожалуйста пельмени лукович к субботе",
+      "want_state": "ready",
+      "want_name": "пельмени лукович",
+      "want_date": "2026-04-25",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "polite",
+        "date_phrase",
+        "single_product"
+      ],
+      "note": "weekday dative date"
+    },
+    {
+      "id": "text-007",
+      "input": "добавь чай тесс зеленый 1 мая",
+      "want_state": "ready",
+      "want_name": "чай тесс зеленый",
+      "want_date": "2026-05-01",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "single_product"
+      ],
+      "note": "named month date"
+    },
+    {
+      "id": "text-008",
+      "input": "слушай добавь черный чай принцесса нури до пятницы",
+      "want_state": "ready",
+      "want_name": "черный чай принцесса нури",
+      "want_date": "2026-04-24",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "date_phrase",
+        "polite",
+        "single_product"
+      ],
+      "note": "voice-like weekday date"
+    },
+    {
+      "id": "text-009",
+      "input": "нужно купить чай ахмад ти инглиш брекфаст 26.04",
+      "want_state": "ready",
+      "want_name": "чай ахмад ти инглиш брекфаст",
+      "want_date": "2026-04-26",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "voice_like",
+        "single_product"
+      ],
+      "note": "numeric date with action prefix"
+    },
+    {
+      "id": "text-010",
+      "input": "короче вода святой источник до двадцать шестого апреля",
+      "want_state": "ready",
+      "want_name": "вода святой источник",
+      "want_date": "2026-04-26",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "date_phrase",
+        "asr_noise",
+        "single_product"
+      ],
+      "note": "spoken month date"
+    },
+    {
+      "id": "text-011",
+      "input": "пожалуйста вода родниковая через 2 недели",
+      "want_state": "ready",
+      "want_name": "вода родниковая",
+      "want_date": "2026-05-04",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "polite",
+        "date_phrase",
+        "single_product"
+      ],
+      "note": "relative weeks date"
+    },
+    {
+      "id": "text-012",
+      "input": "мне нужна пюре фрутоняня яблоко до десятого ноль третьего",
+      "want_state": "ready",
+      "want_name": "пюре фрутоняня яблоко",
+      "want_date": "2027-03-10",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "date_phrase",
+        "asr_noise",
+        "single_product"
+      ],
+      "note": "spoken ordinal numeric month date"
+    },
+    {
+      "id": "text-013",
+      "input": "закажи пожалуйста бекон велком к субботе",
+      "want_state": "ready",
+      "want_name": "бекон велком",
+      "want_date": "2026-04-25",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "polite",
+        "date_phrase",
+        "single_product"
+      ],
+      "note": "weekday dative date"
+    },
+    {
+      "id": "text-014",
+      "input": "добавь колбаса вязанка 1 мая",
+      "want_state": "ready",
+      "want_name": "колбаса вязанка",
+      "want_date": "2026-05-01",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "single_product"
+      ],
+      "note": "named month date"
+    },
+    {
+      "id": "text-015",
+      "input": "слушай добавь мороженое белочка до пятницы",
+      "want_state": "ready",
+      "want_name": "мороженое белочка",
+      "want_date": "2026-04-24",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "date_phrase",
+        "polite",
+        "single_product"
+      ],
+      "note": "voice-like weekday date"
+    },
+    {
+      "id": "text-016",
+      "input": "нужно купить мороженое село зеленое пломбир 26.04",
+      "want_state": "ready",
+      "want_name": "мороженое село зеленое пломбир",
+      "want_date": "2026-04-26",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "voice_like",
+        "single_product"
+      ],
+      "note": "numeric date with action prefix"
+    },
+    {
+      "id": "text-017",
+      "input": "короче помидоры черри до двадцать шестого апреля",
+      "want_state": "ready",
+      "want_name": "помидоры черри",
+      "want_date": "2026-04-26",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "date_phrase",
+        "asr_noise",
+        "single_product"
+      ],
+      "note": "spoken month date"
+    },
+    {
+      "id": "text-018",
+      "input": "пожалуйста черный уральский хлеб через 2 недели",
+      "want_state": "ready",
+      "want_name": "черный уральский хлеб",
+      "want_date": "2026-05-04",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "polite",
+        "date_phrase",
+        "single_product"
+      ],
+      "note": "relative weeks date"
+    },
+    {
+      "id": "text-019",
+      "input": "мне нужна сыр сулугуни до десятого ноль третьего",
+      "want_state": "ready",
+      "want_name": "сыр сулугуни",
+      "want_date": "2027-03-10",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "date_phrase",
+        "asr_noise",
+        "single_product"
+      ],
+      "note": "spoken ordinal numeric month date"
+    },
+    {
+      "id": "text-020",
+      "input": "закажи пожалуйста масло подсолнечное золотая семечка к субботе",
+      "want_state": "ready",
+      "want_name": "масло подсолнечное золотая семечка",
+      "want_date": "2026-04-25",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "polite",
+        "date_phrase",
+        "single_product"
+      ],
+      "note": "weekday dative date"
+    },
+    {
+      "id": "text-021",
+      "input": "добавь йогурт агуша 1 мая",
+      "want_state": "ready",
+      "want_name": "йогурт агуша",
+      "want_date": "2026-05-01",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "single_product"
+      ],
+      "note": "named month date"
+    },
+    {
+      "id": "text-022",
+      "input": "слушай добавь чипсы принглс до пятницы",
+      "want_state": "ready",
+      "want_name": "чипсы принглс",
+      "want_date": "2026-04-24",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "date_phrase",
+        "polite",
+        "single_product"
+      ],
+      "note": "voice-like weekday date"
+    },
+    {
+      "id": "text-023",
+      "input": "нужно купить печенье с малиновой начинкой 26.04",
+      "want_state": "ready",
+      "want_name": "печенье с малиновой начинкой",
+      "want_date": "2026-04-26",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "voice_like",
+        "single_product"
+      ],
+      "note": "numeric date with action prefix"
+    },
+    {
+      "id": "text-024",
+      "input": "короче сок виноградный любимый до двадцать шестого апреля",
+      "want_state": "ready",
+      "want_name": "сок виноградный любимый",
+      "want_date": "2026-04-26",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "date_phrase",
+        "asr_noise",
+        "single_product"
+      ],
+      "note": "spoken month date"
+    },
+    {
+      "id": "text-025",
+      "input": "пожалуйста молоко коровка из кореновки через 2 недели",
+      "want_state": "ready",
+      "want_name": "молоко коровка из кореновки",
+      "want_date": "2026-05-04",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "polite",
+        "date_phrase",
+        "single_product"
+      ],
+      "note": "relative weeks date"
+    },
+    {
+      "id": "text-026",
+      "input": "мне нужна молоко домик в деревне до десятого ноль третьего",
+      "want_state": "ready",
+      "want_name": "молоко домик в деревне",
+      "want_date": "2027-03-10",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "date_phrase",
+        "asr_noise",
+        "single_product"
+      ],
+      "note": "spoken ordinal numeric month date"
+    },
+    {
+      "id": "text-027",
+      "input": "закажи пожалуйста молоко простоквашино к субботе",
+      "want_state": "ready",
+      "want_name": "молоко простоквашино",
+      "want_date": "2026-04-25",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "polite",
+        "date_phrase",
+        "single_product"
+      ],
+      "note": "weekday dative date"
+    },
+    {
+      "id": "text-028",
+      "input": "добавь молоко рогачевское 1 мая",
+      "want_state": "ready",
+      "want_name": "молоко рогачевское",
+      "want_date": "2026-05-01",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "single_product"
+      ],
+      "note": "named month date"
+    },
+    {
+      "id": "text-029",
+      "input": "слушай добавь молоко ильинское до пятницы",
+      "want_state": "ready",
+      "want_name": "молоко ильинское",
+      "want_date": "2026-04-24",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "date_phrase",
+        "polite",
+        "single_product"
+      ],
+      "note": "voice-like weekday date"
+    },
+    {
+      "id": "text-030",
+      "input": "нужно купить пельмени мираторг 26.04",
+      "want_state": "ready",
+      "want_name": "пельмени мираторг",
+      "want_date": "2026-04-26",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "voice_like",
+        "single_product"
+      ],
+      "note": "numeric date with action prefix"
+    },
+    {
+      "id": "text-031",
+      "input": "короче пельмени лукович до двадцать шестого апреля",
+      "want_state": "ready",
+      "want_name": "пельмени лукович",
+      "want_date": "2026-04-26",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "date_phrase",
+        "asr_noise",
+        "single_product"
+      ],
+      "note": "spoken month date"
+    },
+    {
+      "id": "text-032",
+      "input": "пожалуйста чай тесс зеленый через 2 недели",
+      "want_state": "ready",
+      "want_name": "чай тесс зеленый",
+      "want_date": "2026-05-04",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "polite",
+        "date_phrase",
+        "single_product"
+      ],
+      "note": "relative weeks date"
+    },
+    {
+      "id": "text-033",
+      "input": "мне нужна черный чай принцесса нури до десятого ноль третьего",
+      "want_state": "ready",
+      "want_name": "черный чай принцесса нури",
+      "want_date": "2027-03-10",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "date_phrase",
+        "asr_noise",
+        "single_product"
+      ],
+      "note": "spoken ordinal numeric month date"
+    },
+    {
+      "id": "text-034",
+      "input": "закажи пожалуйста чай ахмад ти инглиш брекфаст к субботе",
+      "want_state": "ready",
+      "want_name": "чай ахмад ти инглиш брекфаст",
+      "want_date": "2026-04-25",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "polite",
+        "date_phrase",
+        "single_product"
+      ],
+      "note": "weekday dative date"
+    },
+    {
+      "id": "text-035",
+      "input": "добавь вода святой источник 1 мая",
+      "want_state": "ready",
+      "want_name": "вода святой источник",
+      "want_date": "2026-05-01",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "single_product"
+      ],
+      "note": "named month date"
+    },
+    {
+      "id": "text-036",
+      "input": "закажи молоко рогачевское один литр две штуки",
+      "want_state": "needs_expiry",
+      "want_name": "молоко рогачевское",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "quantity_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "brand with quantity noise"
+    },
+    {
+      "id": "text-037",
+      "input": "нужен пельмени лукович с доставкой на дом",
+      "want_state": "needs_expiry",
+      "want_name": "пельмени лукович",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "delivery_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "delivery noise no date"
+    },
+    {
+      "id": "text-038",
+      "input": "пожалуйста чай ахмад ти инглиш брекфаст в пакетиках",
+      "want_state": "needs_expiry",
+      "want_name": "чай ахмад ти инглиш брекфаст",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "polite",
+        "quantity_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "packaging noise no date"
+    },
+    {
+      "id": "text-039",
+      "input": "купи пюре фрутоняня яблоко жирностью два процента",
+      "want_state": "needs_expiry",
+      "want_name": "пюре фрутоняня яблоко",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "quantity_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "fatness noise no date"
+    },
+    {
+      "id": "text-040",
+      "input": "мне нужен мороженое белочка как можно быстрее",
+      "want_state": "needs_expiry",
+      "want_name": "мороженое белочка",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "delivery_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "urgency noise no date"
+    },
+    {
+      "id": "text-041",
+      "input": "закажи черный уральский хлеб один литр две штуки",
+      "want_state": "needs_expiry",
+      "want_name": "черный уральский хлеб",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "quantity_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "brand with quantity noise"
+    },
+    {
+      "id": "text-042",
+      "input": "нужен йогурт агуша с доставкой на дом",
+      "want_state": "needs_expiry",
+      "want_name": "йогурт агуша",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "delivery_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "delivery noise no date"
+    },
+    {
+      "id": "text-043",
+      "input": "пожалуйста сок виноградный любимый в пакетиках",
+      "want_state": "needs_expiry",
+      "want_name": "сок виноградный любимый",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "polite",
+        "quantity_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "packaging noise no date"
+    },
+    {
+      "id": "text-044",
+      "input": "купи молоко простоквашино жирностью два процента",
+      "want_state": "needs_expiry",
+      "want_name": "молоко простоквашино",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "quantity_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "fatness noise no date"
+    },
+    {
+      "id": "text-045",
+      "input": "мне нужен пельмени мираторг как можно быстрее",
+      "want_state": "needs_expiry",
+      "want_name": "пельмени мираторг",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "delivery_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "urgency noise no date"
+    },
+    {
+      "id": "text-046",
+      "input": "закажи черный чай принцесса нури один литр две штуки",
+      "want_state": "needs_expiry",
+      "want_name": "черный чай принцесса нури",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "quantity_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "brand with quantity noise"
+    },
+    {
+      "id": "text-047",
+      "input": "нужен вода родниковая с доставкой на дом",
+      "want_state": "needs_expiry",
+      "want_name": "вода родниковая",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "delivery_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "delivery noise no date"
+    },
+    {
+      "id": "text-048",
+      "input": "пожалуйста колбаса вязанка в пакетиках",
+      "want_state": "needs_expiry",
+      "want_name": "колбаса вязанка",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "polite",
+        "quantity_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "packaging noise no date"
+    },
+    {
+      "id": "text-049",
+      "input": "купи помидоры черри жирностью два процента",
+      "want_state": "needs_expiry",
+      "want_name": "помидоры черри",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "quantity_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "fatness noise no date"
+    },
+    {
+      "id": "text-050",
+      "input": "мне нужен масло подсолнечное золотая семечка как можно быстрее",
+      "want_state": "needs_expiry",
+      "want_name": "масло подсолнечное золотая семечка",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "delivery_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "urgency noise no date"
+    },
+    {
+      "id": "text-051",
+      "input": "закажи печенье с малиновой начинкой один литр две штуки",
+      "want_state": "needs_expiry",
+      "want_name": "печенье с малиновой начинкой",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "quantity_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "brand with quantity noise"
+    },
+    {
+      "id": "text-052",
+      "input": "нужен молоко домик в деревне с доставкой на дом",
+      "want_state": "needs_expiry",
+      "want_name": "молоко домик в деревне",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "delivery_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "delivery noise no date"
+    },
+    {
+      "id": "text-053",
+      "input": "пожалуйста молоко ильинское в пакетиках",
+      "want_state": "needs_expiry",
+      "want_name": "молоко ильинское",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "polite",
+        "quantity_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "packaging noise no date"
+    },
+    {
+      "id": "text-054",
+      "input": "купи чай тесс зеленый жирностью два процента",
+      "want_state": "needs_expiry",
+      "want_name": "чай тесс зеленый",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "quantity_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "fatness noise no date"
+    },
+    {
+      "id": "text-055",
+      "input": "мне нужен вода святой источник как можно быстрее",
+      "want_state": "needs_expiry",
+      "want_name": "вода святой источник",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "delivery_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "urgency noise no date"
+    },
+    {
+      "id": "text-056",
+      "input": "закажи бекон велком один литр две штуки",
+      "want_state": "needs_expiry",
+      "want_name": "бекон велком",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "quantity_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "brand with quantity noise"
+    },
+    {
+      "id": "text-057",
+      "input": "нужен мороженое село зеленое пломбир с доставкой на дом",
+      "want_state": "needs_expiry",
+      "want_name": "мороженое село зеленое пломбир",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "delivery_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "delivery noise no date"
+    },
+    {
+      "id": "text-058",
+      "input": "пожалуйста сыр сулугуни в пакетиках",
+      "want_state": "needs_expiry",
+      "want_name": "сыр сулугуни",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "polite",
+        "quantity_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "packaging noise no date"
+    },
+    {
+      "id": "text-059",
+      "input": "купи чипсы принглс жирностью два процента",
+      "want_state": "needs_expiry",
+      "want_name": "чипсы принглс",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "quantity_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "fatness noise no date"
+    },
+    {
+      "id": "text-060",
+      "input": "мне нужен молоко коровка из кореновки как можно быстрее",
+      "want_state": "needs_expiry",
+      "want_name": "молоко коровка из кореновки",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "voice_like",
+        "delivery_noise",
+        "single_product",
+        "brand"
+      ],
+      "note": "urgency noise no date"
+    },
+    {
+      "id": "text-061",
+      "input": "слушай надо до пятницы",
+      "want_state": "needs_name",
+      "want_name": "",
+      "want_date": "2026-04-24",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "voice_like"
+      ],
+      "note": "grounded text benchmark case with date-only partial and conversational noise"
+    },
+    {
+      "id": "text-062",
+      "input": "пожалуйста чтобы к субботе было",
+      "want_state": "needs_name",
+      "want_name": "",
+      "want_date": "2026-04-25",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "polite",
+        "voice_like"
+      ],
+      "note": "grounded text benchmark case with date-only partial and conversational noise"
+    },
+    {
+      "id": "text-063",
+      "input": "нужно успеть к 26.04",
+      "want_state": "needs_name",
+      "want_name": "",
+      "want_date": "2026-04-26",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "voice_like"
+      ],
+      "note": "grounded text benchmark case with date-only partial and conversational noise"
+    },
+    {
+      "id": "text-064",
+      "input": "слушай это до двадцать шестого апреля надо",
+      "want_state": "needs_name",
+      "want_name": "",
+      "want_date": "2026-04-26",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "asr_noise",
+        "voice_like"
+      ],
+      "note": "grounded text benchmark case with date-only partial and conversational noise"
+    },
+    {
+      "id": "text-065",
+      "input": "мне бы через 2 недели",
+      "want_state": "needs_name",
+      "want_name": "",
+      "want_date": "2026-05-04",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "voice_like"
+      ],
+      "note": "grounded text benchmark case with date-only partial and conversational noise"
+    },
+    {
+      "id": "text-066",
+      "input": "короче это до десятого ноль третьего",
+      "want_state": "needs_name",
+      "want_name": "",
+      "want_date": "2027-03-10",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "asr_noise",
+        "voice_like"
+      ],
+      "note": "grounded text benchmark case with date-only partial and conversational noise"
+    },
+    {
+      "id": "text-067",
+      "input": "пожалуйста чтобы было к 1 мая",
+      "want_state": "needs_name",
+      "want_name": "",
+      "want_date": "2026-05-01",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "polite",
+        "voice_like"
+      ],
+      "note": "grounded text benchmark case with date-only partial and conversational noise"
+    },
+    {
+      "id": "text-068",
+      "input": "нужно на завтра",
+      "want_state": "needs_name",
+      "want_name": "",
+      "want_date": "2026-04-21",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "voice_like"
+      ],
+      "note": "grounded text benchmark case with date-only partial and conversational noise"
+    },
+    {
+      "id": "text-069",
+      "input": "слушай давай до воскресенья",
+      "want_state": "needs_name",
+      "want_name": "",
+      "want_date": "2026-04-26",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "voice_like"
+      ],
+      "note": "grounded text benchmark case with date-only partial and conversational noise"
+    },
+    {
+      "id": "text-070",
+      "input": "мне это к четвергу надо",
+      "want_state": "needs_name",
+      "want_name": "",
+      "want_date": "2026-04-23",
+      "difficulty": "medium",
+      "tags": [
+        "parser_only",
+        "date_phrase",
+        "voice_like"
+      ],
+      "note": "grounded text benchmark case with date-only partial and conversational noise"
+    },
+    {
+      "id": "text-071",
+      "input": "напомни про встречу завтра",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food",
+        "date_phrase"
+      ],
+      "note": "non-food reminder"
+    },
+    {
+      "id": "text-072",
+      "input": "помоги установить будильник завтра на утро",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food",
+        "date_phrase",
+        "time_phrase",
+        "polite"
+      ],
+      "note": "alarm task"
+    },
+    {
+      "id": "text-073",
+      "input": "запиши меня на массаж на завтра на восемь вечера",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food",
+        "date_phrase",
+        "time_phrase"
+      ],
+      "note": "calendar task"
+    },
+    {
+      "id": "text-074",
+      "input": "с доставкой продукты на дом килограмм яблок бананы два килограмма десяток яиц",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "multi_item",
+        "delivery_noise",
+        "quantity_noise",
+        "voice_like"
+      ],
+      "note": "generic basket multi-item request"
+    },
+    {
+      "id": "text-075",
+      "input": "закажи йогурт агуша и молоко рогачевское",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "multi_item",
+        "voice_like"
+      ],
+      "note": "multi-item grocery request"
+    },
+    {
+      "id": "text-076",
+      "input": "нужно купить молоко домик в деревне и черный чай принцесса нури до пятницы",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "multi_item",
+        "date_phrase",
+        "voice_like"
+      ],
+      "note": "multi-item grocery request with date"
+    },
+    {
+      "id": "text-077",
+      "input": "купи средство для мытья пола",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food"
+      ],
+      "note": "household product should reject"
+    },
+    {
+      "id": "text-078",
+      "input": "закажи пожалуйста фэри для посуды",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food",
+        "polite",
+        "voice_like"
+      ],
+      "note": "household branded item should reject"
+    },
+    {
+      "id": "text-079",
+      "input": "список на неделю и убрать кухню",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food"
+      ],
+      "note": "todo list should reject"
+    },
+    {
+      "id": "text-080",
+      "input": "напомни позвонить в магазин в пятницу",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food",
+        "date_phrase"
+      ],
+      "note": "reminder with date should reject"
+    },
+    {
+      "id": "text-081",
+      "input": "напомни про встречу завтра",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food",
+        "date_phrase"
+      ],
+      "note": "non-food reminder"
+    },
+    {
+      "id": "text-082",
+      "input": "помоги установить будильник завтра на утро",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food",
+        "date_phrase",
+        "time_phrase",
+        "polite"
+      ],
+      "note": "alarm task"
+    },
+    {
+      "id": "text-083",
+      "input": "запиши меня на массаж на завтра на восемь вечера",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food",
+        "date_phrase",
+        "time_phrase"
+      ],
+      "note": "calendar task"
+    },
+    {
+      "id": "text-084",
+      "input": "с доставкой продукты на дом килограмм яблок бананы два килограмма десяток яиц",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "multi_item",
+        "delivery_noise",
+        "quantity_noise",
+        "voice_like"
+      ],
+      "note": "generic basket multi-item request"
+    },
+    {
+      "id": "text-085",
+      "input": "закажи йогурт агуша и молоко рогачевское",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "multi_item",
+        "voice_like"
+      ],
+      "note": "multi-item grocery request"
+    },
+    {
+      "id": "text-086",
+      "input": "нужно купить молоко домик в деревне и черный чай принцесса нури до пятницы",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "multi_item",
+        "date_phrase",
+        "voice_like"
+      ],
+      "note": "multi-item grocery request with date"
+    },
+    {
+      "id": "text-087",
+      "input": "купи средство для мытья пола",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food"
+      ],
+      "note": "household product should reject"
+    },
+    {
+      "id": "text-088",
+      "input": "закажи пожалуйста фэри для посуды",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food",
+        "polite",
+        "voice_like"
+      ],
+      "note": "household branded item should reject"
+    },
+    {
+      "id": "text-089",
+      "input": "список на неделю и убрать кухню",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food"
+      ],
+      "note": "todo list should reject"
+    },
+    {
+      "id": "text-090",
+      "input": "напомни позвонить в магазин в пятницу",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food",
+        "date_phrase"
+      ],
+      "note": "reminder with date should reject"
+    },
+    {
+      "id": "text-091",
+      "input": "напомни про встречу завтра",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food",
+        "date_phrase"
+      ],
+      "note": "non-food reminder"
+    },
+    {
+      "id": "text-092",
+      "input": "помоги установить будильник завтра на утро",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food",
+        "date_phrase",
+        "time_phrase",
+        "polite"
+      ],
+      "note": "alarm task"
+    },
+    {
+      "id": "text-093",
+      "input": "запиши меня на массаж на завтра на восемь вечера",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food",
+        "date_phrase",
+        "time_phrase"
+      ],
+      "note": "calendar task"
+    },
+    {
+      "id": "text-094",
+      "input": "с доставкой продукты на дом килограмм яблок бананы два килограмма десяток яиц",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "multi_item",
+        "delivery_noise",
+        "quantity_noise",
+        "voice_like"
+      ],
+      "note": "generic basket multi-item request"
+    },
+    {
+      "id": "text-095",
+      "input": "закажи йогурт агуша и молоко рогачевское",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "multi_item",
+        "voice_like"
+      ],
+      "note": "multi-item grocery request"
+    },
+    {
+      "id": "text-096",
+      "input": "нужно купить молоко домик в деревне и черный чай принцесса нури до пятницы",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "multi_item",
+        "date_phrase",
+        "voice_like"
+      ],
+      "note": "multi-item grocery request with date"
+    },
+    {
+      "id": "text-097",
+      "input": "купи средство для мытья пола",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food"
+      ],
+      "note": "household product should reject"
+    },
+    {
+      "id": "text-098",
+      "input": "закажи пожалуйста фэри для посуды",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food",
+        "polite",
+        "voice_like"
+      ],
+      "note": "household branded item should reject"
+    },
+    {
+      "id": "text-099",
+      "input": "список на неделю и убрать кухню",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food"
+      ],
+      "note": "todo list should reject"
+    },
+    {
+      "id": "text-100",
+      "input": "напомни позвонить в магазин в пятницу",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "parser_only",
+        "reject",
+        "non_food",
+        "date_phrase"
+      ],
+      "note": "reminder with date should reject"
+    }
+  ],
+  "voice": [
+    {
+      "id": "voice-01",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:316",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-01.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "682d919c66dade56de2cc008daaca7b75b089c71898d38e459a17815a7526e9e",
+      "transcript_ref": "джой можно на завтра записаться к окулисту",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "date_phrase",
+        "reject"
+      ],
+      "note": "public Golos crowd command; non-food reminder with date",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-02",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:377",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-02.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "b6cbdeb627f051e750d218cd305a6bf885ec4df15b768563c576bf782928cdec",
+      "transcript_ref": "закажи на дом молоко простоквашино два с половиной литра и жирностью один процент",
+      "want_state": "needs_expiry",
+      "want_name": "молоко простоквашино",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; single product with brand, quantity, and delivery noise",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-03",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:923",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-03.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "28901f4bfb66bd079f7cf00dcef9af7f067db115648d3b028efbad86c34d66b3",
+      "transcript_ref": "ряженка кубанская буренка четырехпроцентная литр",
+      "want_state": "needs_expiry",
+      "want_name": "ряженка кубанская буренка",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; branded dairy item without expiry",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-04",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1501",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-04.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "42cb85562211b818ce43e750b8930e4836a51cbc009e32dc076868120440aa01",
+      "transcript_ref": "слушай алиса закажи мне один килограмм помидоров",
+      "want_state": "needs_expiry",
+      "want_name": "помидоров",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "filler"
+      ],
+      "note": "public Golos crowd command; wake words plus quantity noise",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-05",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:3096",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-05.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "72feef9f996478d8747ff6241502486716ed6674cdc977ec5ad04fb4c1e24bb9",
+      "transcript_ref": "закажи два пакета молока по одному литру один пакет кефира все с доставкой на дом",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "multi_item",
+        "reject"
+      ],
+      "note": "public Golos crowd command; multi-item dairy order",
+      "difficulty": "hard"
+    },
+    {
+      "id": "voice-06",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4533",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-06.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "a77d270145e8c548cc7e70c8b20e85f18f27ff8915713fb803057bbdc6a1c34d",
+      "transcript_ref": "закажи мне хлеб кефир и яйца",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "multi_item",
+        "reject"
+      ],
+      "note": "public Golos crowd command; multi-item grocery phrase",
+      "difficulty": "hard"
+    },
+    {
+      "id": "voice-07",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:11",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-07.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "eb7bfc5e068cca437bb24370bd98f14e5ccbc2e5599255573390909e4c92f045",
+      "transcript_ref": "пожалуйста пирожные тирамису три штуки",
+      "want_state": "needs_expiry",
+      "want_name": "пирожные тирамису",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise",
+        "polite"
+      ],
+      "note": "public Golos crowd command; dessert item with polite prefix and count",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-08",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:249",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-08.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "fbd7a8b70bbabe415274b53f6d5d1f12fbff941969064debf5a0f8ecf651799d",
+      "transcript_ref": "помидоры черри пол кило",
+      "want_state": "needs_expiry",
+      "want_name": "помидоры черри",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; produce item with quantity suffix",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-09",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:309",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-09.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "e851a4b3ed68220f801222a951a37aeac3b92b96210529f0bffbd58f77ff8ebb",
+      "transcript_ref": "закажи пожалуйста чай тесс зеленый в пакетиках",
+      "want_state": "needs_expiry",
+      "want_name": "чай тесс зеленый",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand",
+        "polite"
+      ],
+      "note": "public Golos crowd command; branded tea with polite request",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-10",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:312",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-10.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "60a7c696bce356c8d092d7dbfc3ada21f3ae839d41a9f6118a5241301fc2d18d",
+      "transcript_ref": "закажи пельмени сибирская коллекция домашние семьсот грамм",
+      "want_state": "needs_expiry",
+      "want_name": "пельмени сибирская коллекция домашние",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; branded dumplings with quantity noise",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-11",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:515",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-11.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "18a545cd29ce3b85cac1e7a7858993171524759e35aeeb59bc3d09103eab2eb8",
+      "transcript_ref": "молоко ильинское шестипроцентное один литр",
+      "want_state": "needs_expiry",
+      "want_name": "молоко ильинское",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; branded milk with fatness and liter noise",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-12",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:697",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-12.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "f900925fcaa651116d3f788dce5b240f5661e2dc78d6b2418b8103dd95fdc34c",
+      "transcript_ref": "закажи колбасу вязанка",
+      "want_state": "needs_expiry",
+      "want_name": "колбасу вязанка",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand"
+      ],
+      "note": "public Golos crowd command; short branded sausage order",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-13",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:753",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-13.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "b568cc183b56e264c226d83ea4b685f7ae8d6f75b671b0599ea1aed0ea16fe35",
+      "transcript_ref": "я хочу заказать молоко домик в деревне емкостью один литр две штуки",
+      "want_state": "needs_expiry",
+      "want_name": "молоко домик в деревне",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; branded milk with duplicated quantity",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-14",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1090",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-14.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "38fd788dd5f0aeae71d85df62ef1238d6e341caa16d6ffa03001a60cf77d50d4",
+      "transcript_ref": "добрый вечер мне нужны пельмени лукович килограмм со вкусом сыра вот привезите пожалуйста через полчаса",
+      "want_state": "needs_expiry",
+      "want_name": "пельмени лукович",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise",
+        "time_phrase",
+        "delivery_noise",
+        "polite"
+      ],
+      "note": "public Golos crowd command; food order with delivery urgency and time tail",
+      "difficulty": "hard"
+    },
+    {
+      "id": "voice-15",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1294",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-15.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "ea896b5baac8e2f5248a78c2ad6411f1ac92fc759b05a062ad577195188cf996",
+      "transcript_ref": "закажи мне мороженое белочка со вкусом клубники на дом",
+      "want_state": "needs_expiry",
+      "want_name": "мороженое белочка",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "delivery_noise"
+      ],
+      "note": "public Golos crowd command; dessert item with flavor and delivery tail",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-16",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1775",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-16.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "2824753149d6241a9257aa73568175af8ac8dbd6994e01b5e0b99eab0c7caa15",
+      "transcript_ref": "закажи молоко фирмы пармалат ультрапастеризованное жирность один и восемь процент один литр",
+      "want_state": "needs_expiry",
+      "want_name": "молоко пармалат",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; branded milk with dense attribute tail",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-17",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1876",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-17.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "b973c20b25dc9ce17602c032cbe8d267f268ec5a274d254a52585b1386f5bab0",
+      "transcript_ref": "алиса закажи бекон велком с доставкой на дом как можно быстрее",
+      "want_state": "needs_expiry",
+      "want_name": "бекон велком",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand",
+        "delivery_noise",
+        "filler"
+      ],
+      "note": "public Golos crowd command; branded bacon with urgency and wake word",
+      "difficulty": "hard"
+    },
+    {
+      "id": "voice-18",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2313",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-18.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "76ad7b9d4ffb64ebabb66689596f61ca987a207e6c1dc7d686f515e976a0df6c",
+      "transcript_ref": "ассистент закажи воду святой источник негазированная с названием спорт на бутылке ноль семьдесят пять миллилитров",
+      "want_state": "needs_expiry",
+      "want_name": "вода святой источник",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand",
+        "quantity_noise",
+        "filler"
+      ],
+      "note": "public Golos crowd command; bottled water with long descriptive tail",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-19",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2445",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-19.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "992a878cdd1e8ec57055777cdd5693a973dcf317088d0fc6f1821a3482da1840",
+      "transcript_ref": "закажи мне пожалуйста из магазина монетка две булки черного уральского хлеба",
+      "want_state": "needs_expiry",
+      "want_name": "черный уральский хлеб",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise",
+        "polite"
+      ],
+      "note": "public Golos crowd command; bread order with store and quantity noise",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-20",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2454",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-20.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "28161918bd33669a0b471084ff60166fbebab7dbb056c812be3514e8877f791d",
+      "transcript_ref": "купи мне пожалуйста молоко рогачевское ноль пять литров пяти процентной жирности",
+      "want_state": "needs_expiry",
+      "want_name": "молоко рогачевское",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand",
+        "quantity_noise",
+        "polite"
+      ],
+      "note": "public Golos crowd command; branded milk with dense fatness tail",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-21",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2612",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-21.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "c32b9c969bef6962c54d715026c95ad7897026c5ea3d3b4b9a9ae4ec5fdd135c",
+      "transcript_ref": "закажи пюре фрутоняня яблоко девяносто грамм стекло",
+      "want_state": "needs_expiry",
+      "want_name": "пюре фрутоняня яблоко",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; baby food pouch with packaging noise",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-22",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2682",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-22.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "f4edc5043bce5414472f6d1571add8bb1021f2891f42162ffc094543ef427766",
+      "transcript_ref": "купи молоко простоквашино один литр два с половиной процента жирности",
+      "want_state": "needs_expiry",
+      "want_name": "молоко простоквашино",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; branded milk with quantity and fatness tail",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-23",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2987",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-23.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "4ec8dceeb90061861cf7c9c7717dba4e156e02e49aad77f106caa8c9a0061b6e",
+      "transcript_ref": "закажи черный чай принцесса нури",
+      "want_state": "needs_expiry",
+      "want_name": "черный чай принцесса нури",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand"
+      ],
+      "note": "public Golos crowd command; branded tea without quantity",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-24",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:3111",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-24.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "0a6a61331e40120f8fc66abe0fc51415adb7d50a1ccf7c42db15c5957a16ac9d",
+      "transcript_ref": "закажи помидоры черри пятьсот грамм",
+      "want_state": "needs_expiry",
+      "want_name": "помидоры черри",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; produce item with gram count",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-25",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:3194",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-25.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "1f49f3789b84617041f150e11ad2f23974ca740e0784f49c6fdcef1a50d3ed31",
+      "transcript_ref": "алиса мне нужна вода родниковая объемом пять литров",
+      "want_state": "needs_expiry",
+      "want_name": "вода родниковая",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise",
+        "filler"
+      ],
+      "note": "public Golos crowd command; bottled water with volume tail",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-26",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:3696",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-26.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "c73d154f00900322067215437074971932bda6ce341ed7b651a646792c196fef",
+      "transcript_ref": "закажи мне пожалуйста пельмени мираторг пятьсот грамм",
+      "want_state": "needs_expiry",
+      "want_name": "пельмени мираторг",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand",
+        "quantity_noise",
+        "polite"
+      ],
+      "note": "public Golos crowd command; branded dumplings with polite prefix",
+      "difficulty": "medium"
+    },
+    {
+      "id": "voice-27",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2696",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-27.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "e10517ef802a1466f355800b8e0ac7efacff572b0158d7c9a38dc756c51f2abc",
+      "transcript_ref": "алиса запиши пожалуйста меня на массаж на завтра на восемь вечера",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "date_phrase",
+        "time_phrase",
+        "polite"
+      ],
+      "note": "public Golos crowd command; appointment reminder request with tomorrow plus time",
+      "difficulty": "hard"
+    },
+    {
+      "id": "voice-28",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:3631",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-28.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "b7e6aa81d19d38d39c2f3124f9b5e00d9e08433f92a9388f2a231f4371f0e084",
+      "transcript_ref": "помоги пожалуйста установить будильник завтра на утро",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "date_phrase",
+        "time_phrase",
+        "polite"
+      ],
+      "note": "public Golos crowd command; alarm request for tomorrow morning",
+      "difficulty": "hard"
+    },
+    {
+      "id": "voice-29",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:3312",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-29.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "03b99aea3577278ac0c4530eb9968cbe8393ca8937fb346178b66ce5ff0c5363",
+      "transcript_ref": "закажи пожалуйста моющее средство для мытья посуды фэри",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "non_food",
+        "polite"
+      ],
+      "note": "public Golos crowd command; dishwashing liquid request should stay non-food",
+      "difficulty": "hard"
+    },
+    {
+      "id": "voice-30",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:3142",
+      "asset_path": "internal/ingest/testdata/benchmark_audio/voice-30.wav",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "f2893e430f3366f0f049eabbf09307dde947faefc9be86277eb061b2cd1b9566",
+      "transcript_ref": "с доставкой продукты с доставкой на дом килограмм яблок антоновка бананы два килограмма десяток яиц",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "multi_item",
+        "delivery_noise",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; complex multi-item grocery request with delivery framing",
+      "difficulty": "hard"
+    },
+    {
+      "id": "voice-31",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:19",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "614cd5d81e9c380cd7be362fc78145cf760a904d40d92e9c88121c176a8cb43c",
+      "transcript_ref": "сыр голландский семьсот грамм помидоры черри два килограмма с доставкой на дом",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "quantity_noise",
+        "delivery_noise",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-32",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:51",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "072e7ddfc703f6556c7d035a4d4551f553e294f99ed038788b48f67557958d78",
+      "transcript_ref": "афина нужно записать меня на среду на коррекцию бровей",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "polite",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-33",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:62",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "a3319ff3739514b911beef0e99f374331b0905aceb5a8f8bcdcd63914299c869",
+      "transcript_ref": "поставь ка ленту майкла бэя полный расколбас",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-34",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:77",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "27f844fe6ce88e531870704fbcc475251ab9a553c5127ad7462a163cfd71bbb5",
+      "transcript_ref": "и сок яблочный",
+      "want_state": "needs_expiry",
+      "want_name": "сок яблочный",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-35",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:88",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "a02d5f3135194de9814b4e3e82731dad08ac9d4ea77b5deeb283b7f272fc529d",
+      "transcript_ref": "хотел бы заказать три килограмма картофеля",
+      "want_state": "needs_expiry",
+      "want_name": "картофель",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-36",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:138",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "da55f81f6b72474e9ce2daa95c12b70dbf3a8cd567d99a5baeab9a7b5298aff3",
+      "transcript_ref": "алиса закажи на дом три упаковки вискаса",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "quantity_noise",
+        "delivery_noise",
+        "polite",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-37",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:342",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "7b88b83ae670509c9753416d6a4984283e8ea76983dbf64b2e34e5184aff8d2c",
+      "transcript_ref": "зеленый рассыпной чай с саусеп",
+      "want_state": "needs_expiry",
+      "want_name": "зеленый рассыпной чай",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-38",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:407",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "a03d00fe9182a0a741485a9c90cfb0931f44f7f80a5be012ebc2d5c14d911a04",
+      "transcript_ref": "закажи мне пельмени с куриным фаршем",
+      "want_state": "needs_expiry",
+      "want_name": "пельмени с куриным фаршем",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-39",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:628",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "09a45a6985a68ef774156be53c26547b1e6cc9d07d74dd65d54bc5a0aad47a1d",
+      "transcript_ref": "три килограмма яблок гала полкило бананов больших три сникерса",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "quantity_noise",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-40",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:651",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "619bdcbdc954a942e9843ba1e4467cc2fdaebcc7d01f30dc2f5ef753279425ee",
+      "transcript_ref": "помидоры два килограмма с доставкой на дом",
+      "want_state": "needs_expiry",
+      "want_name": "помидоры",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise",
+        "delivery_noise"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-41",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:790",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "8e8514bf91d275c05e82041f77ad5c15346d8e13498d12c632950f2ea4028081",
+      "transcript_ref": "закажи мне бананов один килограмм",
+      "want_state": "needs_expiry",
+      "want_name": "бананы",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-42",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:899",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "77f67fef9ea0b4ed8f3213835a76d5e9eceb1ab3b1549598cb5becfc30f112b8",
+      "transcript_ref": "купи печенье с малиновой начинкой",
+      "want_state": "needs_expiry",
+      "want_name": "печенье с малиновой начинкой",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-43",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1042",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "971373dc93e8aa9dc94d6d519bf6a4f45d4e86c4ca3a6566e79bebfbe5729b5d",
+      "transcript_ref": "мне нужен чай ахмад ти инглиш брекфаст сто пакетиков",
+      "want_state": "needs_expiry",
+      "want_name": "чай ахмад ти инглиш брекфаст",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise",
+        "brand"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-44",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1043",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "4ebcd11f0bcd4047a8336715a5b180814f358bebfa28f5c44b723703b6be3270",
+      "transcript_ref": "привези мне сок виноградный любимый",
+      "want_state": "needs_expiry",
+      "want_name": "сок виноградный любимый",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-45",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1055",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "89f65904b47b942c5b991c901358816f29a0ef3a8908d5baec5d13662267605e",
+      "transcript_ref": "закажи шоколадное мороженое в вафельном стаканчике",
+      "want_state": "needs_expiry",
+      "want_name": "шоколадное мороженое",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-46",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1177",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "385da4a8832d8a55e1e5de52059353f7c6c4f9c5f6437aaeb1f582657b650c44",
+      "transcript_ref": "закажи мне один хлеб крестьянский одну булку",
+      "want_state": "needs_expiry",
+      "want_name": "хлеб крестьянский",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-47",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1207",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "6a5fa1dc1e9a34f8b8cc14ba23fa2c07b6c408990747b538e59f24e78a87f0a5",
+      "transcript_ref": "закажи печень свиная килограмм с доставкой на дом улица горбунова одиннадцать два сорок два",
+      "want_state": "needs_expiry",
+      "want_name": "печень свиная",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise",
+        "delivery_noise"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-48",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1245",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "fddfa19c35e68c41b22292939981ae644183d1e9a9677104367202917e967731",
+      "transcript_ref": "мне нужно молоко большая кружка литровая упаковка процента два и пять",
+      "want_state": "needs_expiry",
+      "want_name": "молоко большая кружка",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise",
+        "multi_item"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-49",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1264",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "8fa702272157a500286ebc435c8b8db1aeb9ac115b8c2b2292c5bfe775e8a380",
+      "transcript_ref": "закажи пельмени сибирская коллекция семьсот грамм иркутские",
+      "want_state": "needs_expiry",
+      "want_name": "пельмени сибирская коллекция",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-50",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1358",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "0f822e8207978002e4d43730935ab0200cb0a9c8c2bd5556b508e6b186dae038",
+      "transcript_ref": "закажи пельмени мираторг",
+      "want_state": "needs_expiry",
+      "want_name": "пельмени мираторг",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-51",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1412",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "0ea3198148d96f42e6fe8bce4d665bfd13ccbfd46a3a4489b0eae7a53c3e4060",
+      "transcript_ref": "корм китикет нужен два пакетика пюре",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "quantity_noise",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-52",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1602",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "a272f10e34c71daf4f79ba9c821c3180fb80b2ffd806ee21d2e22b0891e42a11",
+      "transcript_ref": "мы пролили сок на покрывало замените пожалуйста",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "polite",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-53",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1753",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "099419e349535d52d6d205fccd9d43ea5294b20e778a0af0123c982c629cf384",
+      "transcript_ref": "чистая линия ванильное мороженое стаканчик триста грамм",
+      "want_state": "needs_expiry",
+      "want_name": "мороженое чистая линия ванильное",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-54",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1877",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "5c048ae579de5be34bf54fbbbd43b0a60c5ab0e10446a2117de19dc9ee014dbc",
+      "transcript_ref": "йогурт агуша на дом заказать две упаковки",
+      "want_state": "needs_expiry",
+      "want_name": "йогурт агуша",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise",
+        "delivery_noise",
+        "brand"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-55",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1990",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "c5e799082883f3fa3d476ebfde70b37de691f49b7c3a50d7fa4d643a15384357",
+      "transcript_ref": "закажи сырный соус",
+      "want_state": "needs_expiry",
+      "want_name": "сырный соус",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-56",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2004",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "0270031980413a2e1d4bdf3237ebcad3e22720630cd9bd5eab0e799bf09fc7e4",
+      "transcript_ref": "закажи сосиски родионовские",
+      "want_state": "needs_expiry",
+      "want_name": "сосиски родионовские",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-57",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2110",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "6a5663a93131b84bd094765563a0db2e3b59abeb52182418b609bfc6ea6cd73b",
+      "transcript_ref": "заказать мясо цыпленка табака",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-58",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2356",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "c2937c3f6e50d5330087371c74c99e6fe325960f87cfe0aa8445d1661adf24f6",
+      "transcript_ref": "закажи мороженое снеговик пять штук",
+      "want_state": "needs_expiry",
+      "want_name": "мороженое снеговик",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-59",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2531",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "5fe5d61e12c8a70a2e4ab44c942146448b65b9fecee5e05ed5a0e894c2e7970f",
+      "transcript_ref": "закажи бекон в нарезке",
+      "want_state": "needs_expiry",
+      "want_name": "бекон в нарезке",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-60",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2613",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "a220756275d44d23c4f8762a09770b0d31f6d52429fe5f71808ee90a2042969c",
+      "transcript_ref": "оладьи на кефире",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-61",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2687",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "3d4336650ee0ef25a600028cf5ab095090ede975a8e0d6a1fb0d7de96b30c1f8",
+      "transcript_ref": "чипсы лейс большая со вкусом сыра",
+      "want_state": "needs_expiry",
+      "want_name": "чипсы лейс",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-62",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:3760",
+      "asset_path": "",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "e205c7b93d2c13ad834a722e98488f7c585f959461c4d2bd52b4281888b1618f",
+      "transcript_ref": "сири закажи мне свежих бананов один килограмм на дом",
+      "want_state": "needs_expiry",
+      "want_name": "бананы",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise",
+        "delivery_noise"
+      ],
+      "note": "public Golos crowd command; harder replacement for trivial single-token product case"
+    },
+    {
+      "id": "voice-63",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2785",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "47269cbf53998589ba3b39cf77e5069f3a751cb349f0975633559d4dbe5bfd6f",
+      "transcript_ref": "пельмени стародворье сливочные восемьсот грамм",
+      "want_state": "needs_expiry",
+      "want_name": "пельмени стародворье сливочные",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-64",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2859",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "c5e2b6be5efe888a5c1018395bdb102f642dd2d0f9e21a927e67508e708d3b38",
+      "transcript_ref": "алиса закажи чипсы принглс две упаковки со вкусом сметаны и лука и фанту два литра",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "quantity_noise",
+        "polite",
+        "multi_item",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-65",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2883",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "144aed556730b8cb80acc047bfac01c4fa257efd17e85507852571a0f2103735",
+      "transcript_ref": "купи пожалуйста хлеб",
+      "want_state": "needs_expiry",
+      "want_name": "хлеб",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "polite"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-66",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:2893",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "e387aa5edbdcd41e75a5f7642f4c586a57e7b29b5d2f8f12e44e752831b4f7ac",
+      "transcript_ref": "привет закажи мне пожалуйста одну бутылку молока домик в деревне три с половиной процента жирности",
+      "want_state": "needs_expiry",
+      "want_name": "молоко домик в деревне",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise",
+        "polite",
+        "brand"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-67",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:3396",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "f4e83b6a13f09b032d47fecf699d4099f2896d044d64414f9732ee7671d92492",
+      "transcript_ref": "куриные пельмени мираторг один килограмм заказать с бесплатной доставкой до дома",
+      "want_state": "needs_expiry",
+      "want_name": "пельмени мираторг",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise",
+        "delivery_noise",
+        "brand"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-68",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4531",
+      "asset_path": "",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "c7205524d5d403d61adbbb2c36d16a932d637c9f60e015c482c746c9c4410f2e",
+      "transcript_ref": "закажи бутылку молока простоквашино жирностью два с половиной процента один литр",
+      "want_state": "needs_expiry",
+      "want_name": "молоко простоквашино",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; harder replacement for trivial generic oil case"
+    },
+    {
+      "id": "voice-69",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:3615",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "fe1562260c4bbb98ab32e25c71dbd8370a99f224e6e7e3bf5fe574a80314f1ef",
+      "transcript_ref": "мороженое колибри пломбир",
+      "want_state": "needs_expiry",
+      "want_name": "мороженое колибри пломбир",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-70",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:3526",
+      "asset_path": "",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "1f47d3d406ff46821163e731ff796abdd610649daec11243b7e21a1014826564",
+      "transcript_ref": "яичницу с беконом и тосты с соком на завтрак закажи мне пожалуйста",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "multi_item",
+        "polite",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; harder replacement for trivial single-token water case"
+    },
+    {
+      "id": "voice-71",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:3891",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "e0588543bdd37a8704e6b64a442c9026f42f8f31436062cec71212d71bd1e26f",
+      "transcript_ref": "закажи пожалуйста котлеты петелинка сливочные",
+      "want_state": "needs_expiry",
+      "want_name": "котлеты петелинка сливочные",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "polite",
+        "brand"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-72",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:1396",
+      "asset_path": "",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "684ae9503c4f4db43abf82073277d61c3204adb5b7aaa27d36893bcd54c5d84c",
+      "transcript_ref": "закажи мне картофель запеченный под сыром и куриное бедро запеченное в соусе",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "multi_item",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; harder replacement for trivial single-token dumplings case"
+    },
+    {
+      "id": "voice-73",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:3999",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "55682ed6d831a2dd0748a7d812bb4e22751d159a0fc6fb826239acbc52f28ff7",
+      "transcript_ref": "пельмени цезарь классика с говядиной восемьсот грамм",
+      "want_state": "needs_expiry",
+      "want_name": "пельмени цезарь классика",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-74",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4012",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "a1156d0d11bcd444665a309d839fd0ba0f66170576104c8d497ddbb00d0545be",
+      "transcript_ref": "закажи сыр сулугуни одна пачка",
+      "want_state": "needs_expiry",
+      "want_name": "сыр сулугуни",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-75",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4052",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "889a2a9807512dc2a07e9663931e40b3c66f8b979f103c8958a406f25f3d40f1",
+      "transcript_ref": "закажи чай лисма",
+      "want_state": "needs_expiry",
+      "want_name": "чай лисма",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-76",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4072",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "46556866e45b892ddfcb0c5d6c20f324377e76a3e892082548ce094e0451e008",
+      "transcript_ref": "закажи мне йогурт",
+      "want_state": "needs_expiry",
+      "want_name": "йогурт",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-77",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4142",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "03727ca2e3dcfbbaee52ef6fb02f773f15aae5911f9a01d205ba7997d0063a18",
+      "transcript_ref": "алиса закажи мне кириешки с соусом терияки и кока колу",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "polite",
+        "multi_item",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-78",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4205",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "e991974962fad3ba6df8e825078d7a12855e37e018a96cc16175f6fdda0f64fb",
+      "transcript_ref": "мороженое село зеленое пломбир",
+      "want_state": "needs_expiry",
+      "want_name": "мороженое село зеленое пломбир",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-79",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4209",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "0dce8085d1dba49544fabb9e2887d4dd56c53a674ca443524ff84989d83ac4b8",
+      "transcript_ref": "закажи мне сосиски клинские молочные",
+      "want_state": "needs_expiry",
+      "want_name": "сосиски клинские молочные",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-80",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4256",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "d28951411f60ba4bb7dd4d0ae8bbe43ad8e70918beee3036830c9ca7f5ae0dca",
+      "transcript_ref": "привет можешь мне заказать ложкарев полкилограмма пельмени",
+      "want_state": "needs_expiry",
+      "want_name": "пельмени ложкарев",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise",
+        "polite",
+        "brand"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-81",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4258",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "b2882d8aa6b0e08f47951d0f43972182d2a448c5d508930e1f5b095e155aa42b",
+      "transcript_ref": "закажи мне хлеб",
+      "want_state": "needs_expiry",
+      "want_name": "хлеб",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-82",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4313",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "d62ad834e87bf36f661e630eef4f05354b06c83c8617f3114ee2451f066539a4",
+      "transcript_ref": "как заказать чай гринфилд на дом",
+      "want_state": "needs_expiry",
+      "want_name": "чай гринфилд",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "delivery_noise",
+        "brand"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-83",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4336",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "e1b35ca73d5341dfa76a7668c99c25ec25e62ba819dbbbd7f18b53d4cc8dd259",
+      "transcript_ref": "закажи пельмени с индейкой",
+      "want_state": "needs_expiry",
+      "want_name": "пельмени с индейкой",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-84",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4354",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "b60f1579bcc604591e8f17538a76530b9d2fd9116c4737350b92b93fd29066a7",
+      "transcript_ref": "закажи пельмени фроловские полкило начинка говядина",
+      "want_state": "needs_expiry",
+      "want_name": "пельмени фроловские",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-85",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4387",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "079ceff8ca767e28c324c55b73162828d00afba40c8526d6223b89f582d18adb",
+      "transcript_ref": "мороженое пломбир баскин роббинс",
+      "want_state": "needs_expiry",
+      "want_name": "мороженое пломбир баскин роббинс",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-86",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4395",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "a70598b9ee7fbfc45bfefe5e419136c3befa7204667578ef128368b7eebeb929",
+      "transcript_ref": "заказать молоко пестравка девятьсот миллилитров жирностью три и два процента",
+      "want_state": "needs_expiry",
+      "want_name": "молоко пестравка",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise",
+        "brand",
+        "multi_item"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-87",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4407",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "c4335a036f9446174d133e8911ff5ba07412ad4e1b7845b99deddba4c95ed3e2",
+      "transcript_ref": "липтон зеленый чай закажи пожалуйста",
+      "want_state": "needs_expiry",
+      "want_name": "липтон зеленый чай",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "polite"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-88",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4438",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "8b9078bdc027ca58ead87970d513fbddef938307f3ae79466552d1a4552be407",
+      "transcript_ref": "ассистент закажи мне белый хлеб с доставкой на дом",
+      "want_state": "needs_expiry",
+      "want_name": "белый хлеб",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "delivery_noise",
+        "polite"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-89",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4602",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "53e50a0a6b7b5c047846349b75e2f4c4bda5567e533bfcff80ba3e0bbb2b6e16",
+      "transcript_ref": "купить один литр молока",
+      "want_state": "needs_expiry",
+      "want_name": "молоко",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-90",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4645",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "b61cb675804f1983fbcaa123680c53b51645901afd9c7b18109e2e7061900085",
+      "transcript_ref": "хотела бы заказать продукты на дом сок голден виладж литровую упаковку томатный чипсы принглс большие со вкусом паприки какао несквик пятьсотграмовую банку и буханку хлеба белого",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "quantity_noise",
+        "delivery_noise",
+        "multi_item",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-91",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4745",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "6e48ce0d3634bada574258c6b07f752fb23692ae2b23eaabca5885d76ec0b2a6",
+      "transcript_ref": "масло подсолнечное золотая семечка добавь в корзину",
+      "want_state": "needs_expiry",
+      "want_name": "масло подсолнечное золотая семечка",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-92",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4762",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "2b2214005706cf9c7442ad7d5b731eab3bf2fe89afedc4f2f00102948b7b07cb",
+      "transcript_ref": "я хочу молоко бренда коровка из кореновки объемом в один литр жирность в три литра",
+      "want_state": "needs_expiry",
+      "want_name": "молоко коровка из кореновки",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "quantity_noise",
+        "brand"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-93",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4840",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "385d6289ec1b2d1827c1ef7246a757957d76d035ba3aa347453073377f784b6e",
+      "transcript_ref": "так мне нужны огурцы помидоры болгарский красный перец десяток яиц и молоко обезжиренное литр",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "quantity_noise",
+        "multi_item",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-94",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4843",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "536e705df8c77857e3528c8df39ca766c341896fb8c2a8520daf94337dd439a2",
+      "transcript_ref": "закажи мне мороженое филевское пломбир с вишней и кусочками миндаля и с корицей ведро пятьсот пятьдесят грамм",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "quantity_noise",
+        "multi_item",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-95",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:4962",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "92a88320c5108ea00b4ece3bcfe88e4315123c39c193f37a1dacef8ae5a21ae9",
+      "transcript_ref": "закажи мне колбасу черкашина из ленты",
+      "want_state": "needs_expiry",
+      "want_name": "колбаса черкашина",
+      "want_date": "",
+      "difficulty": "medium",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "single_product",
+        "brand"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-96",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:211",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "dfcff6889841aaeafe61488a98875ad5aa443ce9d29797b169d4c6d65dcf4447",
+      "transcript_ref": "афина сколько времени осталось до того как сработает мой будильник",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "polite",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-97",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:241",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "f3ff62a15587da0479e779577d88ba8ae687e6d09804c2d9cdad314351cf0104",
+      "transcript_ref": "открой сериал время приключений последняя серия",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-98",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:100",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "f05bf6468659ac90935dda8941563743366978b30128d60f3b9a82746c667172",
+      "transcript_ref": "открой на тв телеканал первый вегетарианский",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-99",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:101",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "59a927203c7e26e918b2c2dadce7638fb4c0383ad9188c7a16e4b4bd41602f94",
+      "transcript_ref": "сделай режим светомузыку на входном светильнике с датчиком движения в игровой",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    },
+    {
+      "id": "voice-100",
+      "dataset": "golos_crowd_commands",
+      "source_id": "train:102",
+      "source_page": "https://huggingface.co/datasets/bond005/sberdevices_golos_10h_crowd",
+      "license": "Public license with attribution and conditions reserved",
+      "sha256": "c97cc02f302aaaefa219f5b443105276624466b14f61e0fabdd4c6f031180741",
+      "transcript_ref": "найти телеканал ру тв на смотрешке",
+      "want_state": "reject",
+      "want_name": "",
+      "want_date": "",
+      "difficulty": "hard",
+      "tags": [
+        "public_audio",
+        "asr_command",
+        "reject",
+        "non_food"
+      ],
+      "note": "public Golos crowd command; expanded benchmark case"
+    }
+  ],
+  "review_hard": {
+    "text_ids": [
+      "text-003", "text-005", "text-010", "text-012", "text-017", "text-019", "text-024", "text-026",
+      "text-031", "text-033", "text-037", "text-040", "text-042", "text-045", "text-047", "text-050",
+      "text-052", "text-055", "text-057", "text-060", "text-064", "text-066", "text-071", "text-072",
+      "text-073", "text-074", "text-075", "text-076", "text-077", "text-078", "text-079", "text-080",
+      "text-081", "text-082", "text-083", "text-084", "text-085", "text-086", "text-087", "text-088",
+      "text-089", "text-090", "text-091", "text-092", "text-093", "text-094", "text-095", "text-096",
+      "text-097", "text-098"
+    ],
+    "voice_ids": [
+      "voice-05", "voice-06", "voice-14", "voice-17", "voice-27", "voice-28", "voice-29", "voice-30",
+      "voice-31", "voice-32", "voice-33", "voice-36", "voice-39", "voice-51", "voice-52", "voice-54",
+      "voice-57", "voice-60", "voice-64", "voice-67", "voice-68", "voice-70", "voice-72", "voice-77",
+      "voice-82", "voice-86", "voice-90", "voice-93", "voice-94", "voice-96", "voice-97", "voice-98",
+      "voice-99", "voice-100"
+    ]
+  }
+}

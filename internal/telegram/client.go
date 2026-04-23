@@ -128,6 +128,29 @@ func (c *Client) DeleteMessage(ctx context.Context, chatID, messageID int64) err
 	return nil
 }
 
+func (c *Client) DeleteMessages(ctx context.Context, chatID int64, messageIDs []int64) error {
+	compactIDs := compactInt64s(messageIDs)
+	if len(compactIDs) == 0 {
+		return nil
+	}
+	for _, chunk := range chunkInt64s(compactIDs, 100) {
+		startedAt := time.Now()
+		var response BaseResponse
+		if err := c.callJSON(ctx, "deleteMessages", DeleteMessagesRequest{
+			ChatID:     chatID,
+			MessageIDs: chunk,
+		}, &response); err != nil {
+			return err
+		}
+		c.logger.InfoContext(ctx, "telegram_delete_messages_completed", observability.LogAttrs(ctx,
+			"chat_id", chatID,
+			"message_count", len(chunk),
+			"duration_ms", time.Since(startedAt).Milliseconds(),
+		)...)
+	}
+	return nil
+}
+
 func (c *Client) PinMessage(ctx context.Context, chatID, messageID int64) error {
 	startedAt := time.Now()
 	var response BaseResponse
@@ -311,7 +334,7 @@ func (c *Client) callJSONOnce(ctx context.Context, method string, encoded []byte
 
 func (c *Client) shouldUseFreshConnection(method string) bool {
 	switch method {
-	case "sendMessage", "editMessageText", "deleteMessage", "pinChatMessage", "answerCallbackQuery":
+	case "sendMessage", "editMessageText", "deleteMessage", "deleteMessages", "pinChatMessage", "answerCallbackQuery":
 		return true
 	default:
 		return false
@@ -320,7 +343,7 @@ func (c *Client) shouldUseFreshConnection(method string) bool {
 
 func (c *Client) retryAttempts(method string) int {
 	switch method {
-	case "getUpdates", "editMessageText", "answerCallbackQuery", "deleteMessage", "pinChatMessage", "getFile":
+	case "getUpdates", "editMessageText", "answerCallbackQuery", "deleteMessage", "deleteMessages", "pinChatMessage", "getFile":
 		return 3
 	default:
 		return 1
@@ -364,11 +387,13 @@ func (c *Client) requestTimeout(method string) time.Duration {
 		return 20 * time.Second
 	case "sendMessage":
 		// Draft cards and confirmations are user-visible results of background work.
-		// Give Telegram more time here so finished OCR/LLM jobs and repeated /start
+		// Give Telegram more time here so finished media/LLM jobs and repeated /start
 		// dashboard refreshes do not fail just because the Bot API was briefly slow.
 		return 60 * time.Second
 	case "deleteMessage":
 		return 15 * time.Second
+	case "deleteMessages":
+		return 20 * time.Second
 	case "pinChatMessage":
 		// A slow pin leaves the user on an outdated dashboard and makes subsequent
 		// callback-driven tests race against stale UI. Give pinning extra room.
@@ -425,6 +450,44 @@ func isTelegramTransientRequestError(err error) bool {
 		strings.Contains(message, "bad record mac") ||
 		strings.Contains(message, "broken pipe") ||
 		strings.Contains(message, "http2: client connection lost")
+}
+
+func compactInt64s(values []int64) []int64 {
+	if len(values) == 0 {
+		return nil
+	}
+	seen := make(map[int64]struct{}, len(values))
+	out := make([]int64, 0, len(values))
+	for _, value := range values {
+		if value == 0 {
+			continue
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		out = append(out, value)
+	}
+	return out
+}
+
+func chunkInt64s(values []int64, size int) [][]int64 {
+	if len(values) == 0 {
+		return nil
+	}
+	if size <= 0 {
+		size = len(values)
+	}
+	chunks := make([][]int64, 0, (len(values)+size-1)/size)
+	for len(values) > 0 {
+		if len(values) <= size {
+			chunks = append(chunks, values)
+			break
+		}
+		chunks = append(chunks, values[:size])
+		values = values[size:]
+	}
+	return chunks
 }
 
 type redactedError struct {

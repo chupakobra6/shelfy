@@ -66,7 +66,7 @@ func TestTryHandleTextFastSkipsNonTextMessages(t *testing.T) {
 	}
 
 	handled, err := service.tryHandleTextFast(context.Background(), jobs.IngestPayload{
-		Kind: domain.MessageKindPhoto,
+		Kind: domain.MessageKindVoice,
 	})
 	if err != nil {
 		t.Fatalf("tryHandleTextFast() error = %v", err)

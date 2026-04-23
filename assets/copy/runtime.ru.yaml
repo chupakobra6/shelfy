@@ -19,11 +19,11 @@ labels:
   draft.button.confirm: "✅ Сохранить"
   draft.button.edit_name: "📝 Название"
   draft.button.edit_date: "📅 Срок"
-  draft.button.delete: "❌ Удалить"
   draft.button.cancel: "↩️ Отмена"
   draft.value.missing: "не указан"
+  draft.ai_review.pending: "🤖 Умное распознавание: уточняю карточку."
+  draft.ai_review.improved: "🤖 Умное распознавание: уточнил карточку."
   source_kind.text: "текст"
-  source_kind.photo: "фото"
   source_kind.voice: "голосовое"
   source_kind.audio: "аудио"
   product.status.active: "активный"
@@ -39,9 +39,9 @@ messages:
     Скоро истекают: <b>{{soon_count}}</b>
     Уже истекли: <b>{{expired_count}}</b>
     
-    Чтобы добавить продукт, просто отправь текст, фото или голосовое.
+    Чтобы добавить продукт, просто отправь текст или голосовое.
   ingest.processing: "⏳ Принял. Собираю карточку продукта."
-  ingest.unsupported: "⚠️ Такой формат я пока не понимаю. Отправь текст, фото или голосовое."
+  ingest.unsupported: "⚠️ Сейчас я принимаю только текст и голосовые. Фото пока отключены."
   draft.card: |
     🧾 <b>Новый продукт</b>
     
@@ -49,9 +49,8 @@ messages:
     Срок: <b>{{expires_on}}</b>
     Источник: <b>{{source_kind}}</b>
     
-    {{missing_fields}}
+    {{ai_review_block}}{{missing_fields}}
   draft.confirmed: "✅ Запомнил: <b>{{name}}</b> до <b>{{expires_on}}</b>."
-  draft.canceled: "🗑️ Отменил добавление."
   ingest.failed: "⚠️ Не смог разобрать продукт или срок. Попробуй еще раз или напиши текстом."
   draft.edit_name_prompt: "📝 Пришли следующим сообщением только название продукта."
   draft.edit_date_prompt: "📅 Пришли следующим сообщением только дату или фразу вроде «до пятницы»."
@@ -63,7 +62,7 @@ messages:
   dashboard.list_empty: |
     📭 <b>Пока пусто</b>
     
-    Добавь первый продукт: просто пришли текст, фото или голосовое.
+    Добавь первый продукт: просто пришли текст или голосовое.
   dashboard.list.title.active: "Активные продукты"
   dashboard.list.title.soon: "Скоро истекают"
   dashboard.list.header: "📋 <b>{{title}}</b>"
