@@ -14,7 +14,7 @@
   - `internal/scheduler` for digests, cleanup, and dev control endpoints
   - `internal/storage/postgres` for persisted behavior and query contracts
 - Treat `assets/copy/runtime.ru.yaml` as the canonical runtime copy catalog.
-- Treat `docs/message-inventory.ru.yaml` as the metadata/source-of-truth companion for copy work, not as a second runtime catalog.
+- Treat `docs/internal/message-inventory.ru.yaml` as the metadata/source-of-truth companion for copy work, not as a second runtime catalog.
 
 ## Project constraints
 - Keep generic Telegram E2E orchestration in the sibling `telegram-bot-e2e-test-tool` repo.
@@ -24,6 +24,7 @@
   - runtime-specific diagnostics such as `cmd/e2e-triage`
 - Keep runtime copy under `assets/`, not in `docs/` or `internal/`.
 - Prefer the existing Go-based `vosk-transcribe` command path; do not reintroduce repo-owned Python helpers for ASR tooling.
+- Keep the root `README.md` as the public GitHub-facing entrypoint. Internal notes, copy specs, benchmark notes, and local backlog items belong under `docs/internal/`.
 
 ## Commands
 - Install/update dependencies: `make setup`
@@ -51,5 +52,5 @@
 
 ## Documentation boundaries
 - Keep tracked docs in English unless the user explicitly wants another language.
-- Keep reusable setup and runtime guidance in `README.md` and `docs/*.md`.
+- Keep reusable setup and runtime guidance in `README.md`; keep internal development notes under `docs/internal/`.
 - Keep repo-specific agent guidance here concise and stable.

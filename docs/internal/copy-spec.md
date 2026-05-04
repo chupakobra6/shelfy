@@ -3,7 +3,7 @@
 This document is intended for a separate model that will generate all user-facing Russian copy for Shelfy.
 
 Runtime strings live in `assets/copy/runtime.ru.yaml`.
-Message metadata and scenario inventory live in `docs/message-inventory.ru.yaml`.
+Message metadata and scenario inventory live in `docs/internal/message-inventory.ru.yaml`.
 
 ## Product context
 

@@ -1,52 +1,49 @@
-# Shelfy
+<p align="center">
+  <img src="./assets/brand/shelfy-readme-header.svg" alt="Shelfy: Telegram bot for product expiry tracking" width="100%">
+</p>
 
-Shelfy is a personal Telegram bot for tracking product expiration dates with a low-noise UX.
+<h1 align="center">Shelfy</h1>
 
-The bot is built around one pinned dashboard, transient draft cards, and background pipelines for text and audio ingestion. The goal is to keep the chat clean while still making parsing, edits, digests, and cleanup observable and testable.
+<p align="center">
+  Personal Telegram bot for tracking product expiration dates without turning a chat into a command log.
+</p>
 
-## Highlights
+<p align="center">
+  <img alt="Go" src="https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white">
+  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-state-4169E1?logo=postgresql&logoColor=white">
+  <img alt="Docker Compose" src="https://img.shields.io/badge/Docker%20Compose-local%20runtime-2496ED?logo=docker&logoColor=white">
+  <img alt="Telegram Bot API" src="https://img.shields.io/badge/Telegram-Bot%20API-26A5E4?logo=telegram&logoColor=white">
+</p>
 
-- one pinned dashboard instead of a command-heavy chat UI
-- paginated dashboard product lists instead of unbounded keyboards
-- text, voice, and audio ingestion
-- transient drafts before save, with cleanup-first UX
-- morning digests and deterministic timed testing through dev controls
-- real Telegram E2E scenarios kept next to the product
+<p align="center">
+  <a href="#why-shelfy">Why Shelfy</a> ·
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#testing">Testing</a> ·
+  <a href="#repository-map">Repository map</a>
+</p>
 
-## What it does
+## Why Shelfy
 
-- keeps one pinned dashboard as the main control surface
-- accepts new products from normal incoming messages, not slash commands
-- builds transient draft cards before saving products
-- parses text, voice messages, and audio in background workers
-- sends morning digests and cleans up transient chat noise over time
-- supports deterministic timed testing through non-production dev controls
+Shelfy is built for a narrow household workflow: write down a product, keep its
+expiration date visible, and get a morning reminder when something needs
+attention.
 
-## Stack
+The bot uses a pinned Telegram dashboard as the main control surface. New
+products are added from ordinary text, voice messages, or audio files. Before a
+record is saved, Shelfy shows a transient draft card so the user can confirm or
+edit the parsed name and date.
 
-- Go services
-- PostgreSQL
-- Docker Compose for local runtime
-- Ollama on the host for LLM inference
-- Vosk `small-ru-0.22` for speech-to-text
-- shared runtime base image so app rebuilds do not reinstall ASR/runtime dependencies
+| Capability | What it gives |
+| --- | --- |
+| Pinned dashboard | One stable home screen for lists, soon-expiring products, stats, and settings. |
+| Draft-first input | Parsed data is confirmed before it becomes a product record. |
+| Text and voice ingestion | The same product draft flow works for typed text, Telegram voice, and audio files. |
+| Local speech path | `ffmpeg` and Vosk convert Russian speech to text inside the local runtime. |
+| Bounded LLM role | Ollama can clean noisy input, but deterministic code still validates the final draft. |
+| Real Telegram e2e tests | Product-owned scenarios are executed through a sibling Telegram test tool. |
 
-## Architecture
-
-- `migrate`
-  Applies Goose migrations once before long-running services start.
-- `telegram-api`
-  Receives Telegram updates, handles `/start`, dashboard callbacks, and enqueues background jobs.
-- `pipeline-worker`
-  Processes text/audio ingestion jobs, runs ASR plus deterministic parsing, creates draft sessions, and applies background cleaner updates.
-- `scheduler-worker`
-  Handles morning digests, staged cleanup, transient message deletion, and non-production control endpoints.
-- `postgres`
-  Stores application state, jobs, drafts, and debug metadata.
-
-More detail lives in [docs/architecture.md](./docs/architecture.md).
-
-## Quick start
+## Quick Start
 
 ```bash
 cp .env.example .env
@@ -55,106 +52,86 @@ make runtime-base
 make dev
 ```
 
-For a quick command overview:
+For the command list:
 
 ```bash
 make help
 ```
 
-Useful next reads:
+The local runtime expects:
 
-- [docs/architecture.md](./docs/architecture.md)
-- [docs/copy-spec.md](./docs/copy-spec.md)
-- [docs/manual-test-scenarios.md](./docs/manual-test-scenarios.md)
+- a filled `.env` with Telegram and database settings;
+- a host Ollama server reachable from Docker at
+  `http://host.docker.internal:11434`;
+- Vosk `small-ru-0.22` under `./models/vosk-model-small-ru-0.22`;
+- the shared runtime image `shelfy-runtime-base:vosk-lib-0.3.45-small-ru-0.22`.
 
-## Local runtime expectations
+`make dev` starts the Docker Compose stack. Use
+`make runtime-base-rebuild` only when ASR/runtime dependencies change.
 
-For local development the bot expects a native Ollama server on the host, reachable from Docker at `http://host.docker.internal:11434`.
-For Russian voice input the pipeline worker expects a Vosk model directory at `./models/vosk-model-small-ru-0.22`, mounted into the container as `/models/vosk-model-small-ru-0.22`.
-The heavy runtime layer is split out into `shelfy-runtime-base:vosk-lib-0.3.45-small-ru-0.22`.
-`make dev` and `make up` now only ensure that base image exists; they no longer force a rebuild of the heavy runtime layer on every loop.
-Use `make runtime-base-rebuild` only when you intentionally change ASR/runtime dependencies.
-If you run raw `docker compose` commands instead of `make`, build the base image once first with `make runtime-base`.
-If outbound network access requires a proxy, add standard `HTTP_PROXY` / `HTTPS_PROXY` / `ALL_PROXY` / `NO_PROXY` variables to `.env` so the containers inherit them.
+## Architecture
 
-Current runtime dependencies are already close to the minimum safe set for existing flows:
+Shelfy runs as a small set of Go processes over PostgreSQL:
 
-- `ffmpeg` for voice/audio transcoding
-- `libvosk.so` for offline speech-to-text
-- `libatomic1` because `libvosk.so` needs it on this platform
-- `libstdc++6` because upstream `libvosk.so` links against it
+| Process | Responsibility |
+| --- | --- |
+| `migrate` | Applies SQL migrations before long-running services start. |
+| `telegram-api` | Receives Telegram updates, handles `/start`, dashboard callbacks, and enqueueing. |
+| `pipeline-worker` | Processes text/audio ingestion jobs, creates draft sessions, and applies cleaner updates. |
+| `scheduler-worker` | Sends morning digests, performs cleanup, and exposes non-production test controls. |
+| `postgres` | Stores users, products, drafts, jobs, digest messages, ingest events, and virtual time. |
 
-The app image stays thin and does not carry Python; `vosk-transcribe` is now a small Go binary linked against `libvosk`.
+The application keeps time-based behavior testable through `app_clock` and
+non-production control endpoints. Business logic still runs through the same
+storage, scheduler, and Telegram paths used by the bot.
 
-## Main commands
+## Testing
+
+Run package tests:
 
 ```bash
-make help
-make runtime-base
-make runtime-base-rebuild
-make dev
-make down
-make logs
-make lint
 make test
+```
+
+Run formatting/lint check:
+
+```bash
+make lint
+```
+
+Regenerate typed SQL code after schema or query changes:
+
+```bash
 make generate
 ```
 
-Use `make logs` to watch structured runtime logs after `make dev`. When you change storage queries or the schema snapshot, regenerate typed DB code with `make generate`.
+Shelfy keeps only product-owned Telegram e2e assets in this repository:
 
-## Telegram E2E
+- [`e2e/telegram/scenarios`](./e2e/telegram/scenarios) contains interaction
+  scenarios;
+- [`e2e/telegram/date-cases.txt`](./e2e/telegram/date-cases.txt) contains a
+  reusable product/date phrase matrix.
 
-`Shelfy` keeps only Telegram E2E assets in this repo:
+Execution, fixtures, transcripts, and generic orchestration live in the sibling
+`telegram-bot-e2e-test-tool` repository.
 
-- scenario files under `e2e/telegram/scenarios/`
-- text case corpora such as `e2e/telegram/date-cases.txt`
-
-All execution, orchestration, fixtures, transcripts, and helper commands live in the sibling `telegram-bot-e2e-test-tool` repository.
-
-Default triage order after an automated E2E run:
-
-1. open `../telegram-bot-e2e-test-tool/artifacts/transcripts/last-run-summary.txt`
-2. if failed, open `../telegram-bot-e2e-test-tool/artifacts/transcripts/last-failure.txt`
-3. if still blocked, run `make e2e-last-failure`
-4. only then open raw transcripts or full `docker compose logs`
-
-Typical flows:
+Typical run:
 
 ```bash
-make -C ../telegram-bot-e2e-test-tool fixtures
 make -C ../telegram-bot-e2e-test-tool run-scenario \
   CHAT=@your_bot_username \
-  SCENARIO="$PWD/e2e/telegram/scenarios/01-start-and-stale-dashboard.jsonl $PWD/e2e/telegram/scenarios/02-dashboard-navigation-and-settings.jsonl"
+  SCENARIO="$PWD/e2e/telegram/scenarios/00-home-ready.jsonl $PWD/e2e/telegram/scenarios/03-text-fast-path-complete.jsonl"
+```
 
+Date matrix run:
+
+```bash
 make -C ../telegram-bot-e2e-test-tool run-text-matrix \
   CHAT=@your_bot_username \
   CASES="$PWD/e2e/telegram/date-cases.txt"
 ```
 
-Command contract:
-
-- `/start` is bootstrap + idempotent and no longer recreates the dashboard on every repeat.
-- `/dashboard` is the explicit recovery/home command for the active dashboard.
-
-Deterministic stateful blocks:
-
-- `POST /control/e2e/reset` is available only in non-production when `SHELFY_ENABLE_DEV_CONTROL_API=true` and `SHELFY_E2E_TEST_USER_ID` is configured.
-- Generic block orchestration now lives in the sibling Telegram E2E tool, not in Shelfy.
-- Shelfy keeps only product-owned control primitives such as `/control/e2e/reset`, `/control/time/*`, `/control/jobs/run-due`, and `/control/digests/reconcile`.
-
-Example timed setup block:
-
-```bash
-make -C ../telegram-bot-e2e-test-tool run-block \
-  CHAT=@your_bot_username \
-  CONTROL_URL=http://127.0.0.1:8081 \
-  RUN_PREFIX=demo123 \
-  SCENARIO="$PWD/e2e/telegram/scenarios/00-home-ready.jsonl $PWD/e2e/telegram/scenarios/11-timed-digest-setup.jsonl.tmpl"
-```
-
-`00-home-ready` is the bootstrap helper. Some navigation scenarios, such as dashboard-only flows, are intentionally not standalone after a hard reset and should be composed behind `00-home-ready` or `/dashboard` recovery first.
-
-Compact triage helpers in this repo:
+Useful local triage:
 
 ```bash
 make e2e-last-failure
@@ -162,16 +139,45 @@ make e2e-trace-logs TRACE_ID=74ca98dc944f13f4
 make e2e-trace-logs SCENARIO_LABEL=02-dashboard-navigation-and-settings
 ```
 
-`go run ./cmd/e2e-triage trace-logs` slices recent container logs by time and optional `trace_id` / `update_id` / `job_id`.
-`go run ./cmd/e2e-triage last-failure-pack` builds a compact pack under `tmp/e2e-failure-pack/` from the latest tool failure artifact and normalized service log slices.
+## Ingest Benchmark
 
-## Repository map
+Shelfy includes a product-specific text and voice ingestion benchmark:
 
-- Runtime user-facing copy lives in `assets/copy/runtime.ru.yaml`.
-- Copy-generation requirements live in `docs/copy-spec.md`, and the message inventory for copy work lives in `docs/message-inventory.ru.yaml`.
-- Product backlog lives in `docs/todo.md`.
-- Manual Telegram verification scenarios live in `docs/manual-test-scenarios.md`.
-- Automated Telegram E2E scenarios live in `e2e/telegram/scenarios/`.
-- Text matrices for parsing regressions live in `e2e/telegram/date-cases.txt`.
-- Timed test controls are exposed only when `SHELFY_ENABLE_DEV_CONTROL_API=true`.
-- `sqlc` query sources live in `internal/storage/postgres/queries`, and generated code is committed in `internal/storage/postgres/sqlcgen`.
+```bash
+make benchmark-ingest-smoke ARGS='-include voice -dataset-setup'
+make benchmark-ingest-prod ARGS='-dataset-setup -emit-report'
+```
+
+The benchmark corpus lives next to the package under
+`internal/ingest/testdata/`. That location follows the Go `testdata`
+convention and keeps parser fixtures close to the code that owns them.
+
+## Repository Map
+
+| Path | Purpose |
+| --- | --- |
+| `cmd/telegram-api` | Main Telegram bot process. |
+| `cmd/pipeline-worker` | Background text/audio ingestion process. |
+| `cmd/scheduler-worker` | Digest and cleanup scheduler. |
+| `cmd/migrate` | Database migration entrypoint. |
+| `cmd/vosk-transcribe` | Small platform-specific ASR helper binary. |
+| `cmd/ingest-benchmark` | Benchmark CLI split into runtime, evaluation, and report files. |
+| `cmd/e2e-triage` | Compact local triage helpers for failed e2e runs. |
+| `internal/bot` | Telegram UX flow, callbacks, dashboard, and drafts. |
+| `internal/ingest` | Text/audio parsing, cleaner pipeline, ASR integration, and benchmark fixtures. |
+| `internal/scheduler` | Timed digests, cleanup, and non-production control API. |
+| `internal/storage/postgres` | Queries, generated `sqlc` code, and persistence adapters. |
+| `assets/copy` | Runtime Russian copy catalog. |
+| `assets/asr` | ASR grammar assets. |
+| `assets/brand` | GitHub/README visual assets. |
+| `e2e/telegram` | Product-owned e2e scenarios and input matrices. |
+| `docs/internal` | Maintainer notes for copy work, benchmarks, cleaner tuning, and backlog. |
+
+## Notes For Maintainers
+
+- Runtime user-facing copy lives in
+  [`assets/copy/runtime.ru.yaml`](./assets/copy/runtime.ru.yaml).
+- Copy metadata lives in
+  [`docs/internal/message-inventory.ru.yaml`](./docs/internal/message-inventory.ru.yaml);
+  it is not a second runtime catalog.
+- Local artifacts are written under `tmp/` and are intentionally ignored.

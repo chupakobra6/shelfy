@@ -56,7 +56,7 @@ Template:
 
 Seed file:
 
-- [review_cleaner_seed.jsonl](/Users/igor/projects/shelfy/internal/ingest/testdata/review_tuning/review_cleaner_seed.jsonl)
+- [`review_cleaner_seed.jsonl`](../../internal/ingest/testdata/review_tuning/review_cleaner_seed.jsonl)
 
 ## What To Send Back
 
